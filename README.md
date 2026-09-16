@@ -19,11 +19,17 @@ everyone who clones it then gets the skills with no install step:
 ```json
 {
   "extraKnownMarketplaces": {
-    "maxekman": { "source": "github", "repo": "maxekman/skills" }
+    "maxekman": {
+      "source": { "source": "github", "repo": "maxekman/skills" },
+      "autoUpdate": true
+    }
   },
   "enabledPlugins": { "skills@maxekman": true }
 }
 ```
+
+Note the doubled `source` key — the outer one holds the source *object*, and the inner
+one names its type. A flat `{ "source": "github", "repo": ... }` fails settings validation.
 
 ## The skills
 
