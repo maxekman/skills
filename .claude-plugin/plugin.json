@@ -1,0 +1,19 @@
+{
+  "name": "skills",
+  "version": "0.1.0",
+  "description": "Version control and delivery workflow for Jujutsu (jj) users: commit splitting, stacked PRs, Linear/GitHub issue flow, local task tracking, and plan stress-testing.",
+  "author": {
+    "name": "Max Ekman",
+    "url": "https://github.com/maxekman"
+  },
+  "repository": "https://github.com/maxekman/skills",
+  "license": "Apache-2.0",
+  "keywords": ["jj", "jujutsu", "version-control", "pull-requests", "linear", "github-issues", "workflow"],
+  "skills": [
+    "./skills/jj",
+    "./skills/pr",
+    "./skills/task",
+    "./skills/todo",
+    "./skills/grill-me"
+  ]
+}

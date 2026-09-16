@@ -1,0 +1,17 @@
+{
+  "name": "maxekman",
+  "owner": {
+    "name": "Max Ekman",
+    "url": "https://github.com/maxekman"
+  },
+  "description": "Max Ekman's Claude Code skills — a jj-based version control and delivery workflow.",
+  "plugins": [
+    {
+      "name": "skills",
+      "source": "./",
+      "description": "Version control and delivery workflow for Jujutsu (jj) users: commit splitting, stacked PRs, Linear/GitHub issue flow, local task tracking, and plan stress-testing.",
+      "category": "productivity",
+      "keywords": ["jj", "jujutsu", "version-control", "pull-requests", "linear", "workflow"]
+    }
+  ]
+}
