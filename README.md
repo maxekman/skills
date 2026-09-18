@@ -85,6 +85,16 @@ one names its type. A flat `{ "source": "github", "repo": ... }` fails settings 
 > tell you. If you have been carrying your own `jj` or `pr` skill, delete it after
 > confirming the plugin loaded.
 
+Releases are automatic. Every merge to `main` reads the conventional-commit types that landed
+and bumps the plugin version accordingly — a fix is a patch, a new skill a minor, a removed or
+renamed skill a major. Docs-only changes ship without a release. Each one is tagged
+`skills--vX.Y.Z` and published to [Releases](https://github.com/maxekman/skills/releases).
+
+That is what `autoUpdate` depends on: the installer caches the plugin under its manifest
+version and skips any update reporting a version it already has, so a change only reaches you
+once a release has gone out. Pre-1.0, expect breaking changes to arrive as major bumps rather
+than as a stable `1.x` promise.
+
 ## Making them operational
 
 Installing the skills is the easy half. A skill nobody invokes is inert, and in practice
