@@ -11,12 +11,12 @@ The connected server is `linear-server` (Linear's official remote MCP). Its tool
 | Create / update  | `mcp__linear-server__save_issue`        | yes         |
 | Read comments    | `mcp__linear-server__list_comments`     | yes         |
 | Add comment      | `mcp__linear-server__save_comment`      | yes         |
-| Workflow states  | `mcp__linear-server__list_issue_statuses` | prompts   |
-| Projects         | `mcp__linear-server__list_projects`     | prompts     |
+| Workflow states  | `mcp__linear-server__list_issue_statuses` | allowlist it |
+| Projects         | `mcp__linear-server__list_projects`     | allowlist it |
 
-`save_issue` is an upsert: omit `id` to create, pass `id` to update. Updating a long description takes `patch` (a list of `replace` / `prepend` / `append` ops) rather than resending the whole body. There is no separate create/update pair — `create_issue` and `update_issue` were folded into it, and `list_my_issues` is gone; use `list_issues` with `assigned:me`.
+`save_issue` is an upsert: omit `id` to create, pass `id` to update. Updating a long description takes `patch` (a list of `replace` / `prepend` / `append` ops) rather than resending the whole body. There is no separate create/update pair — `create_issue` and `update_issue` were folded into it, and `list_my_issues` is gone; use `list_issues` and filter to the current user from `get_user`.
 
-The "prompts" rows aren't in `settings.json` `permissions.allow`, so they interrupt for approval. Reading and writing issues and comments is on the critical path for `/task implement`, so those are allowlisted; the rest are rare enough that a prompt is the right cost.
+Whether a tool prompts depends on your own `settings.json` `permissions.allow`. Reading and writing issues and comments is on the critical path for `/task implement`, so allowlist those. **`list_issue_statuses` belongs on that list too** — the write contract below calls it before every status change, and an approval prompt on that path is the thing that tempts you into guessing a state name instead. All three marked "allowlist it" are read-only lookups.
 
 ## Identifiers
 
@@ -28,8 +28,28 @@ Full URLs are **not** accepted as an id. Parse `linear.app/<workspace>/issue/<ID
 
 Linear generates a branch name per issue, exposed as `gitBranchName` on the issue. Prefer it verbatim: it honors the user's own branch-format setting and round-trips cleanly when a PR is reopened or rebased. Its default shape is `<user>/<id-lower>-<title-slug>`, and that title slug is the same one already sitting in the issue URL — so a pasted link gives you the branch name with no extra call. `/pr` step 3 consumes this.
 
-## Query syntax
+## Querying
 
-Linear filters support: `assigned:me`, `status:"In Progress"`, `priority:high`, `project:"Name"`, `updated:-3d`. Combine freely.
+`list_issues` takes structured arguments — `state`, `project`, `team`, `parentId`, `createdAt`, `includeArchived`, `orderBy`, `limit`, `fields` — and filters on those. Its `query` argument is **free-text semantic search**, not a filter language: use it to find issues *about* something, not to express `assigned:me`.
+
+`fields` is a strict enum and an unknown value fails the whole call. The useful ones here: `id`, `title`, `description`, `status`, `statusType`, `priority`, `assignee`, `labels`, `project`, `projectMilestone`, `parentId`, `url`, `gitBranchName`, `createdAt`, `updatedAt`.
+
+Branch logic on **`statusType`** — Linear's fixed category (`triage`, `backlog`, `unstarted`, `started`, `completed`, `canceled`) — and show `status`, the team's own name, to the user. `status` is not portable: one team's "In Progress" is another's "Doing". "Is it finished?" is `statusType in (completed, canceled)`, never `status == "Done"`.
 
 If the MCP server is unavailable or auth has expired, tell the user to check their Linear MCP connection — don't fall back to scraping `linear.app` over HTTP.
+
+## Write contract
+
+Inline rather than in a lazily-read reference, for the same reason `implement.md` keeps its delivery phase inline: by the time a status write happens, nothing will prompt you to go read another file. Each rule is here because it has already failed in practice.
+
+**1. Resolve the state before writing it.** Call `list_issue_statuses` for the team and match the requested state against the real list — on `statusType` first, then name. No match means stop and report the available states; it does not mean send the guess anyway. Guessed state names are the largest single cause of a status change that never happened.
+
+**2. Never bundle `patch` with `state`.** `save_issue` is atomic: a `replace` op whose `old_string` no longer matches returns *"Patch failed, nothing was saved"* and **the state change dies with it**. Send two calls — patch first, state second. A status write should be the smallest call you can make: `id` and `state`, nothing else.
+
+**3. Read the status back.** `save_issue` returns the saved issue with its `status` field, so verification costs no extra call. Matches what you asked → report it. Differs, or no `status` in the response, or the response is an `{"error": …}` object or an `Error:` string → **the write failed**: say so, name the issue, and quote what came back. Never narrate a status change you did not confirm.
+
+**4. Mind the preconditions.** `Duplicate` returns HTTP 400 — *"Issues can only be moved to a duplicate state when a duplicate issue relation exists"* — unless `duplicateOf` was set in an **earlier** call. Set the relation, confirm it, then move the state.
+
+## Beyond one issue
+
+This file covers single-issue operations. Ranking a backlog, deciding where a new issue belongs, or cleaning up priorities and stale relations across many issues is `/backlog` — it carries the priority rubric and the rank contract that stand in for Linear's missing `sortOrder`.

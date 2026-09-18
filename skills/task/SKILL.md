@@ -37,7 +37,7 @@ Show issues assigned to the current user, grouped by status.
 - `/task show <id>` — detailed view of a single issue.
 
 ### Update
-- `/task update <id> status <state>` — move through workflow.
+- `/task update <id> status <state>` — move through workflow. Follow the write contract in `references/linear.md`: resolve the state name first, never send it alongside a `patch`, and read the returned `status` back before reporting the change.
 - `/task comment <id> <text>` — add a comment.
 
 ### Break Down
@@ -55,10 +55,12 @@ Not every issue ends in code. Spikes, research, and scoping issues land findings
 
 If the work needs a multi-step local breakdown as you build, `/todo` is the local-task counterpart — `/task` knows about the tracker issue, `/todo` tracks the implementation steps.
 
+For anything spanning more than one issue — what to work on next, where a new issue belongs, grooming statuses and priorities in bulk — `/backlog` is the plural counterpart. Reach for it before `/task create` when the placement isn't obvious, and after finishing work when the backlog needs a pass.
+
 ## When to Read References
 
 - `references/implement.md` — args contain `implement <id-or-url>`.
-- `references/linear.md` — backend is Linear; covers MCP tool patterns and query syntax.
+- `references/linear.md` — backend is Linear; covers MCP tool patterns, query arguments, and the write contract for status changes. Read it before any `state` write.
 - `references/github.md` — backend is GitHub Issues; covers the full `gh issue` command table and filter flags.
 
 The basic verbs (list/create/view/edit/comment/close) are predictable — go straight to the command. Read the backend reference when you need full query syntax or a less-common flag.
@@ -67,7 +69,7 @@ The basic verbs (list/create/view/edit/comment/close) are predictable — go str
 
 - Never delete or close issues without explicit user confirmation.
 - Never bulk-update without confirmation.
-- Verify an issue exists before modifying it.
+- Verify an issue exists before modifying it, and verify the write landed after it — for Linear, that means comparing the `status` on the `save_issue` response against what you asked for. An unconfirmed write is a failed write; report it as one.
 - Don't put secrets or sensitive data in issue bodies.
 - `implement`'s context phase is read-only — never modifies files or mutates tracker state.
 - `implement`'s delivery phase commits and opens PRs on its own once its gate passes, but still never writes to the tracker unprompted. Creating follow-up issues or posting findings as a comment needs explicit confirmation.
