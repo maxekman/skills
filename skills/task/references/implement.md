@@ -23,6 +23,8 @@ Linear's "Copy link" and copy-as-markdown produce several shapes. Normalize befo
 | GitHub URL | `https://github.com/<owner>/<repo>/issues/42` |
 | Bare GitHub ref | `#42` or `42` (repo inferred from cwd) |
 
+An argument matching none of these is a **description of the work**, not a reference. `find-or-create.md` resolves it to an issue — adopted or created — and rejoins this file at step 3.
+
 ## Step 1 — Parse the reference
 
 Linear issue URLs are `linear.app/<workspace>/issue/<ID>/<slug>`. Keep all three parts — each earns its place later:
@@ -135,6 +137,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 
 **Gate — all must hold:**
 
+- The tracker issue exists. It normally does, but when the work started from a description the issue is created on plan approval, and a skipped approval step surfaces here — `/pr` has nothing to attach a PR to without it. Create it now rather than committing first.
 - Every **Done when** line is satisfied.
 - The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
 - New behavior has the tests a reviewer would ask for, or the repo demonstrably doesn't test that area.
