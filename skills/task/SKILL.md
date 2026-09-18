@@ -29,7 +29,9 @@ If both are available, prefer whichever the project actively uses. When uncertai
 Show issues assigned to the current user, grouped by status.
 
 ### Create
-`/task create <title>` — new issue. Infer project/repo from context.
+`/task create <title>` — new issue. Run the placement pass in `references/placement.md` first: it
+picks the project and labels from what the workspace already uses, and says when the choice is too
+open to settle without asking.
 
 ### Search / List / Show
 - `/task list` or `/task mine` — your assigned issues.
@@ -38,10 +40,11 @@ Show issues assigned to the current user, grouped by status.
 
 ### Update
 - `/task update <id> status <state>` — move through workflow. Follow the write contract in `references/linear.md`: resolve the state name first, never send it alongside a `patch`, and read the returned `status` back before reporting the change.
+- `/task update <id> label <labels>` — apply labels. `addLabels` rather than `labels`, so labels someone else set survive, and only names the tracker already defines. Rules in `references/placement.md`.
 - `/task comment <id> <text>` — add a comment.
 
 ### Break Down
-`/task break down <id>` — read the issue, split into smaller subtasks. Each independently completable. Link parent-child where the backend supports it.
+`/task break down <id>` — read the issue, split into smaller subtasks, each independently completable. Link them to the parent: `parentId` on Linear, `--parent` on GitHub. Children inherit nothing, so carry the parent's project and labels down to each — see `references/placement.md`.
 
 ### Implement
 `/task implement <id-or-url-or-description>` — carry work from a tracker reference, or from a plain description of what you want built, to a merged-ready PR. Two phases:
@@ -63,16 +66,18 @@ For anything spanning more than one issue — what to work on next, where a new 
 
 - `references/find-or-create.md` — `implement`'s argument is prose rather than a tracker ID or URL.
 - `references/implement.md` — args contain `implement`. The reference path starts at step 1; the description path rejoins at step 3.
+- `references/placement.md` — creating an issue, breaking one down, or changing what an issue is filed under. Carries the project and label discovery pass, and the parent-child mechanics.
 - `references/linear.md` — backend is Linear; covers MCP tool patterns, query arguments, and the write contract for status changes. Read it before any `state` write.
 - `references/github.md` — backend is GitHub Issues; covers the full `gh issue` command table and filter flags.
 
-The basic verbs (list/create/view/edit/comment/close) are predictable — go straight to the command. Read the backend reference when you need full query syntax or a less-common flag.
+The basic verbs (list/view/edit/comment/close) are predictable — go straight to the command. Creating is the exception now that it places as well. Read the backend reference when you need full query syntax or a less-common flag.
 
 ## Safety
 
 - Never delete or close issues without explicit user confirmation.
 - Never bulk-update without confirmation.
 - Verify an issue exists before modifying it, and verify the write landed after it — for Linear, that means comparing the `status` on the `save_issue` response against what you asked for. An unconfirmed write is a failed write; report it as one.
+- Never create a label, project, or team to satisfy a guess. An issue missing a label is ordinary; a workspace carrying an invented one is somebody else's cleanup.
 - Don't put secrets or sensitive data in issue bodies.
 - `implement`'s context phase is read-only — never modifies files or mutates tracker state. That holds for the description form's tracker search too; the issue it creates is written only after the plan is approved, never from inside plan mode.
 - `implement`'s delivery phase commits and opens PRs on its own once its gate passes, but still never writes to the tracker unprompted. Creating follow-up issues or posting findings as a comment needs explicit confirmation.

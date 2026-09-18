@@ -70,12 +70,15 @@ confirmation, verify. Scope to a project or team — a whole-workspace groom is 
 review in one go. See `references/grooming.md`.
 
 ### `place <id-or-title>`
-Where does this belong? Answers four things: project, milestone, priority tier (named against
-the neighbours it would sit among, not in the abstract), and which `blockedBy` edges it needs.
+Where does this belong? Answers five things: project, milestone, labels, priority tier (named
+against the neighbours it would sit among, not in the abstract), and which `blockedBy` edges it
+needs.
 
-Run this *before* `/task create` for new work. Placing an issue at creation is the only way it
-lands somewhere deliberate — Linear has no "insert here", so an issue created without a
-priority and project is exactly the one that turns up in a random spot later.
+Reach for it *before* `/task create` when the placement isn't obvious — several projects are
+plausible, the work spans them, or it is the first of its kind. `/task` places the clear-cut case
+itself. Either way it lands somewhere deliberate, which matters because Linear has no "insert
+here": an issue created without a priority and project is exactly the one that turns up in a
+random spot later.
 
 ### `triage`
 Issues with `statusType: triage`, or missing priority or project. For each, propose a home —
