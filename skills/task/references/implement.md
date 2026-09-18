@@ -44,7 +44,7 @@ Then dispatch:
 ## Step 2 — Fetch the issue
 
 - **Linear**: `mcp__linear-server__get_issue` with the identifier (`ACME-407`). Comments come from `mcp__linear-server__list_comments`. Capture title, state, assignee, labels, priority, description, comments, linked/related issues, parent, sub-issues — and **`gitBranchName` if the response carries it**.
-- **GitHub**: `gh issue view <number> --json number,title,state,assignees,labels,body,comments,milestone`. If the URL named a different repo than cwd, pass `--repo <owner>/<repo>`.
+- **GitHub**: `gh issue view <number> --json number,title,state,assignees,labels,body,comments,milestone,parent,subIssues`. If the URL named a different repo than cwd, pass `--repo <owner>/<repo>`.
 
 **Pin the branch name now, while the issue data is in front of you.** `/pr` step 3 looks for exactly this and uses it verbatim, so it has to appear in your output:
 
@@ -149,7 +149,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 - Any gate condition fails. Say precisely which one and what is left.
 - The change touches secrets, credentials, DB migrations, infra/deploy config, or auth. These are cheap to review before a PR exists and expensive to unwind after.
 - The deliverable was **findings** and no code or docs changed — present the findings and offer to post them to the tracker. Posting is outward-facing, so ask first.
-- The deliverable was **follow-up issues** — list the issues you propose (title + one-line body each) and ask before creating any. `/task create` mutates the tracker; that stays a human decision.
+- The deliverable was **follow-up issues** — list the issues you propose (title + one-line body each), as sub-issues of the current one, and ask before creating any. `/task create` mutates the tracker; that stays a human decision.
 
 **On a pass, hand off in order:**
 

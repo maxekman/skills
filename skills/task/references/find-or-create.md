@@ -69,15 +69,20 @@ a way it has already failed:
 2. Resolve the team — `list_teams`, or infer it from the project in context.
 3. `list_issue_statuses` for that team → the state whose `statusType` is `started`. Resolve it;
    never send `"In Progress"` on faith, because team state names are not portable.
-4. `save_issue` with no `id`: `title`, `description`, `team`, `assignee`, `state`, `priority`.
-   Priority 3 (Medium) unless the description argues otherwise — that is the documented default for
-   a new issue. Sending `state` on a create is safe: the contract's rule against bundling exists
-   because a stale `patch` swallows the state change with it, and a create carries no `patch`.
-5. Read `status` and `assignee` back off the response. A mismatch, a missing `status`, an
+4. Resolve placement per `placement.md` — the project, and the labels the workspace actually
+   defines. Skip it when the answer is already settled: an adopted parent's project, or a
+   convention you read earlier this session.
+5. `save_issue` with no `id`: `title`, `description`, `team`, `assignee`, `state`, `priority`, plus
+   `project` and `labels` when step 4 produced them. Priority 3 (Medium) unless the description
+   argues otherwise — that is the documented default for a new issue. Sending `state` on a create
+   is safe: the contract's rule against bundling exists because a stale `patch` swallows the state
+   change with it, and a create carries no `patch`.
+6. Read `status` and `assignee` back off the response. A mismatch, a missing `status`, an
    `{"error": …}` object or an `Error:` string all mean the write failed — say so and quote what
    came back. If the issue exists but the state didn't take, retry as a bare `id` + `state` call
-   rather than creating a second issue.
-6. Capture `id`, `url` and `gitBranchName`. These feed the branch name.
+   rather than creating a second issue. Same for a project or label that didn't land: fix it with a
+   follow-up `save_issue` on the `id`, never by creating a second issue.
+7. Capture `id`, `url` and `gitBranchName`. These feed the branch name.
 
 Write the issue in the house style from `SKILL.md`: an imperative title of 3-7 words, and a
 description that states problem plus context in one or two sentences. The prose you were handed is
@@ -95,7 +100,7 @@ on that change, and the change becomes your first commit once you describe it. T
 lives in the bookmark name, where `/pr` finds it without any help from the transcript. If the work
 is abandoned, `jj bookmark delete <name>` cleans up.
 
-**GitHub**: `gh issue create --title "<title>" --body "<body>" --assignee @me`, then read the number
+**GitHub**: `gh issue create --title "<title>" --body "<body>" --assignee @me --label "<resolved>"`, then read the number
 from the returned URL. GitHub Issues has no in-progress state — the only analogue is a project
 board, which `gh issue` cannot drive. Apply an in-progress label if `gh label list` shows one;
 otherwise say plainly that there is no status to move, and continue. Don't narrate a state change
