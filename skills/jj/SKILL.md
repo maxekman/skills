@@ -63,6 +63,7 @@ If a `TODO.md` is in the diff and your change clearly resolves an open `- [ ]` i
 ## Commit Message Format
 
 - **Conventional commits**: `type(scope): description`. Common types: `feat`, `fix`, `chore`, `docs`, `ci`, `dev`, `test`, `refactor`. Check `jj log` for project-specific scopes.
+- **Breaking changes**: mark with `!` before the colon (`feat(api)!: drop v1 tokens`) or a `BREAKING CHANGE: <what broke>` footer in the body. Release tooling reads these to pick the version bump, so an unmarked breaking change ships as a patch.
 - **50/72**: title ≤50 chars, body lines ≤72 chars.
 - **Title**: imperative, describes the *outcome*, not the mechanism. No filenames or function names — the diff already shows those.
 - **Body** (when needed): present-tense prose. Explain how the approach works conceptually and why it improves things. No bullet lists, no filenames, no function signatures. See `references/commit-style.md` for examples.
