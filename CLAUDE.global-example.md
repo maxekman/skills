@@ -2,7 +2,7 @@
   Example ~/.claude/CLAUDE.md — copy to that path and adapt.
 
   This is close to the file I actually run, generalized slightly: the skills
-  section lists all five skills this repo ships, where mine had grown to mention
+  section lists all six skills this repo ships, where mine had grown to mention
   only the three I reach for most. Everything else is as-is, opinions included.
 
   Keep your own version short. It loads into every session in every project, so
@@ -25,6 +25,7 @@
 Invoke autonomously when the trigger fires — do not improvise the workflows these encapsulate:
 
 - `/task <create|update|search|implement> …` — issue/tracker operations on Linear (MCP) or GitHub Issues (`gh`). Use whenever the task references a ticket or asks to file/update one.
+- `/backlog <status|next|groom|place|triage> …` — any question of what to work on next, where a new issue belongs, or cleaning up issue statuses, priorities and ordering across many issues. Linear only.
 - `/todo` — a local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps.
 - `/grill-me` — stress-test a plan before executing it.
 - `/jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`, fixing earlier commits, or resolving conflicts. Default for non-trivial jj work.

@@ -21,6 +21,7 @@
     "./skills/jj",
     "./skills/pr",
     "./skills/task",
+    "./skills/backlog",
     "./skills/todo",
     "./skills/grill-me"
   ]
