@@ -14,6 +14,8 @@ That distinction matters more than the skills themselves; see
 ## The loop
 
 ```
+  /backlog next               what to work on, ranked — or `place` a new issue first
+         │
   /task implement ABC-123     pick up the ticket; pins the branch name from its slug
          │
   /todo                       break it into steps, as working memory while building
@@ -28,21 +30,30 @@ That distinction matters more than the skills themselves; see
 ```
 
 Not every change needs the whole loop. A one-line fix is `/jj` and `/pr`. A vague feature
-request is `/grill-me` first and possibly nothing else for a while.
+request is `/grill-me` first and possibly nothing else for a while. `/backlog` runs on its own
+rhythm — before picking work up, and periodically over the pile you are not looking at.
 
 ## The skills
 
 | Skill | Use it for |
 |---|---|
 | `/task` | Linear (MCP) or GitHub Issues (`gh`) — create, update, search, and `implement <id>`, which pulls the issue and carries the finished work through to a commit and PR |
+| `/backlog` | The plural counterpart to `/task`: rank what to work on next, decide where a new issue belongs, and groom statuses, priorities and stale relations in bulk. Linear only |
 | `/todo` | A local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps |
 | `/grill-me` | Stress-testing a plan before executing it — one question at a time, each carrying a recommended answer, exploring the codebase instead of asking whenever the answer is already there |
 | `/jj` | Any commit, describe, rebase, split, absorb, or conflict resolution. Splits a working copy that mixes unrelated changes into separate commits |
 | `/pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
 
-Where they interlock: `/task implement` pins a branch name from the tracker's own slug,
-`/pr` reuses that name verbatim so the tracker auto-attaches the PR, and `/jj` keeps the
-commits underneath clean enough to stack.
+Where they interlock: `/backlog next` picks the issue and `/task implement` pins a branch name
+from the tracker's own slug, `/pr` reuses that name verbatim so the tracker auto-attaches the
+PR, and `/jj` keeps the commits underneath clean enough to stack.
+
+`/backlog` exists because Linear's MCP has no ordering primitive — no `sortOrder`, no
+`position`. Backlog order is derived from priority, blocking edges and milestones, so it
+carries an explicit rank contract and a priority rubric rather than pretending an issue can be
+dragged. It also holds the write contract that stops a status change from silently vanishing:
+resolve state names instead of guessing them, never send `state` in the same atomic call as a
+`patch`, and read the result back before saying it worked.
 
 ## Install
 
@@ -110,6 +121,8 @@ independent of your VCS entirely.
 
 - `jj` for `/jj` and `/pr`; `gh` for `/pr` and GitHub-backed `/task`
 - A Linear MCP server for Linear-backed `/task` — it falls back to GitHub Issues
+- A Linear MCP server for `/backlog`, which has no GitHub fallback — GitHub Issues has no
+  priority field, and Projects v2 ordering is unreachable from the `gh` CLI
 - `/todo` and `/grill-me` have no dependencies
 
 ## Credits
