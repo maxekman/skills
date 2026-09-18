@@ -1,6 +1,6 @@
 {
   "name": "skills",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "An opinionated ticket-to-PR workflow for Claude Code: issue tracking, working checklists, plan stress-testing, commits and stacked PRs. Jujutsu (jj) based.",
   "author": {
     "name": "Max Ekman",
