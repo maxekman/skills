@@ -7,8 +7,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 A Claude Code **plugin marketplace**, not an application. It ships six skills that chain into a
 ticket-to-PR loop: `/backlog` → `/task` → `/todo` → `/grill-me` → `/jj` → `/pr`.
 
-Everything here is markdown plus two JSON manifests. There is no build, test, lint, or CI step —
-"correct" means the frontmatter is valid, the prose is tight, and the manifests agree with the
+Everything here is markdown plus two JSON manifests. There is no build or test step — CI only
+checks that the manifests agree with the tree and that the skills validate, then releases.
+"Correct" means the frontmatter is valid, the prose is tight, and the manifests agree with the
 tree. Editing skills *is* the work in this repo.
 
 ## Always use skill-creator
@@ -34,6 +35,9 @@ the defaults below are a summary of it, not a replacement for it.
 skills/<name>/
   SKILL.md            frontmatter + body
   references/*.md     detail, loaded on demand
+.github/
+  workflows/          PR checks; release on push to main
+  scripts/            next-version.sh, check-manifest.sh
 CLAUDE.global-example.md   template for the *user's* ~/.claude/CLAUDE.md, not repo memory
 ```
 
@@ -53,6 +57,60 @@ running session until they are pushed and the marketplace updates
 
 Corollary: this repo's own skills are loaded while you work in it. Editing `skills/jj/SKILL.md`
 changes a skill that may be active in the same session — what you have loaded is the old copy.
+
+## Releases are automatic, and your commit type decides them
+
+Pushing is not enough either. The installer caches an extracted plugin under its manifest
+version and skips any update reporting a version it already has, so a change that lands without
+a version bump reaches the marketplace and stops there — invisible to everyone who already
+installed the plugin. That is too easy to forget, so CI owns it.
+
+`.github/workflows/release.yml` runs on every push to `main`: it reads the conventional-commit
+types since the last `skills--v*` tag, writes the next version into `plugin.json`, commits it
+back as `chore(release): …`, tags, and publishes a GitHub Release. Merges here are **rebase
+only**, so the commit messages you write are exactly what CI reads — the PR title never lands.
+Your commit message *is* the release control.
+
+**Don't hand-edit `version` in `plugin.json`.** Not because it breaks anything — because it does
+nothing. Once a tag exists, the next version is computed from the tag, so a hand-edit is
+silently overwritten by the next release and leaves a confusing diff in the meantime. The
+`chore(plugin): bump version to 0.2.0` commit in this history is the last hand-written bump.
+(Hand-*tagging* is the one that fails loudly: `next-version.sh` refuses when the version it
+computed is already tagged.)
+
+`marketplace.json` deliberately carries no `version` field. If it had one it would win over
+`plugin.json`, and there would be two sources of truth for the one value that matters.
+
+| What you changed | Type | Bump |
+|---|---|---|
+| A skill got something wrong and now does the right thing | `fix(<skill>)` | patch |
+| A `description` — repairing triggering that was meant to work | `fix(<skill>)` | patch |
+| Prose tightened or a reference clarified, no behaviour change | `docs(<skill>)` | none |
+| A new `skills/<name>/`, plus its entry in the skills array | `feat(<name>)` | minor |
+| A new verb or reference on an existing skill | `feat(<skill>)` | minor |
+| A `description` — claiming prompts it used to ignore | `feat(<skill>)` | minor |
+| A skill removed or renamed | `feat(<name>)!` + `BREAKING CHANGE:` footer | major |
+| A verb the description advertises, removed or renamed | `feat(<skill>)!` | major |
+| A `description` narrowed so the skill stops firing where it did | `feat(<skill>)!` | major |
+| Manifest only — keywords, author, category | `chore(plugin)` | none |
+| `README.md`, this file, `CLAUDE.global-example.md` | `docs` | none |
+| The workflows or their scripts | `ci` | none |
+
+Scope is the skill directory name, or `plugin` for manifest changes.
+
+Two judgement calls hide in that table. A `description` edit splits by *intent*, not size:
+repairing triggering that was always meant to work is a `fix`, while making a skill fire on
+prompts it deliberately ignored is new behaviour for every installed client — ship that as
+`docs` and nobody receives it. And a rename is breaking even though nothing is deleted: `/foo`
+stops existing for anyone whose own `CLAUDE.md` names it, and their sessions will call a slash
+command that no longer resolves.
+
+Breaking changes bump the major even pre-1.0 — `0.2.0` → `1.0.0` — so a removed skill is as
+loud as it is disruptive. That is one variable, `BREAKING_PRE_1_0` at the top of
+`.github/scripts/next-version.sh`.
+
+Run `.github/scripts/next-version.sh` before opening a PR to see what your commits will cut. A
+docs-only PR releasing nothing is correct, not a bug.
 
 ## Frontmatter contract
 
@@ -129,6 +187,8 @@ verbs is never a one-file edit. Update together:
 - `README.md` — both the skill table and the ASCII loop diagram
 - `CLAUDE.global-example.md` — the trigger list
 - every sibling `SKILL.md` that names it (`/task` ↔ `/todo` ↔ `/backlog` ↔ `/jj` ↔ `/pr`)
+- the commit that does it — a rename is a breaking change, so it needs `!` and a
+  `BREAKING CHANGE:` footer. See *Releases are automatic*.
 
 ## Evals (optional)
 

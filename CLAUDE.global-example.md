@@ -18,7 +18,7 @@
 - NEVER use `-i`, `--interactive`, or `--tool` flags — they require a TTY and hang.
 - Only commits in `trunk()..@` are mutable. Never squash/rebase into a commit on `trunk()`; never modify `main`/`master`/`develop`/`staging`/`prod`. If a fix belongs in a landed commit, create a follow-up.
 - Run `jj git push --dry-run` before any real push; abort if a protected bookmark would move.
-- Use conventional commits (feat/fix/chore/docs/ci/dev). Match the existing scope vocabulary from `jj log`.
+- Use conventional commits (feat/fix/chore/docs/ci/dev). Match the existing scope vocabulary from `jj log`. Mark a breaking change with `type(scope)!:` or a `BREAKING CHANGE:` footer — release tooling reads it.
 
 ### Skills (slash commands)
 
