@@ -1,0 +1,54 @@
+name: PR
+
+on: pull_request
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pr-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # next-version.sh needs the tags to work out the range.
+          fetch-depth: 0
+
+      - name: The manifest and the tree agree
+        run: .github/scripts/check-manifest.sh
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      # Pinned: --strict turns warnings into errors, so a CLI upgrade that adds a new
+      # warning would otherwise turn CI red on an unrelated day.
+      - name: Install the Claude Code CLI
+        run: npm install -g @anthropic-ai/claude-code@2.1.236
+
+      # Three targets, because `validate .` reads only marketplace.json.
+      - name: Marketplace manifest
+        run: claude plugin validate . --strict
+
+      - name: Skills
+        run: claude plugin validate ./skills --strict
+
+      # Not --strict here: the repo root is the plugin root, so the "CLAUDE.md at the
+      # plugin root is not loaded as project context" warning is permanent and correct.
+      # Plain mode still fails on real errors.
+      - name: Plugin manifest
+        run: claude plugin validate .claude-plugin/plugin.json
+
+      - name: What this PR would release
+        run: |
+          version="$(.github/scripts/next-version.sh || true)"
+          if [ -n "$version" ]; then
+            echo "This PR would release **$version**." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "No release — nothing here bumps the version." >> "$GITHUB_STEP_SUMMARY"
+          fi

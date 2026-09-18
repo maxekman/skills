@@ -1,0 +1,77 @@
+name: Release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: "Work out the next version and stop, without committing or tagging"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+
+# Serialize, never cancel: two merges in quick succession each get their own run, and
+# the second must see the release commit the first pushed.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Tag and publish
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The branch tip, not the event sha. A run queued behind another would
+          # otherwise check out its own older sha and its push would be rejected as a
+          # non-fast-forward.
+          ref: main
+          # git describe needs the full history and the tags.
+          fetch-depth: 0
+
+      - name: The manifest still matches the tree
+        run: .github/scripts/check-manifest.sh
+
+      - name: Work out the next version
+        id: next
+        run: |
+          version="$(.github/scripts/next-version.sh)"
+          if [ -z "$version" ]; then
+            echo "Nothing to release." >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "version=$version" >> "$GITHUB_OUTPUT"
+            echo "Next version: **$version**" >> "$GITHUB_STEP_SUMMARY"
+          fi
+
+      - name: Bump, commit and tag
+        if: steps.next.outputs.version && inputs.dry-run != true
+        env:
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          tmp="$(mktemp)"
+          jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > "$tmp"
+          mv "$tmp" .claude-plugin/plugin.json
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore(release): skills $VERSION [skip ci]" .claude-plugin/plugin.json
+
+          # main first: if the push is rejected, nothing has been tagged yet.
+          git push origin HEAD:main
+          git tag -a "skills--v$VERSION" -m "skills $VERSION"
+          git push origin "refs/tags/skills--v$VERSION"
+
+      - name: Publish the GitHub release
+        if: steps.next.outputs.version && inputs.dry-run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.next.outputs.version }}
+        run: |
+          gh release create "skills--v$VERSION" \
+            --title "skills $VERSION" \
+            --generate-notes \
+            --verify-tag
