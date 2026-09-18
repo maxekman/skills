@@ -9,7 +9,7 @@ description: Lightweight TODO.md task management for local, in-progress work —
 
 Manage lightweight TODO.md checklists for local, multi-step work — typically the implementation breakdown of a feature you're actively building. Distinct from external issue trackers (use `/task` for those).
 
-If the work originates from a Linear or GitHub Issues ticket, the TODO.md is your local breakdown of that ticket — `/task` knows about the bigger thing, `/todo` knows about the steps you're walking through right now. The two skills don't actively coordinate; the TODO is just your working memory.
+If the work originates from a Linear or GitHub Issues ticket, the TODO.md is your local breakdown of that ticket — `/task` knows about the bigger thing, `/todo` knows about the steps you're walking through right now. The coordination between them is deliberately thin: `/task implement` may seed a section headed with the tracker ID (`## ACME-407 — …`) into a TODO.md you already have, and never creates one. Otherwise the TODO is just your working memory.
 
 Handle: $ARGUMENTS
 
