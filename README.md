@@ -17,6 +17,7 @@ That distinction matters more than the skills themselves; see
   /backlog next               what to work on, ranked — or `place` a new issue first
          │
   /task implement ABC-123     pick up the ticket; pins the branch name from its slug
+  /task implement "<what>"    …or describe the work: finds the issue, or opens one
          │
   /todo                       break it into steps, as working memory while building
          │
@@ -37,12 +38,17 @@ rhythm — before picking work up, and periodically over the pile you are not lo
 
 | Skill | Use it for |
 |---|---|
-| `/task` | Linear (MCP) or GitHub Issues (`gh`) — create, update, search, and `implement <id>`, which pulls the issue and carries the finished work through to a commit and PR |
+| `/task` | Linear (MCP) or GitHub Issues (`gh`) — create, update, search, and `implement`, which takes an issue id *or* a plain description of the work, then carries the finished work through to a commit and PR. Given a description it searches the tracker first and opens an issue assigned to you only if nothing matches |
 | `/backlog` | The plural counterpart to `/task`: rank what to work on next, decide where a new issue belongs, and groom statuses, priorities and stale relations in bulk. Linear only |
 | `/todo` | A local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps |
 | `/grill-me` | Stress-testing a plan before executing it — one question at a time, each carrying a recommended answer, exploring the codebase instead of asking whenever the answer is already there |
 | `/jj` | Any commit, describe, rebase, split, absorb, or conflict resolution. Splits a working copy that mixes unrelated changes into separate commits |
 | `/pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
+
+Not every change starts from a ticket. `/task implement "fix the flaky retry test"` searches the
+tracker for that work, adopts it if it is already filed, and otherwise opens an issue assigned to
+you and moved to in progress — but only once you approve the plan, so a rejected plan writes
+nothing. For several issues at once, or anything epic-shaped, `/backlog` is the right tool.
 
 Where they interlock: `/backlog next` picks the issue and `/task implement` pins a branch name
 from the tracker's own slug, `/pr` reuses that name verbatim so the tracker auto-attaches the
