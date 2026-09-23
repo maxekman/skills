@@ -1,6 +1,6 @@
 # Resolving `#N` arguments
 
-When `/pr` arguments contain `#N` (e.g. `/pr #26`), determine whether it's an existing PR or an issue.
+When `/skills:pr` arguments contain `#N` (e.g. `/skills:pr #26`), determine whether it's an existing PR or an issue.
 
 ## 1. Try PR first
 

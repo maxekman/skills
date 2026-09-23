@@ -96,7 +96,7 @@ Return the PR URL.
 
 Don't read these by default — only when the signal in parentheses is present.
 
-- `references/issue-and-pr-refs.md` — args contain `#N` (e.g. `/pr #26`). Disambiguates PR vs issue, seeds a new PR from an issue.
+- `references/issue-and-pr-refs.md` — args contain `#N` (e.g. `/skills:pr #26`). Disambiguates PR vs issue, seeds a new PR from an issue.
 - `references/stacked.md` — args contain `rebase`, OR `jj log -r '(trunk()..@-) & bookmarks()'` shows a non-empty parent bookmark. Covers `--base` to parent and the rebase-after-parent-merge flow.
 - `references/workspaces.md` — `Repo info` shows `origin <url>` (secondary jj workspace) instead of JSON. Covers slug extraction and `-R owner/repo` for every `gh` call.
 - `references/templates.md` — when writing the PR description body. Covers project template paths and the fallback.
@@ -118,8 +118,8 @@ Default: `<type>(<scope>): <description>` — match conventions from existing PR
 
 Examples:
 - No tracker ID → `feat(auth): add OAuth2 login support`
-- `/pr max/el-3141-decommission-visma-integration` → `EL-3141 / Decommission visma integration`
-- `/pr max/dev-169-tenant-configurable-background` → `DEV-169 / Tenant configurable background`
+- `/skills:pr max/el-3141-decommission-visma-integration` → `EL-3141 / Decommission visma integration`
+- `/skills:pr max/dev-169-tenant-configurable-background` → `DEV-169 / Tenant configurable background`
 
 Don't write `feat(branding): tenant-configurable background (DEV-169)` — the tracker ID goes in the prefix slot, not in parens at the end.
 

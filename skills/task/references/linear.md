@@ -27,7 +27,7 @@ Full URLs are **not** accepted as an id. Parse `linear.app/<workspace>/issue/<ID
 
 ## Branch names
 
-Linear generates a branch name per issue, exposed as `gitBranchName` on the issue. Prefer it verbatim: it honors the user's own branch-format setting and round-trips cleanly when a PR is reopened or rebased. Its default shape is `<user>/<id-lower>-<title-slug>`, and that title slug is the same one already sitting in the issue URL — so a pasted link gives you the branch name with no extra call. `/pr` step 3 consumes this.
+Linear generates a branch name per issue, exposed as `gitBranchName` on the issue. Prefer it verbatim: it honors the user's own branch-format setting and round-trips cleanly when a PR is reopened or rebased. Its default shape is `<user>/<id-lower>-<title-slug>`, and that title slug is the same one already sitting in the issue URL — so a pasted link gives you the branch name with no extra call. `/skills:pr` step 3 consumes this.
 
 ## Querying
 

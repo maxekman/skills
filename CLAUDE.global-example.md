@@ -22,18 +22,18 @@
 
 ### Skills (slash commands)
 
-Invoke autonomously when the trigger fires — do not improvise the workflows these encapsulate:
+Invoke autonomously when the trigger fires — do not improvise the workflows these encapsulate. Always spell them namespaced: the short aliases vanish whenever Claude Code ships a built-in of the same name, as it did for `pr`.
 
-- `/task <create|update|search|implement> …` — issue/tracker operations on Linear (MCP) or GitHub Issues (`gh`). Use whenever the task references a ticket or asks to file/update one. `implement` also takes a plain description instead of an id — reach for it when starting a piece of work that should be tracked but has no ticket yet.
-- `/backlog <status|next|groom|place|triage> …` — any question of what to work on next, where a new issue belongs, or cleaning up issue statuses, priorities and ordering across many issues. Linear only.
-- `/todo` — a local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps.
-- `/grill-me` — stress-test a plan before executing it.
-- `/jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`, fixing earlier commits, or resolving conflicts. Default for non-trivial jj work.
-- `/pr [title]` — opening or updating a GitHub PR. Handles bookmarks, push, stacked PRs (auto-detects parent base), and rebasing after a parent merges.
+- `/skills:task <create|update|search|implement> …` — issue/tracker operations on Linear (MCP) or GitHub Issues (`gh`). Use whenever the task references a ticket or asks to file/update one. `implement` also takes a plain description instead of an id — reach for it when starting a piece of work that should be tracked but has no ticket yet.
+- `/skills:backlog <status|next|groom|place|triage> …` — any question of what to work on next, where a new issue belongs, or cleaning up issue statuses, priorities and ordering across many issues. Linear only.
+- `/skills:todo` — a local `TODO.md` as working memory for a multi-step change. The counterpart to `/skills:task`: the tracker holds the goal, this holds the steps.
+- `/skills:grill-me` — stress-test a plan before executing it.
+- `/skills:jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`, fixing earlier commits, or resolving conflicts. Default for non-trivial jj work.
+- `/skills:pr [title]` — opening or updating a GitHub PR. Handles bookmarks, push, stacked PRs (auto-detects parent base), and rebasing after a parent merges.
 
 ### Build & test
 
-- Before committing (or invoking `/jj`), run the project's formatter, linter, and fast tests. Check `Makefile`, `package.json`, `mix.exs`, or `.mise.toml` for targets. Fix failures — never commit code that breaks CI. Never bypass with `--no-verify`.
+- Before committing (or invoking `/skills:jj`), run the project's formatter, linter, and fast tests. Check `Makefile`, `package.json`, `mix.exs`, or `.mise.toml` for targets. Fix failures — never commit code that breaks CI. Never bypass with `--no-verify`.
 - Use `mise` for dev-tool versions — prefer project `.mise.toml`, fall back to global.
 
 ## Conventions
@@ -50,7 +50,7 @@ Invoke autonomously when the trigger fires — do not improvise the workflows th
 - Before adding a new function/type, check whether an existing one can be extended or reused.
 - When fixing a bug, identify the root cause and explain it in the commit message.
 - If a change touches >3 files, stop and propose a refactor plan first.
-- Before executing a plan that touches >3 files, introduces new abstractions, or adds a dependency, invoke the `/grill-me` skill to stress-test it.
+- Before executing a plan that touches >3 files, introduces new abstractions, or adds a dependency, invoke the `/skills:grill-me` skill to stress-test it.
 - Verify imported modules, methods, and CLI flags exist before using them — read source/docs or `--help` rather than guessing.
 - When finishing work, update any `SPEC.md`/`TODO.md` whose claims your change invalidates.
 

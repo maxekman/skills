@@ -27,12 +27,13 @@ That distinction matters more than the skills themselves; see
          │
   /jj                         commit — split what should never have been one commit
          │
-  /pr                         open or update the PR; the tracker re-attaches itself
+  /skills:pr                  open or update the PR; the tracker re-attaches itself
 ```
 
-Not every change needs the whole loop. A one-line fix is `/jj` and `/pr`. A vague feature
-request is `/grill-me` first and possibly nothing else for a while. `/backlog` runs on its own
-rhythm — before picking work up, and periodically over the pile you are not looking at.
+Not every change needs the whole loop. A one-line fix is `/jj` and `/skills:pr`. A vague
+feature request is `/grill-me` first and possibly nothing else for a while. `/backlog` runs
+on its own rhythm — before picking work up, and periodically over the pile you are not
+looking at.
 
 ## The skills
 
@@ -43,7 +44,7 @@ rhythm — before picking work up, and periodically over the pile you are not lo
 | `/todo` | A local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps |
 | `/grill-me` | Stress-testing a plan before executing it — one question at a time, each carrying a recommended answer, exploring the codebase instead of asking whenever the answer is already there |
 | `/jj` | Any commit, describe, rebase, split, absorb, or conflict resolution. Splits a working copy that mixes unrelated changes into separate commits |
-| `/pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
+| `/skills:pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
 
 Not every change starts from a ticket. `/task implement "fix the flaky retry test"` searches the
 tracker for that work, adopts it if it is already filed, and otherwise opens an issue assigned to
@@ -51,8 +52,8 @@ you and moved to in progress — but only once you approve the plan, so a reject
 nothing. For several issues at once, or anything epic-shaped, `/backlog` is the right tool.
 
 Where they interlock: `/backlog next` picks the issue and `/task implement` pins a branch name
-from the tracker's own slug, `/pr` reuses that name verbatim so the tracker auto-attaches the
-PR, and `/jj` keeps the commits underneath clean enough to stack.
+from the tracker's own slug, `/skills:pr` reuses that name verbatim so the tracker auto-attaches
+the PR, and `/jj` keeps the commits underneath clean enough to stack.
 
 `/backlog` exists because Linear's MCP has no ordering primitive — no `sortOrder`, no
 `position`. Backlog order is derived from priority, blocking edges and milestones, so it
@@ -91,6 +92,13 @@ one names its type. A flat `{ "source": "github", "repo": ... }` fails settings 
 > tell you. If you have been carrying your own `jj` or `pr` skill, delete it after
 > confirming the plugin loaded.
 
+> **Type `/skills:pr`, not `/pr`.** A plugin skill is named `<plugin>:<skill>` and keeps its
+> short name only as an alias — and only while nothing else claims it. Claude Code 2.1.267
+> ships a built-in skill called `pr`, so that alias is dropped at load time: `/pr` resolves to
+> nothing, and an agent that calls it gets *Unknown skill: pr*. The other five still answer to
+> their short names, but `/skills:<name>` is the spelling that always works, and the one to put
+> in a `CLAUDE.md`.
+
 Releases are automatic. Every merge to `main` reads the conventional-commit types that landed
 and bumps the plugin version accordingly — a fix is a patch, a new skill a minor, a removed or
 renamed skill a major. Docs-only changes ship without a release. Each one is tagged
@@ -113,7 +121,7 @@ and it is where you say *when* each skill fires and what the surrounding rules a
 ```markdown
 ### Skills (slash commands)
 Invoke autonomously when the trigger fires — do not improvise the workflows these encapsulate:
-- `/jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`…
+- `/skills:jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`…
 ```
 
 [**`CLAUDE.global-example.md`**](CLAUDE.global-example.md) is close to the file I actually
@@ -130,12 +138,12 @@ Two things it is worth keeping whatever else you change:
 
 ## Requirements
 
-`jj` ([Jujutsu](https://jj-vcs.github.io/jj/)) is my version control of choice, and `/jj`
-and `/pr` assume it — they speak bookmarks and revsets, not branches. If you are on plain
+`jj` ([Jujutsu](https://jj-vcs.github.io/jj/)) is my version control of choice, and `/jj` and
+`/skills:pr` assume it — they speak bookmarks and revsets, not branches. If you are on plain
 git those two will not be much use to you, though `/task`, `/todo` and `/grill-me` are
 independent of your VCS entirely.
 
-- `jj` for `/jj` and `/pr`; `gh` for `/pr` and GitHub-backed `/task`
+- `jj` for `/jj` and `/skills:pr`; `gh` for `/skills:pr` and GitHub-backed `/task`
 - A Linear MCP server for Linear-backed `/task` — it falls back to GitHub Issues
 - A Linear MCP server for `/backlog`, which has no GitHub fallback — GitHub Issues has no
   priority field, and Projects v2 ordering is unreachable from the `gh` CLI

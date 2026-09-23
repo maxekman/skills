@@ -3,7 +3,7 @@
 Two phases:
 
 - **Phase 1 — context (steps 1-7).** Read-only. Fetches, reads, greps, presents. Never creates, updates, or comments — safe inside Claude Code plan mode.
-- **Phase 2 — delivery (step 8).** Runs after the work is actually done. This is where `/jj` and `/pr` get invoked.
+- **Phase 2 — delivery (step 8).** Runs after the work is actually done. This is where `/jj` and `/skills:pr` get invoked.
 
 Phase 2 lives in this file rather than in a lazily-read reference on purpose: by the time the implementation is finished, nothing will prompt you to go read another file. It has to already be in context, so keep it here.
 
@@ -30,7 +30,7 @@ An argument matching none of these is a **description of the work**, not a refer
 Linear issue URLs are `linear.app/<workspace>/issue/<ID>/<slug>`. Keep all three parts — each earns its place later:
 
 - **workspace** (`acme`) — disambiguates when several Linear workspaces are connected, and rebuilds the canonical link for the PR body.
-- **ID** (`ACME-407`) — uppercase it; the tracker matches on this regex and `/pr` puts it in the title slot.
+- **ID** (`ACME-407`) — uppercase it; the tracker matches on this regex and `/skills:pr` puts it in the title slot.
 - **slug** (`spike-verify-sso-sandbox-reservation-creation`) — this is Linear's own title slug, byte-identical to the tail of the branch name it generates. It gives you a usable branch name before any network call.
 
 Then dispatch:
@@ -46,7 +46,7 @@ Then dispatch:
 - **Linear**: `mcp__linear-server__get_issue` with the identifier (`ACME-407`). Comments come from `mcp__linear-server__list_comments`. Capture title, state, assignee, labels, priority, description, comments, linked/related issues, parent, sub-issues — and **`gitBranchName` if the response carries it**.
 - **GitHub**: `gh issue view <number> --json number,title,state,assignees,labels,body,comments,milestone,parent,subIssues`. If the URL named a different repo than cwd, pass `--repo <owner>/<repo>`.
 
-**Pin the branch name now, while the issue data is in front of you.** `/pr` step 3 looks for exactly this and uses it verbatim, so it has to appear in your output:
+**Pin the branch name now, while the issue data is in front of you.** `/skills:pr` step 3 looks for exactly this and uses it verbatim, so it has to appear in your output:
 
 1. `gitBranchName` from the Linear response, if present — it reflects the user's own Linear branch-format setting.
 2. Otherwise `<git-user>/<id-lower>-<slug>`, where `<git-user>` is the local part of `jj config get user.email` (`max@looplab.se` → `max`) and `<slug>` is the URL slug verbatim. This reproduces Linear's default format; Linear links the PR off the ID regex anyway, so a near-miss slug still attaches.
@@ -133,11 +133,11 @@ Getting these answered now is what makes step 8 able to run unattended: an unres
 
 Phase 1 ends here; the user plans and builds. **Don't draft the plan inside this skill** — that's the caller's job. But the delivery contract below is yours, and it applies when the work is finished.
 
-When the implementation is complete, run the gate. If every condition holds, invoke `/jj` and then `/pr` **without asking** — that autonomy is the point, and the user reviews at the PR.
+When the implementation is complete, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` **without asking** — that autonomy is the point, and the user reviews at the PR.
 
 **Gate — all must hold:**
 
-- The tracker issue exists. It normally does, but when the work started from a description the issue is created on plan approval, and a skipped approval step surfaces here — `/pr` has nothing to attach a PR to without it. Create it now rather than committing first.
+- The tracker issue exists. It normally does, but when the work started from a description the issue is created on plan approval, and a skipped approval step surfaces here — `/skills:pr` has nothing to attach a PR to without it. Create it now rather than committing first.
 - Every **Done when** line is satisfied.
 - The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
 - New behavior has the tests a reviewer would ask for, or the repo demonstrably doesn't test that area.
@@ -154,7 +154,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **On a pass, hand off in order:**
 
 1. `/jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
-2. `/pr` — pass the pinned branch name so the Linear slug survives verbatim: `/pr <branch-name>`. It builds the `<ID> / Title` PR title and attaches the tracker link.
+2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the `<ID> / Title` PR title and attaches the tracker link. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one.
 3. Report the PR URL, plus anything you consciously left out of scope.
 
 A document-shaped deliverable goes through the same gate — an ADR lands as a docs PR. Skip only the "tests for new behavior" condition, which has nothing to bite on.
