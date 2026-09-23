@@ -2,7 +2,7 @@
 name: task
 argument-hint: "[create|update|search|implement] [id, url, or description]"
 allowed-tools: mcp__*, Read, Grep, Glob, Bash, Edit, Skill
-description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, and gathering context for implementation. `implement` takes either a tracker ID/URL or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /pr. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart.
+description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, and gathering context for implementation. `implement` takes either a tracker ID/URL or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /skills:pr. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart.
 ---
 
 # Issue Management
@@ -49,8 +49,8 @@ open to settle without asking.
 ### Implement
 `/task implement <id-or-url-or-description>` — carry work from a tracker reference, or from a plain description of what you want built, to a merged-ready PR. Two phases:
 
-- **Context** — fetch, read, grep, present. Read-only, so it is safe inside plan mode. It also pins the branch name and PR title from the Linear slug, which is what lets `/pr` attach the PR to the issue later.
-- **Delivery** — after you have built the thing, a quality gate runs. If it passes, `/jj` and `/pr` are invoked autonomously; if it fails, the work stops and reports what is unmet.
+- **Context** — fetch, read, grep, present. Read-only, so it is safe inside plan mode. It also pins the branch name and PR title from the Linear slug, which is what lets `/skills:pr` attach the PR to the issue later.
+- **Delivery** — after you have built the thing, a quality gate runs. If it passes, `/jj` and `/skills:pr` are invoked autonomously; if it fails, the work stops and reports what is unmet.
 
 **Dispatch on the argument.** `ACME-407`, Linear URLs (including the copy-paste `linear.app/<ws>/issue/ACME-407/<slug>` form), `#42`, and GitHub URLs are references — go straight to `references/implement.md`. Anything else is a description of the work: `references/find-or-create.md` resolves it to an issue first, then rejoins that same flow. Read `implement.md` whole either way, since the delivery contract has to be in context by the time the work finishes.
 

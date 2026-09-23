@@ -54,10 +54,10 @@ Pushing to a merged PR's branch is a silent no-op on GitHub — the changes go n
 gh pr list --head <bookmark-name> --state merged --json number,url --jq '.[0].number'
 ```
 
-If a merged PR exists, **STOP**. The branch is closed; pushing accomplishes nothing. Tell the user and suggest `/pr` for a new PR.
+If a merged PR exists, **STOP**. The branch is closed; pushing accomplishes nothing. Tell the user and suggest `/skills:pr` for a new PR.
 
 **Strongest signal**: if `closest_bookmark(@-)` resolves to `main`, the parent is already on trunk. Any feature bookmark you're about to reuse almost certainly had its PR merged. Verify before reusing the old name.
 
 ## Creating pull requests
 
-Push the bookmark first (`jj git push --bookmark <name>`), then use the `/pr` skill for the full PR workflow.
+Push the bookmark first (`jj git push --bookmark <name>`), then use the `/skills:pr` skill for the full PR workflow.

@@ -58,7 +58,7 @@ and say once that `/backlog place` would split it. Don't block: the verb was cho
 **Not while the plan is still being written.** In plan mode this step goes *into* the plan as its
 first action. A plan you reject should leave nothing behind in the tracker.
 
-The binding deadline is the first commit. `/pr` needs the tracker ID to attach the PR, so an issue
+The binding deadline is the first commit. `/skills:pr` needs the tracker ID to attach the PR, so an issue
 that doesn't exist by then has already failed — step 8's gate checks for it. Approval is the moment
 to do this; the first commit is the point of no return.
 
@@ -97,7 +97,7 @@ jj bookmark create <gitBranchName> --revision @
 `jj bc` bakes in `-r` and errors if you pass it again, so this needs the full form. Creating it on
 an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays
 on that change, and the change becomes your first commit once you describe it. The tracker ID then
-lives in the bookmark name, where `/pr` finds it without any help from the transcript. If the work
+lives in the bookmark name, where `/skills:pr` finds it without any help from the transcript. If the work
 is abandoned, `jj bookmark delete <name>` cleans up.
 
 **GitHub**: `gh issue create --title "<title>" --body "<body>" --assignee @me --label "<resolved>"`, then read the number
@@ -109,7 +109,7 @@ the tracker can't make.
 ## Step 4 — Hand back to `implement.md`
 
 There is an issue now, so the rest is the existing pipeline. Rejoin at **step 3** and pin the branch
-name exactly as step 2 there specifies, `gitBranchName` first. That pinned line is what `/pr`
+name exactly as step 2 there specifies, `gitBranchName` first. That pinned line is what `/skills:pr`
 consumes.
 
 A freshly created issue has no comments, no linked issues, and a description written moments ago, so

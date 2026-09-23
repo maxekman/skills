@@ -34,13 +34,13 @@ Prepend a stack notice to the description body (before any template content):
 
 ## Update a stacked PR
 
-Push updates the PR normally if the parent is still open. If the parent merged, suggest the user run `/pr rebase` to rebase onto main and retarget.
+Push updates the PR normally if the parent is still open. If the parent merged, suggest the user run `/skills:pr rebase` to rebase onto main and retarget.
 
 ```bash
 gh pr view <parent-pr-number> --json state
 ```
 
-## Rebase a stacked PR (`/pr rebase`)
+## Rebase a stacked PR (`/skills:pr rebase`)
 
 Triggered when the parent merged and the child needs to retarget `main`:
 
