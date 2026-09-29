@@ -30,7 +30,7 @@ The happy path is short — five steps. Skip the references unless their signal 
 
 ### 1. Validate
 
-Working copy must be empty. If `jj status` shows changes, STOP — commits go through `/jj` first. Verify `@-` has content with `jj show @-`.
+Working copy must be empty. If `jj status` shows changes, invoke `/skills:jj` to commit, then resume at step 2 in the same turn — the commit is this workflow's first step, not a handoff that ends it, and what the user is owed is a PR URL, not a commit message. Committing moves `@-`, so the `Context` block above goes stale at that point; re-read `jj log` and `jj bookmark list` before step 3. Verify `@-` has content with `jj show @-`.
 
 ### 2. Detect existing PR
 
@@ -129,7 +129,7 @@ Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/TODO.md`
 
 ## Safety
 
-- **NEVER** create a PR if the working copy isn't empty — commit first via `/jj`.
+- **NEVER** create a PR if the working copy isn't empty — `/skills:jj` commits first, then this workflow resumes at step 2.
 - **NEVER** create or move bookmarks named `main`, `master`, `develop`, `staging`, `prod`.
 - **NEVER** commit changes from this skill — commits belong to `/jj`.
 - **NEVER** include secrets in PR descriptions or add AI attribution.
@@ -138,7 +138,7 @@ Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/TODO.md`
 
 ## Errors
 
-- **Working copy not empty**: STOP — `/jj` first.
+- **Working copy not empty**: not an error — `/skills:jj` commits, then continue at step 2.
 - **Bookmark already exists**: `jj tug` to move it forward.
 - **Push fails**: check `gh auth status` and remote permissions.
 - **Multiple matching PRs**: use the most recent or ask the user.
