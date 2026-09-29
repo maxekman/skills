@@ -111,3 +111,5 @@ Commits are signed lazily at push time (`signing.behavior = "drop"` plus `git.si
 ## Output Format
 
 After commit operations, output ONLY the commit message (title + body if present). No bullets, summaries, metadata, or attribution.
+
+That rule is about the message, not the turn. When another workflow invoked this skill (`/skills:pr`, `/task implement`), the message is that step's output — hand control back and finish the caller's remaining steps.
