@@ -2,7 +2,7 @@
   Example ~/.claude/CLAUDE.md — copy to that path and adapt.
 
   This is close to the file I actually run, generalized slightly: the skills
-  section lists all six skills this repo ships, where mine had grown to mention
+  section lists all seven skills this repo ships, where mine had grown to mention
   only the three I reach for most. Everything else is as-is, opinions included.
 
   Keep your own version short. It loads into every session in every project, so
@@ -30,6 +30,7 @@ Invoke autonomously when the trigger fires — do not improvise the workflows th
 - `/skills:grill-me` — stress-test a plan before executing it.
 - `/skills:jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`, fixing earlier commits, or resolving conflicts. Default for non-trivial jj work.
 - `/skills:pr [title]` — opening or updating a GitHub PR. Handles bookmarks, push, stacked PRs (auto-detects parent base), and rebasing after a parent merges.
+- `/skills:wrapup [#N]` — whenever a PR has merged or landed: sync to trunk, check the dev/staging deploy, and list leftover work from the PR.
 
 ### Build & test
 
