@@ -4,8 +4,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A Claude Code **plugin marketplace**, not an application. It ships six skills that chain into a
-ticket-to-PR loop: `/backlog` → `/task` → `/todo` → `/grill-me` → `/jj` → `/pr`.
+A Claude Code **plugin marketplace**, not an application. It ships seven skills that chain into a
+ticket-to-PR loop and back: `/backlog` → `/task` → `/todo` → `/grill-me` → `/jj` → `/pr` →
+`/wrapup`.
 
 Everything here is markdown plus two JSON manifests. There is no build or test step — CI only
 checks that the manifests agree with the tree and that the skills validate, then releases.
@@ -44,9 +45,9 @@ CLAUDE.global-example.md   template for the *user's* ~/.claude/CLAUDE.md, not re
 **`plugin.json` enumerates skills explicitly.** A new `skills/<name>/` directory is inert until
 its path is added to that array — the easiest thing in this repo to get wrong, because nothing
 errors, the skill simply never loads. Current order: `jj`, `pr`, `task`, `backlog`, `todo`,
-`grill-me`.
+`grill-me`, `wrapup`.
 
-No skill has `scripts/` or `assets/` yet; all six are prose plus references.
+No skill has `scripts/` or `assets/` yet; all seven are prose plus references.
 
 ## How a change here goes live
 
@@ -132,7 +133,7 @@ spec. `task`'s description currently contains `<id-or-url>` — fine in Claude C
 fail a portable check, so don't copy that pattern into new skills.
 
 **`skill-creator/scripts/quick_validate.py` validates against the portable spec**, so it flags
-`argument-hint` as an "unexpected key" on five of six skills. That is a false positive here —
+`argument-hint` as an "unexpected key" on six of seven skills. That is a false positive here —
 never strip `argument-hint` to satisfy it. It also requires PyYAML, which isn't installed.
 
 ## SKILL.md house shape
@@ -179,7 +180,7 @@ hangs the agent". Where an existing rule already carries its reason, keep it.
 when it ships a built-in of the same name. It did for `pr` in 2.1.267, so `/pr` now resolves to
 nothing and an agent calling it gets *Unknown skill: pr*. Anywhere the text tells someone or
 something to *run* that skill, write `/skills:pr`; naming it as a concept (the loop diagram, the
-cross-reference web below) stays short. The other five still answer to their short names — when
+cross-reference web below) stays short. The other six still answer to their short names — when
 one of them stops autocompleting, this is why, and the fix is the same prefix.
 
 Also: never duplicate content between a `SKILL.md` and its references — pick one home. No
@@ -194,7 +195,7 @@ verbs is never a one-file edit. Update together:
 - `.claude-plugin/plugin.json` — the skills array
 - `README.md` — both the skill table and the ASCII loop diagram
 - `CLAUDE.global-example.md` — the trigger list
-- every sibling `SKILL.md` that names it (`/task` ↔ `/todo` ↔ `/backlog` ↔ `/jj` ↔ `/pr`)
+- every sibling `SKILL.md` that names it (`/task` ↔ `/todo` ↔ `/backlog` ↔ `/jj` ↔ `/pr` ↔ `/wrapup`)
 - the commit that does it — a rename is a breaking change, so it needs `!` and a
   `BREAKING CHANGE:` footer. See *Releases are automatic*.
 
