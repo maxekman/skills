@@ -23,6 +23,7 @@
     "./skills/task",
     "./skills/backlog",
     "./skills/todo",
-    "./skills/grill-me"
+    "./skills/grill-me",
+    "./skills/wrapup"
   ]
 }
