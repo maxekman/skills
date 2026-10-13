@@ -55,7 +55,12 @@ Then branch on `state`:
 jj git fetch
 ```
 
-Move only when it can't strand anything: `@` has no changes, **and** every commit in
+Fetch often finishes the job itself: once it sees the PR's commits landed, it abandons the local
+copies and rebases `@` onto trunk. If `jj log -r '@- & trunk()'` lists a commit, `@` is already
+where it belongs — skip the move and go straight to the leftover check below. Moving anyway
+just stacks a second empty change.
+
+Otherwise, move only when it can't strand anything: `@` has no changes, **and** every commit in
 `trunk()..@-` is one of the PR's `commits[].oid` (an empty set qualifies). Commits are signed at
 push time, so local ids equal the pushed ones and the comparison is exact.
 
@@ -68,7 +73,7 @@ jj log --no-graph -r 'trunk()..@-' -T 'commit_id ++ "\n"'
   unrelated commits by title). Read `references/sync.md` — the blocker is often a stacked
   child PR.
 
-After moving, jj has usually dropped the merged commits itself. Check:
+Either way, check that no merged commits are still visible:
 `jj log -r '::visible_heads() & (commit_id(<oid1>) | commit_id(<oid2>))'` — anything listed is
 a leftover; `references/sync.md` covers abandoning exactly those.
 
@@ -100,8 +105,10 @@ Collect from every source; an empty source is omitted from the report, not liste
   `closingIssuesReferences`. Read it with `/skills:task show <id>`: state, and any open
   sub-issues. An issue still open after its PR merged usually means the auto-close didn't fire.
 - **TODO.md** — open items under a `## <ID> — …` header or tagged `[<ID>]`, in `**/TODO.md`.
-- **Diff** — `TODO`, `FIXME`, `XXX`, `HACK` on added lines in `gh pr diff <N>`. Only added
-  lines: pre-existing markers aren't this PR's leftovers.
+- **Diff** — `TODO`, `FIXME`, `XXX`, `HACK` used as comment markers (`# TODO:`, `// FIXME`,
+  `<!-- TODO`) on added lines in `gh pr diff <N>`. Only added lines, because pre-existing
+  markers aren't this PR's leftovers. Only markers, because prose that merely mentions the word
+  (docs about `TODO.md`, a sample report line) isn't a note anyone left for later.
 - **Session** — anything `/task implement` reported as consciously left out of scope, if it ran
   in this session.
 

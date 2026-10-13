@@ -5,8 +5,8 @@ the three ways that goes differently.
 
 ## Merged commits survived the move
 
-jj usually drops the merged commits on its own once fetch removes their bookmark and `@` moves
-away. When it doesn't, they linger as a side head in `jj log` that looks like unfinished work.
+Fetch usually abandons the merged commits on its own and rebases `@` onto trunk. When it
+doesn't, they linger as a side head in `jj log` that looks like unfinished work.
 
 Abandon exactly the commits the PR carried, using the same revset that found them:
 
