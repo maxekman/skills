@@ -54,7 +54,7 @@ open to settle without asking.
 
 **Dispatch on the argument.** `ACME-407`, Linear URLs (including the copy-paste `linear.app/<ws>/issue/ACME-407/<slug>` form), `#42`, and GitHub URLs are references — go straight to `references/implement.md`. A leading reference followed by more text is still a reference: the rest is guidance (`#42 only the mobile path`), not a description to search for. Anything else is a description of the work: `references/find-or-create.md` resolves it to an issue first, then rejoins that same flow. Read `implement.md` whole either way, since the delivery contract has to be in context by the time the work finishes.
 
-The description form searches the tracker before it creates anything, so a ticket that already exists gets adopted rather than duplicated. A new issue is created assigned to you and moved to in progress — but only once the plan is approved, so a plan you reject leaves the tracker untouched.
+The description form searches the tracker before it creates anything, so a ticket that already exists gets adopted rather than duplicated. A new issue is created assigned to you and moved to in progress, and an existing one — referenced or adopted — is claimed the same way. Both happen only once the plan is approved, so a plan you reject leaves the tracker untouched.
 
 Not every issue ends in code. Spikes, research, and scoping issues land findings, an ADR, or a set of follow-up issues instead — `implement.md` step 3 names the shape up front so the gate knows what done means.
 
@@ -79,5 +79,5 @@ The basic verbs (list/view/edit/comment/close) are predictable — go straight t
 - Verify an issue exists before modifying it, and verify the write landed after it — for Linear, that means comparing the `status` on the `save_issue` response against what you asked for. An unconfirmed write is a failed write; report it as one.
 - Never create a label, project, or team to satisfy a guess. An issue missing a label is ordinary; a workspace carrying an invented one is somebody else's cleanup.
 - Don't put secrets or sensitive data in issue bodies.
-- `implement`'s context phase is read-only — never modifies files or mutates tracker state. That holds for the description form's tracker search too; the issue it creates is written only after the plan is approved, never from inside plan mode.
+- `implement`'s context phase is read-only — never modifies files or mutates tracker state. That holds for the description form's tracker search too; creating or claiming the issue happens only after the plan is approved, never from inside plan mode.
 - `implement`'s delivery phase commits and opens PRs on its own once its gate passes, but still never writes to the tracker unprompted. Creating follow-up issues or posting findings as a comment needs explicit confirmation.

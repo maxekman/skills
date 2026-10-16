@@ -3,7 +3,8 @@
 Two phases:
 
 - **Phase 1 — context (steps 1-7).** Read-only. Fetches, reads, greps, presents. Never creates, updates, or comments — safe inside Claude Code plan mode.
-- **Phase 2 — delivery (step 8).** Runs after the work is actually done. This is where `/jj` and `/skills:pr` get invoked.
+- **Claim (step 8).** On plan approval, assigns you and moves the issue to in progress — the only tracker write before delivery.
+- **Phase 2 — delivery (step 9).** Runs after the work is actually done. This is where `/jj` and `/skills:pr` get invoked.
 
 Phase 2 lives in this file rather than in a lazily-read reference on purpose: by the time the implementation is finished, nothing will prompt you to go read another file. It has to already be in context, so keep it here.
 
@@ -135,17 +136,30 @@ Scan for genuine gaps:
 
 Resolve them with `AskUserQuestion` — multiple choice where possible, with an escape hatch. Don't ask about things the issue already answers. If nothing is ambiguous, say so explicitly so the user knows the check ran.
 
-Getting these answered now is what makes step 8 able to run unattended: an unresolved question is a gate failure later, so it costs far less to settle it here.
+Getting these answered now is what makes step 9 able to run unattended: an unresolved question is a gate failure later, so it costs far less to settle it here.
 
-## Step 8 — Deliver
+## Step 8 — Claim the issue
 
-Phase 1 ends here; the user plans and builds. **Don't draft the plan inside this skill** — that's the caller's job. But the delivery contract below is yours, and it applies when the work is finished.
+Starting work on an issue means owning it in the tracker: assigned to you and in the team's `started` state, the same as an issue `find-or-create.md` creates. Left alone, it sits unassigned in Todo while its PR is in review, and anyone triaging the backlog reads it as free to pick up.
+
+This is a write, so it waits for plan approval the way creation does: in plan mode it goes *into* the plan as its first action, and a rejected plan leaves the tracker untouched. Skip it for an issue `find-or-create.md` just created — that one is claimed already.
+
+- **Linear** — under the write contract in `linear.md`:
+  1. `get_user` → you. Already the assignee → go to 3.
+  2. Unassigned → `save_issue` with `id` + `assignee`. Assigned to someone else → ask before replacing them, unless the user already agreed to take it over in `find-or-create.md` step 2. Linear holds one assignee, so this takes the issue away from them.
+  3. `statusType` already `started` → done. Otherwise resolve the team's `started` state with `list_issue_statuses` and send it as its own `id` + `state` call, separate from the assignee write so one failing can't take the other with it.
+  4. Read `assignee` and `status` back off each response. A mismatch is a failed write — report it, quoting what came back.
+- **GitHub** — `gh issue edit <number> --add-assignee @me`. It adds rather than replaces, so nobody already on the issue is dropped. There is no in-progress state; apply an in-progress label only if `gh label list` shows one, and otherwise don't narrate a status change.
+
+## Step 9 — Deliver
+
+The user plans and builds. **Don't draft the plan inside this skill** — that's the caller's job. But the delivery contract below is yours, and it applies when the work is finished.
 
 When the implementation is complete, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` **without asking** — that autonomy is the point, and the user reviews at the PR.
 
 **Gate — all must hold:**
 
-- The tracker issue exists. It normally does, but when the work started from a description the issue is created on plan approval, and a skipped approval step surfaces here — `/skills:pr` has nothing to attach a PR to without it. Create it now rather than committing first.
+- The tracker issue exists and is claimed. It normally is, but both happen on plan approval — creation for a description, step 8 for an existing issue — and a skipped approval step surfaces here. `/skills:pr` has nothing to attach a PR to without the issue, so create or claim it now rather than committing first.
 - Every **Done when** line is satisfied.
 - The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
 - New behavior has the tests a reviewer would ask for, or the repo demonstrably doesn't test that area.
