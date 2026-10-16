@@ -1,8 +1,8 @@
 ---
 name: task
-argument-hint: "[create|update|search|implement] [id, url, or description]"
+argument-hint: "[create|update|search|implement] [id or url] [guidance] | [description]"
 allowed-tools: mcp__*, Read, Grep, Glob, Bash, Edit, Skill
-description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, and gathering context for implementation. `implement` takes either a tracker ID/URL or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /skills:pr. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart.
+description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, and gathering context for implementation. `implement` takes a tracker ID/URL, optionally followed by guidance, or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /skills:pr. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart.
 ---
 
 # Issue Management
@@ -47,12 +47,12 @@ open to settle without asking.
 `/task break down <id>` — read the issue, split into smaller subtasks, each independently completable. Link them to the parent: `parentId` on Linear, `--parent` on GitHub. Children inherit nothing, so carry the parent's project and labels down to each — see `references/placement.md`.
 
 ### Implement
-`/task implement <id-or-url-or-description>` — carry work from a tracker reference, or from a plain description of what you want built, to a merged-ready PR. Two phases:
+`/task implement <id-or-url-or-description>` — carry work from a tracker reference, optionally followed by guidance for this run, or from a plain description of what you want built, to a merged-ready PR. Two phases:
 
 - **Context** — fetch, read, grep, present. Read-only, so it is safe inside plan mode. It also pins the branch name and PR title from the Linear slug, which is what lets `/skills:pr` attach the PR to the issue later.
 - **Delivery** — after you have built the thing, a quality gate runs. If it passes, `/jj` and `/skills:pr` are invoked autonomously; if it fails, the work stops and reports what is unmet.
 
-**Dispatch on the argument.** `ACME-407`, Linear URLs (including the copy-paste `linear.app/<ws>/issue/ACME-407/<slug>` form), `#42`, and GitHub URLs are references — go straight to `references/implement.md`. Anything else is a description of the work: `references/find-or-create.md` resolves it to an issue first, then rejoins that same flow. Read `implement.md` whole either way, since the delivery contract has to be in context by the time the work finishes.
+**Dispatch on the argument.** `ACME-407`, Linear URLs (including the copy-paste `linear.app/<ws>/issue/ACME-407/<slug>` form), `#42`, and GitHub URLs are references — go straight to `references/implement.md`. A leading reference followed by more text is still a reference: the rest is guidance (`#42 only the mobile path`), not a description to search for. Anything else is a description of the work: `references/find-or-create.md` resolves it to an issue first, then rejoins that same flow. Read `implement.md` whole either way, since the delivery contract has to be in context by the time the work finishes.
 
 The description form searches the tracker before it creates anything, so a ticket that already exists gets adopted rather than duplicated. A new issue is created assigned to you and moved to in progress — but only once the plan is approved, so a plan you reject leaves the tracker untouched.
 
@@ -64,7 +64,7 @@ For anything spanning more than one issue — what to work on next, where a new 
 
 ## When to Read References
 
-- `references/find-or-create.md` — `implement`'s argument is prose rather than a tracker ID or URL.
+- `references/find-or-create.md` — `implement`'s argument doesn't start with a tracker ID or URL.
 - `references/implement.md` — args contain `implement`. The reference path starts at step 1; the description path rejoins at step 3.
 - `references/placement.md` — creating an issue, breaking one down, or changing what an issue is filed under. Carries the project and label discovery pass, and the parent-child mechanics.
 - `references/linear.md` — backend is Linear; covers MCP tool patterns, query arguments, and the write contract for status changes. Read it before any `state` write.
