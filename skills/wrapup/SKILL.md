@@ -136,6 +136,10 @@ Then make **one** batched offer covering whichever apply: close the tracker issu
 leftover the user picks), prune finished TODO items (`/todo prune done`). Act only on what the
 user approves.
 
+When the PR closed a tracker issue or went out in a release — a sign that someone outside the
+team is waiting on it — add one line: `Explain it to stakeholders: /skills:recap #<N>`. Offer
+it; don't run it, since who hears about the change is the user's call.
+
 When sync succeeded, every run is green, and nothing remains, end with one line:
 `Ready for the next one: /skills:backlog next`. Don't invoke it — picking the next task is the
 user's call.
