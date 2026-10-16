@@ -65,7 +65,7 @@ For anything spanning more than one issue — what to work on next, where a new 
 ## When to Read References
 
 - `references/find-or-create.md` — `implement`'s argument doesn't start with a tracker ID or URL.
-- `references/implement.md` — args contain `implement`. The reference path starts at step 1; the description path rejoins at step 3.
+- `references/implement.md` — args contain `implement`. The reference path starts at step 1; the description path rejoins at step 2 with an adopted issue, step 3 with a created one.
 - `references/placement.md` — creating an issue, breaking one down, or changing what an issue is filed under. Carries the project and label discovery pass, and the parent-child mechanics.
 - `references/linear.md` — backend is Linear; covers MCP tool patterns, query arguments, and the write contract for status changes. Read it before any `state` write.
 - `references/github.md` — backend is GitHub Issues; covers the full `gh issue` command table and filter flags.

@@ -108,9 +108,11 @@ the tracker can't make.
 
 ## Step 4 — Hand back to `implement.md`
 
-There is an issue now, so the rest is the existing pipeline. Rejoin at **step 3** and pin the branch
-name exactly as step 2 there specifies, `gitBranchName` first. That pinned line is what `/skills:pr`
-consumes.
+There is an issue now, so the rest is the existing pipeline. An **adopted** issue rejoins at
+**step 2**: the search returned no comments or relations, and the fetch there is what reads them and
+checks for an open blocker. A **created** issue has neither, so it rejoins at **step 3**. Either way,
+pin the branch name exactly as step 2 there specifies, `gitBranchName` first. That pinned line is
+what `/skills:pr` consumes.
 
 A freshly created issue has no comments, no linked issues, and a description written moments ago, so
 the full step 6 block would be mostly empty headings. Present the condensed form:
