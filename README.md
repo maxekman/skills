@@ -32,6 +32,7 @@ That distinction matters more than the skills themselves; see
     …review, merge…
          │
   /wrapup                     sync to trunk, check what deployed, list what the PR left behind
+         │      └───────▶     /recap #N — tell the non-technical people what it means
          │
          └──────────────▶     back to /backlog next
 ```
@@ -40,6 +41,10 @@ Not every change needs the whole loop. A one-line fix is `/jj`, `/skills:pr`, an
 once it lands. A vague feature request is `/grill-me` first and possibly nothing else for a
 while. `/backlog` runs on its own rhythm — before picking work up, and periodically over the
 pile you are not looking at.
+
+`/recap` stands beside the loop rather than in it. It reads what the loop leaves behind —
+merged PRs, commits, changelogs, closed tickets — and writes a short plain-language update for
+people who will never open the repo: last week by default, any window you name, or one PR.
 
 ## The skills
 
@@ -52,6 +57,7 @@ pile you are not looking at.
 | `/jj` | Any commit, describe, rebase, split, absorb, or conflict resolution. Splits a working copy that mixes unrelated changes into separate commits |
 | `/skills:pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
 | `/wrapup` | After the merge: fetch and move onto a fresh change when nothing else is in flight, watch the deploy and smoke runs the merge triggered and probe dev/staging read-only, then list what the PR left behind — unresolved threads, open tracker issues, TODO items — and offer to file or close them |
+| `/recap` | A short plain-language update for non-technical readers — what is live, what is done, what is in progress, what to watch — from merged PRs, commits, changelogs and closed tickets. Last 7 days by default, any window, or a single PR. Read-only; it never posts |
 
 Not every change starts from a ticket. `/task implement "fix the flaky retry test"` searches the
 tracker for that work, adopts it if it is already filed, and otherwise opens an issue assigned to
@@ -102,7 +108,7 @@ one names its type. A flat `{ "source": "github", "repo": ... }` fails settings 
 > **Type `/skills:pr`, not `/pr`.** A plugin skill is named `<plugin>:<skill>` and keeps its
 > short name only as an alias — and only while nothing else claims it. Claude Code 2.1.267
 > ships a built-in skill called `pr`, so that alias is dropped at load time: `/pr` resolves to
-> nothing, and an agent that calls it gets *Unknown skill: pr*. The other six still answer to
+> nothing, and an agent that calls it gets *Unknown skill: pr*. The other seven still answer to
 > their short names, but `/skills:<name>` is the spelling that always works, and the one to put
 > in a `CLAUDE.md`.
 
@@ -147,13 +153,14 @@ Two things it is worth keeping whatever else you change:
 
 `jj` ([Jujutsu](https://jj-vcs.github.io/jj/)) is my version control of choice, and `/jj`,
 `/skills:pr` and `/wrapup` assume it — they speak bookmarks and revsets, not branches. If you
-are on plain git those three will not be much use to you, though `/task`, `/todo` and
-`/grill-me` are independent of your VCS entirely.
+are on plain git those three will not be much use to you, though `/task`, `/todo`,
+`/grill-me` and `/recap` work either way.
 
 - `jj` for `/jj`, `/skills:pr` and `/wrapup`; `gh` for `/skills:pr`, `/wrapup` and GitHub-backed `/task`
 - A Linear MCP server for Linear-backed `/task` — it falls back to GitHub Issues
 - A Linear MCP server for `/backlog`, which has no GitHub fallback — GitHub Issues has no
   priority field, and Projects v2 ordering is unreachable from the `gh` CLI
+- `jj` or `git` for `/recap`; `gh` makes it far better, since PR descriptions say *why*
 - `/todo` and `/grill-me` have no dependencies
 
 ## Credits
