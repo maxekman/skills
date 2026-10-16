@@ -28,7 +28,7 @@ Match the **first token** against this table, not the whole argument — a norma
 
 A bare number leads only with its `#`. `42` alone is still issue 42, but `3 retries for the webhook` is prose, not issue 3.
 
-An argument whose first token matches none of these is a **description of the work**, not a reference. `find-or-create.md` resolves it to an issue — adopted or created — and rejoins this file at step 3.
+An argument whose first token matches none of these is a **description of the work**, not a reference. `find-or-create.md` resolves it to an issue and rejoins this file — an adopted issue at step 2, a created one at step 3.
 
 Guidance is the user steering this run: scope, approach, what to skip. It shapes the deliverable (step 3) and **Done when** (step 6), and where it contradicts the issue, step 7 asks which wins. It is never search text and never written to the tracker.
 
@@ -50,8 +50,8 @@ Then dispatch:
 
 ## Step 2 — Fetch the issue
 
-- **Linear**: `mcp__linear-server__get_issue` with the identifier (`ACME-407`). Comments come from `mcp__linear-server__list_comments`. Capture title, state, assignee, labels, priority, description, comments, linked/related issues, parent, sub-issues — and **`gitBranchName` if the response carries it**.
-- **GitHub**: `gh issue view <number> --json number,title,state,assignees,labels,body,comments,milestone,parent,subIssues`. If the URL named a different repo than cwd, pass `--repo <owner>/<repo>`.
+- **Linear**: `mcp__linear-server__get_issue` with the identifier (`ACME-407`) and `includeRelations: true` — without it the response carries no blockers. Comments come from `mcp__linear-server__list_comments`. Capture title, state, assignee, labels, priority, description, comments, linked/related issues, parent, sub-issues — and **`gitBranchName` if the response carries it**.
+- **GitHub**: `gh issue view <number> --json number,title,state,assignees,labels,body,comments,milestone,parent,subIssues,blockedBy`. If the URL named a different repo than cwd, pass `--repo <owner>/<repo>`.
 
 **Pin the branch name now, while the issue data is in front of you.** `/skills:pr` step 3 looks for exactly this and uses it verbatim, so it has to appear in your output:
 
@@ -60,6 +60,8 @@ Then dispatch:
 3. No slug in the URL and no `gitBranchName` → kebab-case the issue title yourself.
 
 If the issue is already closed, flag it prominently — the user may want context, not new work, and should confirm before planning.
+
+**Stop on an open blocker.** A blocker is open when its `statusType` is not `completed` or `canceled` (GitHub: its `state` is `OPEN`). Work planned on top of one either waits on it anyway or quietly builds the blocker's part as well, and both surface only at review. So before step 3, name each open blocker (ID, title, status) and ask with `AskUserQuestion`: proceed anyway, implement the blocker instead (`/skills:task implement <blocker-id>`), or stop. Skip the question when the user already said to go — in the guidance (`ACME-407 go despite the blocker`) or earlier in the session. Since this runs before step 8, a blocked issue is never claimed without that go-ahead.
 
 ## Step 3 — Read the deliverable shape
 
@@ -93,6 +95,7 @@ Extract 1-2 core keywords from the issue title (the main noun/concept, not fille
 **[ID]** — [title]
 **Status**: [state] | **Assignee**: [assignee] | **Priority**: [if set]
 [If closed: ⚠ This issue is closed — confirm before planning new work.]
+[If an open blocker was overridden: ⚠ Blocked by [ID] — [title] ([status]); proceeding as told.]
 [If guidance was given: **Guidance**: [verbatim]]
 
 [Description, or distilled summary if very long]
