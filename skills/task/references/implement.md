@@ -23,7 +23,13 @@ Linear's "Copy link" and copy-as-markdown produce several shapes. Normalize befo
 | GitHub URL | `https://github.com/<owner>/<repo>/issues/42` |
 | Bare GitHub ref | `#42` or `42` (repo inferred from cwd) |
 
-An argument matching none of these is a **description of the work**, not a reference. `find-or-create.md` resolves it to an issue — adopted or created — and rejoins this file at step 3.
+Match the **first token** against this table, not the whole argument — a normalized markdown link counts as one token. On a match, that token is the issue and everything after it is **guidance**: `#42 only the mobile path, leave desktop alone`. Without the split, the reference plus guidance matches nothing, falls through to the description path, and searches the tracker for an issue you already named — or opens a duplicate of it.
+
+A bare number leads only with its `#`. `42` alone is still issue 42, but `3 retries for the webhook` is prose, not issue 3.
+
+An argument whose first token matches none of these is a **description of the work**, not a reference. `find-or-create.md` resolves it to an issue — adopted or created — and rejoins this file at step 3.
+
+Guidance is the user steering this run: scope, approach, what to skip. It shapes the deliverable (step 3) and **Done when** (step 6), and where it contradicts the issue, step 7 asks which wins. It is never search text and never written to the tracker.
 
 ## Step 1 — Parse the reference
 
@@ -36,7 +42,7 @@ Linear issue URLs are `linear.app/<workspace>/issue/<ID>/<slug>`. Keep all three
 Then dispatch:
 
 - Host `linear.app` → Linear. Host `github.com` → GitHub, ID from `/issues/42`.
-- `^[A-Za-z][A-Za-z0-9]+-\d+$` → Linear ID (uppercase it).
+- `^[A-Za-z][A-Za-z0-9]+-\d+$` → Linear ID (uppercase it). Prose collides with this shape — `SHA-256 hashing for tokens`, `UTF-8 support` — so when `get_issue` reports no such issue, treat the whole argument as a description instead of stopping.
 - `^#?\d+$` → GitHub issue in the current repo (`gh repo view` to confirm).
 - A `linear.app` URL whose segment after the workspace is `project` or `document`, not `issue` — that is not an issue. Say so and offer the sensible alternative (list the project's issues, read the document).
 - Genuinely ambiguous → fall back to standard backend detection and ask.
@@ -56,7 +62,7 @@ If the issue is already closed, flag it prominently — the user may want contex
 
 ## Step 3 — Read the deliverable shape
 
-Not every issue ends in shipped code, and guessing wrong here wastes the whole session. Decide what this issue actually produces before planning how to do it. Signals: labels (`spike`, `research`, `discovery`, `chore`), title verbs (*Spike*, *Investigate*, *Verify*, *Evaluate*, *Research*, *Scope*, *Explore*, *Assess*, *POC*), and whether the description poses a **question** rather than describing a change.
+Not every issue ends in shipped code, and guessing wrong here wastes the whole session. Decide what this issue actually produces before planning how to do it. Signals: labels (`spike`, `research`, `discovery`, `chore`), title verbs (*Spike*, *Investigate*, *Verify*, *Evaluate*, *Research*, *Scope*, *Explore*, *Assess*, *POC*), and whether the description poses a **question** rather than describing a change. Guidance outranks all of these — `#42 just find out why it's slow` is findings, whatever the issue's title says.
 
 | Shape | Looks like | Ends in |
 |---|---|---|
@@ -86,6 +92,7 @@ Extract 1-2 core keywords from the issue title (the main noun/concept, not fille
 **[ID]** — [title]
 **Status**: [state] | **Assignee**: [assignee] | **Priority**: [if set]
 [If closed: ⚠ This issue is closed — confirm before planning new work.]
+[If guidance was given: **Guidance**: [verbatim]]
 
 [Description, or distilled summary if very long]
 
@@ -124,6 +131,7 @@ Scan for genuine gaps:
 - Underspecified scope — e.g., "add monitoring" without saying which services.
 - Multiple plausible technical approaches the issue doesn't pick between.
 - Conflicting guidance across comments — a later one contradicts the description.
+- The user's guidance from step 1 contradicts the issue — narrows it below an acceptance criterion, or picks an approach a comment ruled out.
 
 Resolve them with `AskUserQuestion` — multiple choice where possible, with an escape hatch. Don't ask about things the issue already answers. If nothing is ambiguous, say so explicitly so the user knows the check ran.
 
