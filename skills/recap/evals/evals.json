@@ -1,0 +1,26 @@
+{
+  "skill_name": "recap",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "can you give me a recap of what happened in this repo over the last week? I want to send it to a couple of people who use the plugin but aren't deep into the internals",
+      "expected_output": "A short plain-language recap of the last 7 days of maxekman/skills, with the date range in the header, grouped by outcome, no hashes, paths or PR numbers.",
+      "files": [],
+      "cwd": "~/Development/oss/skills"
+    },
+    {
+      "id": 2,
+      "prompt": "PR #9 just merged. write me something short I can drop in Slack to explain to our PM what it adds",
+      "expected_output": "2-4 plain sentences on what the wrapup skill does for a non-engineer, with the merge date, no jargon.",
+      "files": [],
+      "cwd": "~/Development/oss/skills"
+    },
+    {
+      "id": 3,
+      "prompt": "I'm meeting my cofounder tomorrow, he's not technical. summarize the last two weeks of work on the app so I can walk him through it",
+      "expected_output": "A 14-day recap of the Action Card app, clustered by outcome across ~50 PRs, at most seven Shipped bullets, in-progress and heads-up sections only if warranted, 120-250 words.",
+      "files": [],
+      "cwd": "~/Development/work/actioncard/app"
+    }
+  ]
+}
