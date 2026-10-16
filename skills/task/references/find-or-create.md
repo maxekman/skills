@@ -59,7 +59,7 @@ and say once that `/backlog place` would split it. Don't block: the verb was cho
 first action. A plan you reject should leave nothing behind in the tracker.
 
 The binding deadline is the first commit. `/skills:pr` needs the tracker ID to attach the PR, so an issue
-that doesn't exist by then has already failed — step 8's gate checks for it. Approval is the moment
+that doesn't exist by then has already failed — step 9's gate checks for it. Approval is the moment
 to do this; the first commit is the point of no return.
 
 Order matters. `references/linear.md` carries the full write contract; each step here is shaped by
