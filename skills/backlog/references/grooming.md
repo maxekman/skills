@@ -6,11 +6,13 @@ times is a groom nobody runs twice.
 
 ## Step 1 — Scope
 
-A groom needs a scope argument — a project or a team. Refuse a whole-workspace groom: the
-proposal gets too long to actually read, and an unread proposal that gets a `y` is worse than
-no groom at all. If the user gives no scope, list the projects and ask.
+A groom needs a scope argument — a project or a team on Linear, a milestone or a label on
+GitHub. Refuse a whole-backlog groom: the proposal gets too long to actually read, and an
+unread proposal that gets a `y` is worse than no groom at all. If the user gives no scope, list
+the projects (or milestones and label families) and ask.
 
-Read once, with the fields the checks need:
+Read once, with the fields the checks need. On GitHub that is the single `gh issue list` in
+`github.md`, narrowed with `--search`, plus the not-planned closed set for check 3. On Linear:
 
 ```
 list_issues(project: "<name>", limit: 100, fields: [
@@ -19,7 +21,7 @@ list_issues(project: "<name>", limit: 100, fields: [
 ])
 ```
 
-Relations (`blockedBy`, `blocks`, sub-issues) are not in that enum — they come from
+On Linear, relations (`blockedBy`, `blocks`, sub-issues) are not in that enum — they come from
 `get_issue(id, includeRelations: true)`. Only fetch them for issues a relation check actually
 implicates, not the whole slice.
 
@@ -28,22 +30,28 @@ If the slice hits the limit, say so and groom the first page rather than silentl
 ## Step 2 — Checks
 
 Each check has a detection rule and one proposed fix. Skip a check rather than guess when the
-data to decide is missing.
+data to decide is missing — and skip it outright where the GitHub column says n/a.
 
-| # | Defect | Detect | Propose |
-|---|---|---|---|
-| 1 | No priority | `priority == 0` and `statusType != triage` | A tier, per the rubric, with a one-line reason |
-| 2 | No project | `projectId` empty, `statusType` not `triage`/`canceled` | The project its labels and title point at — or triage if genuinely unclear |
-| 3 | Dead blocker | a `blockedBy` issue has `statusType` `completed` or `canceled` | `removeBlockedBy` that edge |
-| 4 | Assigned but parked | has `assignee`, `statusType == backlog` | Either `unstarted` or drop the assignee — ask which, per issue |
-| 5 | Started, unowned | `statusType == started`, no `assignee` | Assign, or move back to `unstarted` |
-| 6 | Stale | `statusType` `backlog`/`unstarted`, `updatedAt` older than 90 days | Close as stale — **always asks, never batched** |
-| 7 | Orphaned child | `parentId` set, parent `statusType` `completed`/`canceled`, child open | Re-parent, or clear `parentId` and give it a project |
-| 8 | Probable duplicate | two open issues, near-identical titles, same project | Flag the pair for a human. **Never auto-close** |
-| 9 | Urgent inflation | more than ~5 issues at `priority 1` in one project | No write — report it. The tier has stopped meaning anything |
+| # | Defect | Detect (Linear) | GitHub | Propose |
+|---|---|---|---|---|
+| 1 | No priority | `priority == 0` and `statusType != triage` | Only with a priority-label scheme: no label from it | A tier, per the rubric, with a one-line reason |
+| 2 | No home | `projectId` empty, `statusType` not `triage`/`canceled` | No label from a family most issues carry (e.g. `area:*`) | The project or label its title points at — or triage if genuinely unclear |
+| 3 | Dead blocker | a `blockedBy` issue has `statusType` `completed` or `canceled` | Only a blocker closed *not planned* — judgment, not batched | Linear: `removeBlockedBy` that edge. GitHub: re-plan or remove, ask per issue |
+| 4 | Assigned but parked | has `assignee`, `statusType == backlog` | n/a — assigned *is* started | Either `unstarted` or drop the assignee — ask which, per issue |
+| 5 | Started, unowned | `statusType == started`, no `assignee` | n/a | Assign, or move back to `unstarted` |
+| 6 | Stale | `statusType` `backlog`/`unstarted`, `updatedAt` older than 90 days | Unassigned, `updatedAt` older than 90 days | Close as stale — **always asks, never batched** |
+| 7 | Orphaned child | `parentId` set, parent `statusType` `completed`/`canceled`, child open | `parent.state == CLOSED`, child open | Re-parent, or clear the parent and give it a home |
+| 8 | Probable duplicate | two open issues, near-identical titles, same project | Same, same milestone or label family | Flag the pair for a human. **Never auto-close** |
+| 9 | Urgent inflation | more than ~5 issues at `priority 1` in one project | Only with a priority-label scheme | No write — report it. The tier has stopped meaning anything |
+| 10 | Milestone inversion | open blocker sits in a later milestone than the issue it blocks, or in none | Same, from `blocking` nodes | Move the blocker into the earlier milestone |
 
-Checks 6, 8 and 9 are judgment, not defects. Report them in their own section, below the
-mechanical ones, and never fold them into the batch confirmation.
+On GitHub, closed blockers are history, not defects: the rank and `is:blocked` already ignore
+them, and removing them would bury a real proposal under edge deletions. Check 10 needs
+relations, so on Linear fetch them only for issues in the slice that have blockers — the same
+lazy rule as check 3.
+
+Checks 6, 8, 9 and GitHub's 3 are judgment, not defects. Report them in their own section,
+below the mechanical ones, and never fold them into the batch confirmation.
 
 ## Step 3 — Propose
 
@@ -88,10 +96,12 @@ State counts everywhere. "4 issues have no priority" is reviewable; a bare list 
 
 On confirmation, per issue:
 
-- **One `save_issue` per issue**, carrying only the fields this groom is changing. Never
-  attach a `patch` to a call that also moves `state` — see contract rule 2 in `linear.md`.
-- **Read the response back** and compare each changed field to what was asked. Contract
-  rule 3: an unconfirmed write is a failed write.
+- **One write per issue** — `save_issue` or `gh issue edit` — carrying only the fields this
+  groom is changing. On Linear, never attach a `patch` to a call that also moves `state` — see
+  contract rule 2 in `linear.md`.
+- **Read the result back** and compare each changed field to what was asked: the
+  `save_issue` response on Linear, a `gh issue view --json` on GitHub. An unconfirmed write is
+  a failed write.
 - A failure **does not abort the batch.** Keep going, collect the failures, and report them
   together — a stale patch on one issue is no reason to leave the other six unfixed.
 
@@ -109,8 +119,9 @@ If everything applied, say so in one line. Do not pad a clean run into a report.
 
 ## `triage`
 
-The same loop, narrowed: issues with `statusType: triage`, plus anything missing both
-priority and project. Per issue propose a priority tier, a project, and a milestone if the
-project has them — that is a *placement*, so the reasoning in `place` applies. An issue that
-cannot be placed stays in triage with a note saying what is missing; parking it is a real
-outcome, not a failure.
+The same loop, narrowed: on Linear, issues with `statusType: triage`, plus anything missing
+both priority and project; on GitHub, issues carrying the repo's triage label if it has one,
+otherwise open issues with no labels. Per issue propose a priority tier (GitHub: only with a
+label scheme), a project or labels, and a milestone if the backlog uses them — that is a
+*placement*, so the reasoning in `place` applies. An issue that cannot be placed stays in
+triage with a note saying what is missing; parking it is a real outcome, not a failure.

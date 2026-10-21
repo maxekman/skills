@@ -25,7 +25,7 @@
 Invoke autonomously when the trigger fires — do not improvise the workflows these encapsulate. Always spell them namespaced: the short aliases vanish whenever Claude Code ships a built-in of the same name, as it did for `pr`.
 
 - `/skills:task <create|update|search|implement> …` — issue/tracker operations on Linear (MCP) or GitHub Issues (`gh`). Use whenever the task references a ticket or asks to file/update one. `implement` also takes a plain description instead of an id — reach for it when starting a piece of work that should be tracked but has no ticket yet.
-- `/skills:backlog <status|next|groom|place|triage> …` — any question of what to work on next, where a new issue belongs, or cleaning up issue statuses, priorities and ordering across many issues. Linear only.
+- `/skills:backlog <status|next|groom|place|triage> …` — any question of what to work on next, where a new issue belongs, or cleaning up issue statuses, priorities and ordering across many issues, on Linear or GitHub Issues.
 - `/skills:todo` — a local `TODO.md` as working memory for a multi-step change. The counterpart to `/skills:task`: the tracker holds the goal, this holds the steps.
 - `/skills:grill-me` — stress-test a plan before executing it.
 - `/skills:jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`, fixing earlier commits, or resolving conflicts. Default for non-trivial jj work.

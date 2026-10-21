@@ -51,7 +51,7 @@ people who will never open the repo: last week by default, any window you name, 
 | Skill | Use it for |
 |---|---|
 | `/task` | Linear (MCP) or GitHub Issues (`gh`) — create, update, search, and `implement`, which takes an issue id *or* a plain description of the work, then carries the finished work through to a commit and PR. Given a description it searches the tracker first and opens an issue assigned to you only if nothing matches |
-| `/backlog` | The plural counterpart to `/task`: rank what to work on next, decide where a new issue belongs, and groom statuses, priorities and stale relations in bulk. Linear only |
+| `/backlog` | The plural counterpart to `/task`: rank what to work on next, decide where a new issue belongs, and groom statuses, priorities and stale relations in bulk. Linear or GitHub Issues |
 | `/todo` | A local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps |
 | `/grill-me` | Stress-testing a plan before executing it — one question at a time, each carrying a recommended answer, exploring the codebase instead of asking whenever the answer is already there |
 | `/jj` | Any commit, describe, rebase, split, absorb, or conflict resolution. Splits a working copy that mixes unrelated changes into separate commits |
@@ -68,8 +68,10 @@ Where they interlock: `/backlog next` picks the issue and `/task implement` pins
 from the tracker's own slug, `/skills:pr` reuses that name verbatim so the tracker auto-attaches
 the PR, and `/jj` keeps the commits underneath clean enough to stack.
 
-`/backlog` exists because Linear's MCP has no ordering primitive — no `sortOrder`, no
-`position`. Backlog order is derived from priority, blocking edges and milestones, so it
+`/backlog` exists because neither tracker exposes an ordering primitive — Linear's MCP has no
+`sortOrder` or `position`, and GitHub has no priority field and no `gh` access to board order.
+Backlog order is derived from priority, blocking edges and milestones — on a GitHub repo
+without priority labels, from milestones and how much open work an issue unblocks — so it
 carries an explicit rank contract and a priority rubric rather than pretending an issue can be
 dragged. It also holds the write contract that stops a status change from silently vanishing:
 resolve state names instead of guessing them, never send `state` in the same atomic call as a
@@ -156,10 +158,8 @@ Two things it is worth keeping whatever else you change:
 are on plain git those three will not be much use to you, though `/task`, `/todo`,
 `/grill-me` and `/recap` work either way.
 
-- `jj` for `/jj`, `/skills:pr` and `/wrapup`; `gh` for `/skills:pr`, `/wrapup` and GitHub-backed `/task`
-- A Linear MCP server for Linear-backed `/task` — it falls back to GitHub Issues
-- A Linear MCP server for `/backlog`, which has no GitHub fallback — GitHub Issues has no
-  priority field, and Projects v2 ordering is unreachable from the `gh` CLI
+- `jj` for `/jj`, `/skills:pr` and `/wrapup`; `gh` for `/skills:pr`, `/wrapup` and GitHub-backed `/task` and `/backlog`
+- A Linear MCP server for Linear-backed `/task` and `/backlog` — both fall back to GitHub Issues
 - `jj` or `git` for `/recap`; `gh` makes it far better, since PR descriptions say *why*
 - `/todo` and `/grill-me` have no dependencies
 

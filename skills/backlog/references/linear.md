@@ -45,7 +45,17 @@ assignee assigneeId delegate delegateId project projectId parentId team teamId c
 ```
 
 Ask for the narrow set you need. A backlog read for ranking wants
-`id, title, status, statusType, priority, projectMilestone, assignee, createdAt, updatedAt`.
+`id, title, status, statusType, priority, projectMilestone, assignee, parentId, createdAt, updatedAt`.
+
+## Relations for the rank
+
+`list_issues` cannot return relations, so "unblocked", effective milestone and reach each cost
+a `get_issue(id, includeRelations: true)`. Fetch them for **contenders only**: sort the slice
+on priority, take the issues still in the running for the top `n` (the top tier, and the next
+one down if it is thin), and follow their `blocks` edges through issues already in the slice.
+Parents need no call — an issue is a parent when another issue in the slice names it in
+`parentId`. Say in the output that reach was measured on contenders only; a fetch per backlog
+issue is the slow, prompt-heavy loop this avoids.
 
 ## `status` vs `statusType` — branch on the type
 
