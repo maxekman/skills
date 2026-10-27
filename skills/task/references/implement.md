@@ -6,7 +6,7 @@ Two phases:
 - **Claim (step 8).** On plan approval, assigns you and moves the issue to in progress — the only tracker write before delivery.
 - **Phase 2 — delivery (step 9).** Runs after the work is actually done. This is where `/jj` and `/skills:pr` get invoked.
 
-Phase 2 lives in this file rather than in a lazily-read reference on purpose: by the time the implementation is finished, nothing will prompt you to go read another file. It has to already be in context, so keep it here.
+Phase 2 lives in this file rather than in a lazily-read reference on purpose: by the time the implementation is finished, nothing will prompt you to go read another file. It has to already be in context, so keep it here. The one exception is the gate's criteria check, which it shares with `/task verify`. The gate line itself tells you to read `verify.md`, so that read is prompted.
 
 ## Accepted inputs
 
@@ -163,7 +163,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **Gate — all must hold:**
 
 - The tracker issue exists and is claimed. It normally is, but both happen on plan approval — creation for a description, step 8 for an existing issue — and a skipped approval step surfaces here. `/skills:pr` has nothing to attach a PR to without the issue, so create or claim it now rather than committing first.
-- Every **Done when** line is satisfied.
+- Every **Done when** line passes the criteria check in `verify.md` (steps 2–3, using this list as the source) — read it now. Partial or unmet fails the gate. A can't-tell line passes only if the tests below settle it; otherwise report it as unverified.
 - The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
 - New behavior has the tests a reviewer would ask for, or the repo demonstrably doesn't test that area.
 - The diff stays inside the issue's scope. Unrelated drive-by edits mean stop and ask, not a bigger PR.

@@ -1,8 +1,8 @@
 ---
 name: task
-argument-hint: "[create|update|search|implement] [id or url] [guidance] | [description]"
+argument-hint: "[create|update|search|implement|verify] [id or url] [guidance] | [description]"
 allowed-tools: mcp__*, Read, Grep, Glob, Bash, Edit, Skill
-description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, and gathering context for implementation. `implement` takes a tracker ID/URL, optionally followed by guidance, or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /skills:pr. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart.
+description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, gathering context for implementation, and verifying an issue against the code. `implement` takes a tracker ID/URL, optionally followed by guidance, or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /skills:pr. `verify` checks an issue's acceptance criteria against the working copy and reports each as met, partial or unmet with file:line evidence - use it whenever the user asks whether an issue is done, what is still missing for it, or to check a ticket against the code. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart; for what a merged PR left behind, /wrapup.
 ---
 
 # Issue Management
@@ -62,10 +62,16 @@ If the work needs a multi-step local breakdown as you build, `/todo` is the loca
 
 For anything spanning more than one issue — what to work on next, where a new issue belongs, grooming statuses and priorities in bulk — `/backlog` is the plural counterpart. Reach for it before `/task create` when the placement isn't obvious, and after finishing work when the backlog needs a pass.
 
+### Verify
+`/task verify [id-or-url] [guidance]` — check whether an issue, typically one in progress, is fully implemented in the working copy. Each acceptance criterion gets a verdict (met, partial, unmet, or can't tell statically) backed by a `file:line` citation and tagged landed or unlanded. The report ends with one overall verdict and a single next step. With no argument it uses the issue this session is working on, or one named in the local stack.
+
+It reads and greps but never runs code, so it is safe in plan mode. Its criteria check is the same one `implement`'s gate applies to **Done when**. Rules are in `references/verify.md`.
+
 ## When to Read References
 
 - `references/find-or-create.md` — `implement`'s argument doesn't start with a tracker ID or URL.
 - `references/implement.md` — args contain `implement`. The reference path starts at step 1; the description path rejoins at step 2 with an adopted issue, step 3 with a created one.
+- `references/verify.md` — args contain `verify`, or `implement`'s step-9 gate is checking **Done when**.
 - `references/placement.md` — creating an issue, breaking one down, or changing what an issue is filed under. Carries the project and label discovery pass, and the parent-child mechanics.
 - `references/linear.md` — backend is Linear; covers MCP tool patterns, query arguments, and the write contract for status changes. Read it before any `state` write.
 - `references/github.md` — backend is GitHub Issues; covers the full `gh issue` command table and filter flags.
@@ -80,4 +86,5 @@ The basic verbs (list/view/edit/comment/close) are predictable — go straight t
 - Never create a label, project, or team to satisfy a guess. An issue missing a label is ordinary; a workspace carrying an invented one is somebody else's cleanup.
 - Don't put secrets or sensitive data in issue bodies.
 - `implement`'s context phase is read-only — never modifies files or mutates tracker state. That holds for the description form's tracker search too; creating or claiming the issue happens only after the plan is approved, never from inside plan mode.
+- `verify` is read-only: it never executes code, and it touches the tracker only to post its report as a comment after a yes. It never changes status, closes an issue, or edits its checklist.
 - `implement`'s delivery phase commits and opens PRs on its own once its gate passes, but still never writes to the tracker unprompted. Creating follow-up issues or posting findings as a comment needs explicit confirmation.

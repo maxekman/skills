@@ -25,6 +25,8 @@ That distinction matters more than the skills themselves; see
          │
     …build…
          │
+  /task verify ABC-123        is it all there? each criterion checked against the code
+         │
   /jj                         commit — split what should never have been one commit
          │
   /skills:pr                  open or update the PR; the tracker re-attaches itself
@@ -50,7 +52,7 @@ people who will never open the repo: last week by default, any window you name, 
 
 | Skill | Use it for |
 |---|---|
-| `/task` | Linear (MCP) or GitHub Issues (`gh`) — create, update, search, and `implement`, which takes an issue id *or* a plain description of the work, then carries the finished work through to a commit and PR. Given a description it searches the tracker first and opens an issue assigned to you only if nothing matches |
+| `/task` | Linear (MCP) or GitHub Issues (`gh`) — create, update, search, and `implement`, which takes an issue id *or* a plain description of the work, then carries the finished work through to a commit and PR. Given a description it searches the tracker first and opens an issue assigned to you only if nothing matches. `verify` checks an in-progress issue's acceptance criteria against the code, with `file:line` evidence |
 | `/backlog` | The plural counterpart to `/task`: rank what to work on next, decide where a new issue belongs, and groom statuses, priorities and stale relations in bulk. Linear or GitHub Issues |
 | `/todo` | A local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps |
 | `/grill-me` | Stress-testing a plan before executing it — one question at a time, each carrying a recommended answer, exploring the codebase instead of asking whenever the answer is already there |
