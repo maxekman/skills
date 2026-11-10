@@ -4,12 +4,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A Claude Code **plugin marketplace**, not an application. It ships eight skills. Seven chain into a
+A Claude Code **plugin marketplace**, not an application. It ships nine skills. Seven chain into a
 ticket-to-PR loop and back: `/backlog` → `/task` → `/todo` → `/grill-me` → `/jj` → `/pr` →
-`/wrapup`. The eighth, `/recap`, sits beside the loop and turns its trail into plain-language
-updates for non-technical readers.
+`/wrapup`. Two sit beside the loop: `/recap` turns its trail into plain-language updates for
+non-technical readers, and `/overview` watches many runs of it at once from an umbrella folder.
 
-Everything here is markdown plus two JSON manifests. There is no build or test step — CI only
+Everything here is markdown, two JSON manifests and one Python script (`overview`'s
+snapshot). There is no build step — CI only
 checks that the manifests agree with the tree and that the skills validate, then releases.
 "Correct" means the frontmatter is valid, the prose is tight, and the manifests agree with the
 tree. Editing skills *is* the work in this repo.
@@ -46,9 +47,12 @@ CLAUDE.global-example.md   template for the *user's* ~/.claude/CLAUDE.md, not re
 **`plugin.json` enumerates skills explicitly.** A new `skills/<name>/` directory is inert until
 its path is added to that array — the easiest thing in this repo to get wrong, because nothing
 errors, the skill simply never loads. Current order: `jj`, `pr`, `task`, `backlog`, `todo`,
-`grill-me`, `wrapup`, `recap`.
+`grill-me`, `wrapup`, `recap`, `overview`.
 
-No skill has `scripts/` or `assets/` yet; all eight are prose plus references.
+Only `overview` has a `scripts/` directory: a standard-library Python 3.9 snapshot that the skill
+runs with `/usr/bin/python3` via `${CLAUDE_SKILL_DIR}`, so no umbrella's mise pins can break it.
+Check a change to it with `python3 -m py_compile` and a `--discover` run against a scratch jj
+repo with two workspaces. The other eight are prose plus references.
 
 ## How a change here goes live
 
@@ -196,7 +200,7 @@ verbs is never a one-file edit. Update together:
 - `.claude-plugin/plugin.json` — the skills array
 - `README.md` — both the skill table and the ASCII loop diagram
 - `CLAUDE.global-example.md` — the trigger list
-- every sibling `SKILL.md` that names it (`/task` ↔ `/todo` ↔ `/backlog` ↔ `/jj` ↔ `/pr` ↔ `/wrapup` ↔ `/recap`)
+- every sibling `SKILL.md` that names it (`/task` ↔ `/todo` ↔ `/backlog` ↔ `/jj` ↔ `/pr` ↔ `/wrapup` ↔ `/recap` ↔ `/overview`)
 - the commit that does it — a rename is a breaking change, so it needs `!` and a
   `BREAKING CHANGE:` footer. See *Releases are automatic*.
 
