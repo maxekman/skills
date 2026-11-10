@@ -74,13 +74,33 @@ owner, blocked, and the stale count. GitHub has only open and closed, so there a
 the in-progress signal. One screen — this is the "how bad is it" view, and `groom` is the one
 that does something about it.
 
-### `next [n] [scope]`
-What to work on now, default 3. Apply the rank contract and show *why* each ranks where it
-does — the reason line is the point, since a rank you cannot argue with is a rank you cannot
-correct. Exclude anything blocked, and list blocked-but-otherwise-top issues separately with
-the blocker named. A free-text scope ("the software side") maps onto labels, milestones or
-projects that exist — state the mapping you used. Hand the chosen issue to
-`/task implement <id>`.
+### `next [n] [scope or ref]`
+What to work on now, default 3, grounded in the thread of work you are on. It usually runs
+right after `/wrapup`, where the best pick is most often the next step of what just merged,
+not the backlog's global top. So find the **anchor** first, the issues the work continues
+from, and state which one you used:
+
+1. an issue or PR ref in the args (`#29`, a URL, `ACME-407`) — `/wrapup` hands off this way;
+2. the issues and PRs this session worked on, wrapped up or filed;
+3. in a fresh session, the workspace: its bookmark, or the issue refs in your recent commits;
+4. your own in-flight issues.
+
+None found → rank globally and say so. Then answer in two sections, both on the rank contract:
+
+- **Continue this thread** — up to `n` candidates related to the anchor, closest first: direct
+  relations (what it unblocked, siblings under its parent, its blockers), then follow-ups this
+  session filed, then the anchor's milestone or area label to fill what is left. When every
+  member is blocked, lead with what the thread waits on and the move that frees it.
+- **Elsewhere** — the global top `n` outside the thread. When one outranks the whole thread on
+  priority tier or effective milestone, say so in one line, so that following a thread never
+  hides urgent work.
+
+Show *why* each ranks where it does — the reason line is the point, since a rank you cannot
+argue with is a rank you cannot correct. In the thread section it also names the tie (`sibling
+of #19 under #13`). Exclude anything blocked, and list blocked-but-otherwise-top issues
+separately with the blocker named. A free-text scope ("the software side") maps onto labels,
+milestones or projects that exist and narrows both sections — state the mapping you used.
+Hand the chosen issue to `/task implement <id>`.
 
 ### `groom [scope]`
 The defect pass: read a slice of the backlog, find what is malformed, propose fixes, apply on
@@ -111,6 +131,9 @@ home — priority tier, project or labels, milestone — and confirm as a batch.
 - `references/github.md` — backend is GitHub, before the first `gh` read. The relation fields
   have a shape that breaks the obvious jq, and one call returns the whole graph if you ask for
   it right. Also carries the write surface and its read-back.
+- `references/thread.md` — args contain `next`. Finding the anchor is its first step, and the
+  file carries the PR-to-issue resolution, the workspace commands, the membership tiers and
+  the stalled-thread moves.
 - `references/grooming.md` — args contain `groom` or `triage`.
 
 ## Safety
