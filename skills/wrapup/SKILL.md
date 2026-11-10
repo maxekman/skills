@@ -141,9 +141,14 @@ team is waiting on it — add one line: `Explain it to stakeholders: /skills:rec
 it; don't run it, since who hears about the change is the user's call.
 
 When sync succeeded, every run is green, and nothing remains, end with one line:
-`Ready for the next one: /skills:backlog next #<N>`, with the merged PR's number. `/backlog`
-ranks from the thread that PR belongs to, and the explicit ref keeps that working after a
-compaction or in a fresh session. Don't invoke it — picking the next task is the user's call.
+`Ready for the next one: /skills:backlog next <ref>`, naming the issue the work continues from,
+so `/backlog` ranks from its thread even after a compaction or in a fresh session. On Linear,
+`<ref>` is the tracker ID step 4 found (`ACME-407`), not the PR number, which no Linear issue
+answers to. On GitHub Issues it is `#<N>` when the PR closes or references an issue: `/backlog`
+resolves the PR to them, `Part of #M` included. A PR with no issue behind it, such as work picked
+from a TODO.md or a doc's list, gets no ref: a bare PR number anchors on nothing and only leaves
+the user asking what it is, while plain `/skills:backlog next` still anchors on the session.
+Don't invoke it — picking the next task is the user's call.
 
 ## When to Read References
 
