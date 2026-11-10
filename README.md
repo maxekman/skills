@@ -48,6 +48,12 @@ pile you are not looking at.
 merged PRs, commits, changelogs, closed tickets — and writes a short plain-language update for
 people who will never open the repo: last week by default, any window you name, or one PR.
 
+`/overview` stands above the loop. When several sessions run it in parallel, one per jj
+workspace under a client or project folder, it runs in its own tab at that folder and keeps a
+board: which issue each workspace is on, which session is waiting on you, which PR went red or
+merged, and which workspace is free for the next item. You start the work in the
+sessions. It monitors, suggests, and acts only on a yes.
+
 ## The skills
 
 | Skill | Use it for |
@@ -60,6 +66,7 @@ people who will never open the repo: last week by default, any window you name, 
 | `/skills:pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
 | `/wrapup` | After the merge: fetch and move onto a fresh change when nothing else is in flight, watch the deploy and smoke runs the merge triggered and probe dev/staging read-only, then list what the PR left behind — unresolved threads, open tracker issues, TODO items — and offer to file or close them |
 | `/recap` | A short plain-language update for non-technical readers — what is live, what is done, what is in progress, what to watch — from merged PRs, commits, changelogs and closed tickets. Last 7 days by default, any window, or a single PR. Read-only; it never posts |
+| `/overview` | A live guide for many parallel sessions, started from the umbrella folder above their jj workspaces. Watches each session's state, stack, PR and issue, pushes a notification when something needs you, suggests the next ranked item for an idle free workspace, and after a merge offers to close an issue that did not auto-close. `init` sets up a folder, and `status` prints the board once |
 
 Not every change starts from a ticket. `/task implement "fix the flaky retry test"` searches the
 tracker for that work, adopts it if it is already filed, and otherwise opens an issue assigned to
@@ -163,6 +170,7 @@ are on plain git those three will not be much use to you, though `/task`, `/todo
 - `jj` for `/jj`, `/skills:pr` and `/wrapup`; `gh` for `/skills:pr`, `/wrapup` and GitHub-backed `/task` and `/backlog`
 - A Linear MCP server for Linear-backed `/task` and `/backlog` — both fall back to GitHub Issues
 - `jj` or `git` for `/recap`; `gh` makes it far better, since PR descriptions say *why*
+- `/overview` needs `jj` or `git`, `gh`, and `/usr/bin/python3` (macOS ships 3.9); it reads Claude Code's local session registry, so it only sees sessions on the same machine
 - `/todo` and `/grill-me` have no dependencies
 
 ## Credits

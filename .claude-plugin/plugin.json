@@ -25,6 +25,7 @@
     "./skills/todo",
     "./skills/grill-me",
     "./skills/wrapup",
-    "./skills/recap"
+    "./skills/recap",
+    "./skills/overview"
   ]
 }
