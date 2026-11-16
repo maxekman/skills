@@ -12,7 +12,10 @@ An umbrella can name project-specific reports in `config.json`, such as a repo's
 ```
 
 Project skills only load in sessions started in their repo, so run a report by reading its
-`SKILL.md` and following it, with the commands run from that repo's folder. `run` says when:
+`SKILL.md` and following it, with the commands run from that repo's folder. Give the report's
+reads and commands calls of their own, never chained with reads of this skill or another repo:
+a private repo's report trips guard hooks that block any one command naming both a private
+and a public repo. `run` says when:
 
 - `daily`: on the first wake of a day. The 30-minute heartbeat catches the date change. Log
   each run in `state.md` so a restart doesn't repeat it.
