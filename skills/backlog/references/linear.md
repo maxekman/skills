@@ -17,9 +17,13 @@ Upsert — omit `id` to create, pass `id` to update.
 | Misc | `links` |
 
 **Never observed: `sortOrder`, `position`, `boardOrder`, `estimate`, `cycle`, `dueDate`.**
-The first three are why the rank contract exists. The last three are readable via
-`list_issues` `fields` but not settable here — if the user wants an estimate or a cycle set,
-say it has to be done in the Linear UI.
+The first three are why the rank contract exists. Linear's GraphQL API stores the order, as
+`sortOrder`, `prioritySortOrder` and `subIssueSortOrder`, but the MCP server doesn't return it
+yet. Once [linear/linear#1113](https://github.com/linear/linear/issues/1113) ships, revisit the
+rank contract ([maxekman/skills#19](https://github.com/maxekman/skills/issues/19)).
+
+The last three are readable via `list_issues` `fields` but not settable here — if the user wants
+an estimate or a cycle set, say it has to be done in the Linear UI.
 
 `patch` takes a list of `replace` / `prepend` / `append` ops rather than resending a long
 description. A `replace` whose `old_string` does not match **fails the entire call** — see
