@@ -1,7 +1,7 @@
 ---
 name: overview
 argument-hint: "[init|status|find] [workspace, path or issue id]"
-allowed-tools: Bash(/usr/bin/python3 ${CLAUDE_SKILL_DIR}/scripts/snapshot.py *), Bash(gh *), Bash(jj *), Bash(rex split *), Bash(rex block ls *), Read, Write, Edit, Skill, Monitor, ListAgents, SendMessage, PushNotification
+allowed-tools: Bash(/usr/bin/python3 ${CLAUDE_SKILL_DIR}/scripts/snapshot.py *), Bash(gh *), Bash(jj *), Bash(rex split *), Bash(rex block ls *), Read, Write, Edit, Skill, Agent, Monitor, ListAgents, SendMessage, PushNotification
 description: Live guide for an umbrella folder of parallel, hand-run Claude sessions — watches every jj or git workspace under it, which issue each session is on, whether it is busy, idle or waiting on the user, and the PRs and tracker issues behind them, then says what needs attention - a session waiting on input, red checks or requested changes, a stalled session, a merge whose issue did not close. Suggests the next item for an idle free workspace and proposes the tracker follow-up after a merge, acting only on a yes. Use whenever the user wants an overview, orchestrator, dashboard or status of their agents or workspaces, asks where things stand, what the sessions are doing or which workspace is free, or starts Claude in a client or project umbrella folder rather than inside a repo, even without the word overview. Ranking work inside one repo is /backlog; post-merge cleanup inside a workspace is /wrapup.
 ---
 
@@ -160,16 +160,17 @@ while it runs or is red, and plain CI only when red, so a quiet, green umbrella 
 
 **Path to unblock** is the board's guide to what comes next, drawn for each GitHub-tracked
 repo from its open issues, and for each Linear team from the graph the guide keeps in
-`.overview/graph-<TEAM>.json`, one tree for every repo on the team. Roots are the open milestone
-due soonest or the projects in progress, plus those of the issues the workspaces are on or
-hinted at. Under each root, its epics (top-level parent issues)
+`.overview/graph-<TEAM>.json`, one tree for every repo on the team. Roots are the milestones or
+projects of the issues the workspaces are on or hinted at, plus GitHub's open milestone due
+soonest. Under each root, its epics (top-level parent issues)
 hold blocker chains: each root is an issue that can start or is in flight, and its children are
-what finishing it unblocks. ● a workspace is on it, ○ ready, ◐ someone else has it, ⛔ waiting on
-an issue outside the epic. An issue with several blockers is drawn under one, and named
-`(also ← …)` under the rest. In `--watch` the tree gets whatever lines the pane has left: it
-cuts deep chains first, then extra ready issues and quiet epics, then folds each epic and
-project nobody is on into one line naming its best pickup. It never cuts what a workspace is on
-or hinted at. Only a pane too short even for that gets a ranked list of what to pick up instead.
+what finishing it unblocks. ● a workspace is on it, ○ ready, ? blockers not read yet, ◐ someone
+else has it, ⛔ waiting on an issue outside the epic. An issue with several blockers is drawn
+under one, and named `(also ← …)` under the rest. In `--watch` the tree gets whatever lines the
+pane has left: it cuts deep chains first, then extra ready issues and quiet epics, then folds
+each epic and project nobody is on into one line naming its best pickup. It never cuts what a
+workspace is on or hinted at. Only a pane too short even for that gets a ranked list of what to
+pick up instead.
 `status` shows it whole. It is on the board only, not in the JSON, which stays small enough to
 read on every wake, so answer "what next" questions from `status`.
 

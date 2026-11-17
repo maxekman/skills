@@ -563,6 +563,7 @@ def graphs(umbrella, config, now, warnings):
         if tracker.startswith("linear:"):
             read.add(tracker)
             path = os.path.join(umbrella, ".overview", "graph-%s.json" % tracker.split(":", 1)[1])
+            found[tracker] = None
             if os.path.exists(path):
                 try:
                     with open(path) as f:
@@ -808,12 +809,14 @@ def tree(graph, on, hinted, level):
     epics = {n.get("parent") for i, n in nodes.items() if i in live} & set(nodes)
     # An epic whose subs are all closed is ready to close, unless it still waits on something.
     finished = {i for i in live - epics if (nodes[i].get("subs") or [0, 0])[1]
-                and nodes[i]["subs"][0] == nodes[i]["subs"][1]
-                and not any(b not in nodes or b in live for b in nodes[i].get("blocked_by") or [])}
+                and nodes[i]["subs"][0] == nodes[i]["subs"][1] and nodes[i].get("blocked_by") is not None
+                and not any(b not in nodes or b in live for b in nodes[i]["blocked_by"])}
     # Triage is not yet work anyone can pick up, but it still blocks what waits on it.
     leaves = {i for i in live - epics - finished if nodes[i]["state"] != "triage"}
     project = {i: next((nodes[a]["project"] for a in up(i) if nodes[a].get("project")), None) for i in nodes}
     epic = {i: (up(i)[1:] or [None])[-1] for i in leaves}
+    # The guide writes a Linear graph before it has read every issue's blockers.
+    unread = {i for i in leaves if nodes[i].get("blocked_by") is None}
     blockers = {i: [b for b in nodes[i].get("blocked_by") or [] if b not in nodes or b in live] for i in leaves}
     kids = {}
     for i in leaves:
@@ -843,10 +846,12 @@ def tree(graph, on, hinted, level):
             return "●"
         if nodes[i]["state"] == "started" or nodes[i].get("assignee"):
             return "◐"
-        return "⛔" if blockers[i] else "○"
+        if blockers[i]:
+            return "⛔"
+        return "?" if i in unread else "○"
 
     def key(i):
-        cls = {"●": 0, "○": 2, "◐": 3, "⛔": 4}[mark(i)] - (i in hinted and mark(i) == "○")
+        cls = {"●": 0, "○": 2, "?": 3, "◐": 4, "⛔": 5}[mark(i)] - (i in hinted and mark(i) == "○")
         return (cls, nodes[i].get("priority") or 5, -reach[i], int(re.sub(r"\D", "", i) or 0))
 
     # An epic stays while a workspace is on one of its issues, even once that issue closed.
@@ -993,14 +998,15 @@ def tree_text(rows, paint):
 
 
 def fit_trees(sections, budget, paint):
-    """sections is [(header, graph, on, hinted)]. Cut level by level until every tree fits in
-    budget lines (None: no limit). When none fits, truncate the shortest, which keeps the most."""
+    """sections is [(header, graph, on, hinted)], graph None for one the guide has yet to write.
+    Cut level by level until every tree fits in budget lines (None: no limit). When none fits,
+    truncate the shortest, which keeps the most."""
     tries = []
     for level in range(9):
         lines = []
         for header, graph, on, hinted in sections:
-            rows = tree(graph, on, hinted, level)
-            if rows:
+            rows = tree(graph, on, hinted, level) if graph else []
+            if rows or not graph:
                 lines += ["", header] + ["  " + l for l in tree_text(rows, paint)]
         if budget is None or len(lines) <= budget:
             return lines
@@ -1097,12 +1103,21 @@ def board(snap, notes, paint, graphs=None, height=None):
                       for i, d in (entry.get("issues") or {}).items()
                       if i in on and i not in graph["nodes"] and d.get("parent")}
             sections.append(("Path to unblock · " + repo, dict(graph, nodes=dict(graph["nodes"], **closed)), on, hinted))
-        elif graph and not any(s[2] is on for s in sections):
+        elif key != repo and key in (graphs or {}) and not any(s[2] is on for s in sections):
             head = "Path to unblock · " + key.split(":", 1)[1]
-            try:
-                head += " · %s old" % age(now - iso_epoch(graph["fetched_at"]))
-            except (KeyError, ValueError):
-                head += " · age unknown"
+            if not graph:
+                head += paint.dim(" · no graph yet; the guide is building it")
+            else:
+                try:
+                    head += " · %s old" % age(now - iso_epoch(graph["fetched_at"]))
+                except (KeyError, ValueError):
+                    head += " · age unknown"
+                # An epic's own blockers don't shape the tree, so the guide may never read them.
+                parents = {n.get("parent") for n in graph["nodes"].values() if n["state"] not in DONE}
+                open_ = [n for i, n in graph["nodes"].items() if n["state"] not in DONE and i not in parents]
+                unread = sum(1 for n in open_ if n.get("blocked_by") is None)
+                if unread:
+                    head += " · blockers read for %d/%d" % (len(open_) - unread, len(open_))
             sections.append((head, graph, on, hinted))
 
     lines = ["%s · %s" % (os.path.basename(snap["umbrella"]), time.strftime("%H:%M", time.localtime(now)))]
