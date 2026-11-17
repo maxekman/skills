@@ -444,7 +444,7 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
     except (OSError, ValueError):
         cache = {}
     stale = now - cache.get("fetched_at", 0) > REMOTE_TTL or "lanes" not in cache \
-        or any("pr" not in v for v in cache.get("issues", {}).values())
+        or any("parent" not in v for v in cache.get("issues", {}).values())
     if stale:
         # Record the attempt even when it fails, so a broken gh is retried every REMOTE_TTL,
         # not every tick.
@@ -488,11 +488,13 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
     for issue in issue_ids:
         if issue in cache["issues"]:
             continue
-        out = run(["gh", "issue", "view", issue.lstrip("#"), "-R", slug, "--json", "number,title,state,stateReason,url"])
+        out = run(["gh", "issue", "view", issue.lstrip("#"), "-R", slug, "--json", "number,title,state,stateReason,url,parent"])
         if out is not None:
             data = json.loads(out)
             # gh answers for PR numbers too, and prompts name PRs as often as issues.
             data["pr"] = "/pull/" in data.pop("url", "")
+            # The tree's graph holds open issues only; a closed one still anchors its epic.
+            data["parent"] = "#%d" % data["parent"]["number"] if data.get("parent") else None
             cache["issues"][issue] = data
     # The board pane and the guide's watcher share this cache; never let one read a half-written file.
     os.makedirs(os.path.dirname(cache_path), exist_ok=True)
@@ -830,9 +832,12 @@ def tree(graph, on, hinted, level):
         cls = {"●": 0, "○": 2, "◐": 3, "⛔": 4}[mark(i)] - (i in hinted and mark(i) == "○")
         return (cls, nodes[i].get("priority") or 5, -reach[i], int(re.sub(r"\D", "", i) or 0))
 
+    # An epic stays while a workspace is on one of its issues, even once that issue closed.
+    anchored = {up(i)[-1] for i in set(on) | set(hinted) if i in nodes and len(up(i)) > 1}
     shown = [p for p, meta in projects.items() if meta.get("active")]
-    shown += sorted({project[i] for i in keep if project[i]} - set(shown), key=lambda p: list(projects).index(p) if p in projects else len(projects))
+    shown += sorted({project[i] for i in keep | anchored if project[i]} - set(shown), key=lambda p: list(projects).index(p) if p in projects else len(projects))
     unfiled = closure([i for i in keep if not project[i]], {i: [k for k in kids.get(i, []) if not project[k]] for i in leaves})
+    unfiled |= {i for i in leaves if epic[i] in anchored and not project[i]}
     if level >= 7:
         # The last resort for a short pane: what to pick up, best first. The board rows above
         # already show the work in flight.
@@ -1055,8 +1060,14 @@ def board(snap, notes, paint, graphs=None, height=None):
             text = lane_text(repo, lane, both, now, paint)
             if text:
                 actions.append(text)
-        if (graphs or {}).get(repo):
-            sections.append(("Path to unblock · " + repo, graphs[repo], on, hinted))
+        graph = (graphs or {}).get(repo)
+        if graph:
+            # The graph holds open issues only; a closed one a workspace is still on keeps its
+            # epic, and what closing it unblocked, on the tree.
+            closed = {i: {"title": d["title"], "state": "completed", "parent": d["parent"]}
+                      for i, d in (entry.get("issues") or {}).items()
+                      if i in on and i not in graph["nodes"] and d.get("parent")}
+            sections.append(("Path to unblock · " + repo, dict(graph, nodes=dict(graph["nodes"], **closed)), on, hinted))
 
     lines = ["%s · %s" % (os.path.basename(snap["umbrella"]), time.strftime("%H:%M", time.localtime(now)))]
     lines += [paint.red("⚠ " + w) for w in snap["warnings"]]
