@@ -42,9 +42,9 @@ When a PR moves to `MERGED`:
    through `save_issue`, following `/backlog`'s Linear write contract.
 2. **What comes next?** In a Linear repo, start a refresh of the team's graph
    (`references/graph.md`). Say the merge in one chat line that names what it unblocked: the
-   issues it blocked that now have no open blocker left, e.g. "PR #88 merged · unblocks DEV-44,
-   DEV-45". Linear: the nodes in the graph file whose `blocked_by` holds the merged issue and
-   nothing else. GitHub: `gh issue view N -R owner/repo --json blocking` gives them, with each
+   issues it blocked that now have no open blocker left, e.g. "PR #88 / Sync the venue list
+   merged · unblocks DEV-44 / Cache the venue list, DEV-45 / Show the venue map". Linear: the
+   nodes in the graph file whose `blocked_by` holds the merged issue and nothing else. GitHub: `gh issue view N -R owner/repo --json blocking` gives them, with each
    one's other blockers in `gh issue view M --json blockedBy`.
    Then invoke `/skills:backlog next` for that repo only, asking for one more
    item than there are free workspaces. The guide's cwd is not the repo, so name the repo
@@ -85,9 +85,10 @@ The user picks up work themselves, often before the guide has said anything. A s
 hint on the board, not a plan that the user then departs from. For a free workspace whose
 session is idle, or that has no session, take the top ranked item not already shown for
 another workspace. Set it as that workspace's `next` in `notes.json`, with the reason in one
-short clause: `"#63 (P1, unblocks #64 and #66)"`. The board shows it while the workspace is
-free and hides it once work starts, so a suggestion the user passes over needs no cleanup and
-no comment. Mention a suggestion in chat at most once, when the workspace first goes free. If the user asks to hand it to the session, send `/skills:task implement #63` with
+short clause, after the issue's title:
+`"#63 / Pin out the expansion header (P1, unblocks #64 and #66)"`. The board shows it while the
+workspace is free and hides it once work starts, so a suggestion the user passes over needs no
+cleanup and no comment. Mention a suggestion in chat at most once, when the workspace first goes free. If the user asks to hand it to the session, send `/skills:task implement #63` with
 `SendMessage` to the session `name` from the snapshot. Never send to a `busy` session, because
 the message would land in the middle of its turn.
 
