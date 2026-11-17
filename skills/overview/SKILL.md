@@ -93,6 +93,14 @@ summary of what changed; the board already shows it. To read one workspace, use
 `snapshot.py --workspace NAME`; otherwise `--board` or `jq`. Don't write throwaway scripts to
 slice the snapshot.
 
+In those lines, and in the `next` and `offers` you write to `notes.json`, name each issue and
+PR with its title the first time it appears: `DEV-44 / Cache the venue list`,
+`#63 / Pin out the expansion header`, `PR #70 / Wire the power rail`, and `app#123 / …` in
+another repo of the same org, `org/repo#123 / …` across orgs. A one-line push gets read without
+the board beside it, and a bare key leaves the user asking which issue it was. Keys inside a
+command stay bare so the command still runs. Take titles from the snapshot or `titles`, fetch
+the missing ones, and copy each as the tracker has it.
+
 Between wakes, answer the user's questions from the latest snapshot: where things stand, what
 a workspace is on, or what to pick up next.
 
@@ -132,7 +140,7 @@ opendecks · 13:51
 
 opendecks    #418  Choose the browse row size in settings  working    idle 6m
 opendecks-2  #680  Give the QSPI lines room round U3       working    ⚠ waiting 8m
-opendecks-3                                                free       idle 3m     next up: #63 (P1)
+opendecks-3                                                free       idle 3m     next up: #63 / Pin out the expansion header (P1)
 opendecks-4  #266  Bring up the DAC2 Pro on the bench Pi   in review  no session  PR #677 draft ✓
 site               Publish the press kit                   merged     no session  PR #31 merged · needs wrapup
 
@@ -143,7 +151,7 @@ Actions
   ✗ opendecks main: CI (1h ago)
 
 Offers
-  close #61? PR #70 merged without "Closes"
+  close #61 / Power the deck? PR #70 / Wire the power rail merged without "Closes"
 
 Path to unblock · opendecks
   M1 First deck · 222/263
@@ -180,17 +188,18 @@ The script works out the facts. What only the guide can judge goes into
 ```json
 {
   "overrides": {"opendecks-2": "#680"},
-  "workspaces": {"opendecks-3": {"next": "#63 (P1, unblocks #64)"},
+  "workspaces": {"opendecks-3": {"next": "#63 / Pin out the expansion header (P1, unblocks #64)"},
                  "site": {"note": "needs wrapup"}},
   "titles": {"DEV-88": "Cache the venue list offline"},
-  "offers": ["close #61? PR #70 merged without \"Closes\""],
+  "offers": ["close #61 / Power the deck? PR #70 / Wire the power rail merged without \"Closes\""],
   "notes": ["#442 is the last open sub-issue of #440"]
 }
 ```
 
 - **overrides**: what the user said a workspace is on. It beats every derived source.
 - **workspaces**: per workspace, `next` (shown only while it is free) and a short `note`.
-  `/wrapup` reads `next` too and ends its report with it, so keep the field's name and shape.
+  `/wrapup` reads `next` too and ends its report with it, so keep the field's name and shape:
+  the issue's key first, then its title, then the reason.
 - **titles**: the title of each Linear issue on the board. The script gets GitHub titles itself
   but can't reach Linear. Add a title whenever a workspace moves to a new Linear issue, and drop
   titles no row uses.
