@@ -90,9 +90,10 @@ from, and state which one you used:
 None found → rank globally and say so. Then answer in two sections, both on the rank contract:
 
 - **Continue this thread** — up to `n` candidates related to the anchor, closest first: direct
-  relations (what it unblocked, siblings under its parent, its blockers), then follow-ups this
-  session filed, then the anchor's milestone or area label to fill what is left. When every
-  member is blocked, lead with what the thread waits on and the move that frees it.
+  relations (what it unblocked, siblings under its parent, its blockers, issues linked as
+  related), then follow-ups this session filed, then the anchor's project (Linear) or area
+  label to fill what is left, with the rest counted on one overflow line. When every member is
+  blocked, lead with what the thread waits on and the move that frees it.
 - **Elsewhere** — the global top `n` outside the thread, from one flat backlog read, never a
   walk out from the anchor. When one is strictly higher than every thread pick on priority tier
   or milestone, say so in one line, so that following a thread never hides urgent work.

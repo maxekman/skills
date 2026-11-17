@@ -50,16 +50,29 @@ as the global one (open leaf, nobody on it).
   Linear: `list_issues(parentId: …)`.
 - Blockers — open `blockedBy` of the anchor and of its siblings, cross-repo nodes included.
   Name a cross-repo node by its URL and state; don't fetch it.
+- Related (Linear) — issues linked to the anchor as related, from the same
+  `get_issue(includeRelations: true)` read. Someone drew that link by hand, so it is as
+  deliberate as a blocking edge. GitHub has no such edge.
 
 **(b) Session follow-ups.** Issues this session filed or named as leftovers — `/wrapup`'s
 follow-ups, a PR body's "follow-up in #N".
 
-**(c) Same milestone or area label.** Only to fill slots that (a) and (b) leave, up to `n`. Area
-labels only (`area:ui`, `docs`): type labels like `bug` or `enhancement` span the whole backlog
-and would rebuild the global ranking under another name.
+**(c) Same project, then area label.** Only to fill slots that (a) and (b) leave, up to `n`.
+- Linear: the anchor's project, `list_issues(project: …)`, with issues in the anchor's own
+  project milestone first. A project is the tracker's container for one topic, and a milestone
+  inside it is a phase of that topic.
+- Then area labels only (`area:ui`, `docs`): type labels like `bug` or `enhancement` span the
+  whole backlog and would rebuild the global ranking under another name.
+- Not milestone, on either backend. GitHub milestones are usually release-wide (`M1`), so they
+  rank but don't mark a topic.
 
 The reason line names the tie: `sibling of #19 under #13 (7/10 done)`, `unblocked by #29`,
-`filed in this session`, `same milestone as #19`.
+`related to ACME-407`, `filed in this session`, `same project as ACME-407`.
+
+**Overflow.** Whatever the thread holds beyond `n` goes on one line under the section, from the
+reads already made and with no relation fetch: `Also in this thread: INN-1190 (sibling) · 6 more
+open in project "Journey v0"`. GitHub counts the anchor's area label instead. It shows the topic
+has more without spending a slot on a looser tie, and `next 6` opens it up.
 
 ## A stalled thread
 
@@ -80,10 +93,15 @@ exactly when the global pick matters most, and the only time the closing pick co
 
 One flat read, ranked on the rank contract, with the thread's members left out:
 
-- **Linear** — `list_issues` over the anchor's team, `statusType` `backlog` or `unstarted`, then
+- **Linear** — `list_issues` over the anchor's team, `statusType` `backlog` or `unstarted`, with
+  `project` added to the ranking `fields` so the anchor's project can be left out, then
   relations for contenders only, as in `references/linear.md` *Relations for the rank*: their
   `blocks` edges are followed through issues already in that slice, never out of it.
 - **GitHub** — the rows of the one graph read the thread came from, minus the thread.
+
+"The thread" here includes the overflow line. On Linear that is the anchor's whole project, so
+Elsewhere means another topic rather than the project's next few issues. When excluding it
+leaves little, show what remains and say `most open work is in project "Journey v0"`.
 
 Don't widen it by following the anchor's parent, what the anchor blocks, or what those block.
 Every issue found that way feeds something the thread also feeds, so it outranks the thread by
@@ -97,9 +115,10 @@ you to redo the ranking yourself.
 
 ## Side lines
 
-- **In flight (yours)** — name the ones in the thread (the anchor's parent, or a direct
-  relation). Collapse the rest into IDs: `+2 more in flight elsewhere (INN-704, INN-1103)`.
-  Finishing a thread member is often the real next step, so it leads; the rest is context.
+- **In flight (yours)** — name the ones in the thread (the anchor's parent or project, or a
+  direct relation). Collapse the rest into IDs:
+  `+2 more in flight elsewhere (INN-704, INN-1103)`. Finishing a thread member is often the
+  real next step, so it leads; the rest is context.
 - **Blocked** — thread members that are blocked, plus an Elsewhere issue only if it would
   otherwise have made Elsewhere's top `n`. Name each blocker with its owner and state from the
   read you already have. Don't fetch the blocker's blockers: one hop says what to nudge, and
@@ -117,6 +136,7 @@ Continue this thread
   Continue there: /skills:backlog next acme/app#258, run from acme/app
   1. #20 Add a click-to-load demo video — sibling of #19 under #13 (7/10 done). Buildable now
      with no video ID; the network-panel check waits for #258, so it stays open after its PR.
+  Also in this thread: 3 more open with label area:web
 
 Elsewhere
   1. #42 Fix broken links in the footer — earliest milestone (M2), unblocks 2
