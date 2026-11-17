@@ -24,6 +24,27 @@ If no arguments, decide new-vs-update from bookmarks and `gh pr list --author @m
 
 With arguments, parse for: branch name, title, base override, draft flag, or `rebase` (rebase a stacked PR after its parent merged).
 
+## Handed off from `implement`
+
+When `/task implement` or `/todo implement` invokes this skill, starting that run was the user's request to commit, push and open the PR. Claude Code's default of pushing only when asked is already met, so push and create the PR without confirming. The user reviews at the PR, then reads your report — asking first at the end of a finished run gets that order backwards.
+
+Stop after the commit instead, present the change, and wait for a go only when merging it would be hard to undo:
+
+- production infra — prod tfvars or stacks, resource destroys, state moves
+- widened access — IAM roles, auth rules, permission grants
+- a secret value, or a rotation
+- a migration that drops, renames or rewrites data
+- a breaking change — a `!` commit, or a removed or renamed API, CLI flag or skill
+
+Judge what merging does, not which files it touches: a dev or staging allow-list entry, a script that now skips more, or a new table goes straight to a PR.
+
+Report in this order — a stopped run gives the push command in place of the URL:
+
+1. The PR URL.
+2. What changed, per commit.
+3. What the tests checked.
+4. What is left after merge — deploys, follow-ups, notes for the tracker.
+
 ## Workflow
 
 The happy path is short — five steps. Skip the references unless their signal fires.
