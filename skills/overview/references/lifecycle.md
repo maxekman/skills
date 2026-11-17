@@ -96,11 +96,15 @@ Send a `PushNotification` only when the user is needed:
   These go to the user, not the session. Each needs a judgement (a flaky run, a review to push
   back on, which side of a conflict wins), and `/skills:pr` stops on rebase conflicts for the
   user to resolve.
-- A workflow on the default branch turned `fail` (`trunk`). Name the workflow and the merge
-  that went in just before it, which is usually the cause. A trunk workflow that was already red
-  when the guide started goes on the board, not into a push.
+- A workflow on the default branch turned `fail` (`trunk`), or a lane turned `fail` or
+  `behind` (`lanes`). Name the workflow and the merge that went in just before it, which is
+  usually the cause. When the lane's `cut` is not empty, say those merges are not live either:
+  their own deploys were cancelled in favour of this one. For `behind`, say the target is
+  behind the branch at that commit and nothing is queued to catch it up. A workflow or lane
+  that was already red when the guide started goes on the board, not into a push.
 - `stalled` turned true: a busy session has gone 20 minutes without writing to its transcript.
   It is probably hung.
 
 Everything else goes on the board only, or into one short chat line: merges, a session starting
-work, commits, a PR opened, checks turning green, suggestions, and the guide's own writes.
+work, commits, a PR opened, checks turning green, a deploy starting or passing, suggestions, and
+the guide's own writes.
