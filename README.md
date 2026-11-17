@@ -171,7 +171,7 @@ are on plain git those three will not be much use to you, though `/task`, `/todo
 - A Linear MCP server for Linear-backed `/task` and `/backlog` — both fall back to GitHub Issues
 - `jj` or `git` for `/recap`; `gh` makes it far better, since PR descriptions say *why*
 - `/overview` needs `jj` or `git`, `gh`, and `/usr/bin/python3` (macOS ships 3.9); it reads Claude Code's local session registry, so it only sees sessions on the same machine
-- `/todo` and `/grill-me` have no dependencies
+- `/todo` needs `/jj` and `/skills:pr` only for `implement`'s delivery; `/grill-me` has no dependencies
 
 ## Credits
 
