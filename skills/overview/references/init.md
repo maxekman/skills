@@ -17,6 +17,13 @@ under that repo (`opendecks-2` … `opendecks-4` under `opendecks`), and each re
 `CLAUDE.md`. Those repos are not watched from here. Tell the user that such a folder can get
 its own guide (`init` run inside it), and leave `nested` out of the config.
 
+Each GitHub repo also gets `lanes`: the workflows whose name marks them as a deploy (deploy,
+release, publish, promote) or a nightly (nightly, scheduled, cron). The board shows lanes
+while they run and when they go red, not only on failure. `workflows` lists every active
+workflow per repo. Show it beside the proposed lanes, and ask which other workflows deploy
+something or run on a schedule, and whether any match is really CI, such as a release-notes
+drafter: set those to `"ci"`. Leave `workflows` out of the config.
+
 ## 2. Settle each repo's tracker
 
 `tracker` is `"github"` (that repo's issues), `"linear:<TEAM>"` (a Linear team key such as
@@ -39,7 +46,8 @@ watched. Then write `.overview/config.json`:
       "github": "opendecks/opendecks",
       "tracker": "github",
       "workspaces": ["opendecks", "opendecks-2", "opendecks-3", "opendecks-4"],
-      "watch": true
+      "watch": true,
+      "lanes": {"Deploy (dev)": "deploy", "Ship": "deploy", "E2E": "nightly", "Release Drafter": "ci"}
     }
   }
 }

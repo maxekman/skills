@@ -43,9 +43,14 @@ gives `name` (the `SendMessage` address), `status`, `waiting_long`, `stalled`, `
 `asked` (idle, and its last message since the user's last prompt ended on a question).
 Per repo it gives PRs by the user (or by anyone, with `"prs": "all"` in the config) that are
 open or closed in the last 12 hours, with checks and review state. It also gives `trunk`: the
-current result of each workflow on the default branch, which catches a deploy or release run
-that went red after a merge. Last, it gives GitHub issue states for the IDs it found. `gh`
-results are cached for 90 seconds in `.overview/cache/`. Linear issues are not in it: fetch those through the Linear MCP.
+current result of each CI workflow on the default branch. Deploy and nightly workflows are
+`lanes` instead, one per workflow and ref (a branch, or `tags`), so tag and release runs show
+too. A lane is `pending`, `pass`, `fail`, `behind` (a deploy cancelled with no run after it,
+so its target lags that branch) or `cancelled` (a tag run). `cut` lists the deploys a newer
+merge cancelled, which went live with this run. The name says which workflows are lanes:
+deploy, release, publish or promote, or nightly, scheduled or cron, or a `schedule` run seen
+on trunk. `"lanes"` in a repo's config overrides it, and `"ci"` opts a workflow out. Last, it
+gives GitHub issue states for the IDs it found. `gh` results are cached for 90 seconds in `.overview/cache/`. Linear issues are not in it: fetch those through the Linear MCP.
 
 `warnings` comes first in the output. A registry-format warning means Claude Code changed the
 file, and session data is missing until the script is fixed. The board shows it at the top;
@@ -130,8 +135,11 @@ opendecks-3                                                free       idle 3m   
 opendecks-4  #266  Bring up the DAC2 Pro on the bench Pi   in review  no session  PR #677 draft ✓
 site               Publish the press kit                   merged     no session  PR #31 merged · needs wrapup
 
-CI on trunk
-  ✗ opendecks main: Deploy (dev) (1h ago)
+Actions
+  … opendecks Deploy (dev): running d4e5f6a7 3m · carrying a1b2c3d4 (cut off)
+  ✗ opendecks Nightly e2e: 9f8e7d6c (6h ago)
+  ✓ opendecks Release · tags: v1.4.0 18m ago
+  ✗ opendecks main: CI (1h ago)
 
 Offers
   close #61? PR #70 merged without "Closes"
@@ -145,6 +153,9 @@ Path to unblock · opendecks
         └ #742 (also ← #680)
     ⛔ #71 Mount the jog wheel                     waiting on #61 (Power the deck)
 ```
+
+**Actions** shows a deploy lane while it runs and for 2 hours after it passed, a nightly only
+while it runs or is red, and plain CI only when red, so a quiet, green umbrella shows none.
 
 **Path to unblock** is the board's guide to what comes next, drawn for each GitHub-tracked
 repo from its open issues. Roots are the open milestone due soonest, plus the milestones of the

@@ -28,6 +28,8 @@ GRAPH_TTL = 300
 WAITING_LONG = 5 * 60
 STALLED = 20 * 60
 RECENT_CLOSED = 12 * 3600
+LANE_RECENT = 2 * 3600
+WORKFLOWS_TTL = 86400
 TITLE_WIDTH = 40
 REGISTRY = os.path.expanduser("~/.claude/sessions")
 PROJECTS = os.path.expanduser("~/.claude/projects")
@@ -35,6 +37,11 @@ REGISTRY_FIELDS = ("pid", "sessionId", "cwd", "name", "status", "statusUpdatedAt
 TRACKER_ID = re.compile(r"(?<![\w/])(#\d+|[A-Z][A-Z0-9]+-\d+)\b")
 # /skills:pr names Linear-tracked bookmarks like max/dev-35-set-custom-domains.
 BOOKMARK_ID = re.compile(r"^[^/]+/([a-z][a-z0-9]*-\d+)-")
+DEPLOY_NAME = re.compile(r"deploy|release|publish|promote", re.I)
+NIGHTLY_NAME = re.compile(r"nightly|scheduled|cron", re.I)
+# A tag push runs with the tag as its head branch.
+TAG_REF = re.compile(r"^v?\d+(\.\d+)*")
+PR_EVENTS = ("pull_request", "pull_request_target", "merge_group")
 SEP = "\x1f"
 
 
@@ -53,6 +60,14 @@ def jj(path, *args):
 
 def tracker_ids(text):
     return TRACKER_ID.findall(text or "")
+
+
+def lane_kind(workflow, scheduled, lanes):
+    """deploy, nightly, or None for plain CI. The config's lanes win, where "ci" opts a
+    workflow out; a deploy that also runs on a schedule stays a deploy."""
+    kind = lanes.get(workflow) or ("nightly" if NIGHTLY_NAME.search(workflow) else "deploy" if DEPLOY_NAME.search(workflow)
+                                   else "nightly" if workflow in scheduled else None)
+    return kind if kind in ("deploy", "nightly") else None
 
 
 # --- discovery ---------------------------------------------------------------------------
@@ -90,7 +105,7 @@ def discover(umbrella):
                            or os.path.exists(os.path.join(path, e, ".git")))
             if inner:
                 nested[entry] = inner
-    repos = {}
+    repos, workflows = {}, {}
     for store, members in groups.items():
         path = os.path.join(umbrella, members[0])
         if store.endswith(os.path.join(".jj", "repo")):
@@ -107,8 +122,13 @@ def discover(umbrella):
             "workspaces": members,
             "watch": github is not None,
         }
-    # Not part of the config: folders that hold repos a level down, for init to ask about.
-    return {"repos": repos, "nested": nested}
+        if github:
+            out = run(["gh", "workflow", "list", "-R", github, "--json", "name,state"])
+            workflows[name] = sorted(w["name"] for w in json.loads(out) if w["state"] == "active") if out else []
+            repos[name]["lanes"] = {w: k for w in workflows[name] for k in [lane_kind(w, (), {})] if k}
+    # Not part of the config: folders that hold repos a level down, and every workflow name,
+    # for init to ask about.
+    return {"repos": repos, "nested": nested, "workflows": workflows}
 
 
 # --- sessions ----------------------------------------------------------------------------
@@ -356,7 +376,7 @@ def fetch_trunk(slug, branch):
     nothing about the code (usually a newer push superseded it), so the result per workflow is
     its newest run that finished otherwise, or is still going."""
     out = run(["gh", "run", "list", "-R", slug, "--branch", branch, "--limit", "30",
-               "--json", "workflowName,status,conclusion,headSha,url,createdAt"])
+               "--json", "workflowName,event,status,conclusion,headSha,url,createdAt"])
     if out is None:
         return None
     workflows = {}
@@ -369,8 +389,50 @@ def fetch_trunk(slug, branch):
             result = "pass"
         else:
             result = "fail"
-        workflows[r["workflowName"]] = {"result": result, "sha": r["headSha"][:8], "url": r["url"], "created_at": r["createdAt"]}
+        workflows[r["workflowName"]] = {"result": result, "event": r["event"], "sha": r["headSha"][:8],
+                                        "url": r["url"], "created_at": r["createdAt"]}
     return workflows
+
+
+def fetch_lanes(slug, workflow, kind, now):
+    """The lanes of one deploy or nightly workflow, one per ref it runs on: a branch, or tags.
+    Each lane's state is its newest run. A deploy cancelled by a newer merge went live with
+    that merge's run, so it is folded into the newer run as cut; one with nothing after it,
+    given REMOTE_TTL for that run to appear, left the target behind its branch. A cancelled
+    nightly says nothing, as on CI. Its own query, so PR traffic can't push a nightly out."""
+    out = run(["gh", "run", "list", "-R", slug, "-w", workflow, "--limit", "10",
+               "--json", "event,headBranch,status,conclusion,headSha,url,createdAt,updatedAt"])
+    if out is None:
+        return None
+    lanes, settled = {}, set()
+    for r in json.loads(out):
+        if r["event"] in PR_EVENTS or r.get("conclusion") in ("skipped", "neutral", "stale"):
+            continue
+        cancelled = r.get("conclusion") == "cancelled"
+        if cancelled and kind == "nightly":
+            continue
+        tag = r["event"] == "release" or bool(TAG_REF.match(r["headBranch"] or ""))
+        ref = "tags" if tag else r["headBranch"]
+        at = r["headBranch"] if tag else r["headSha"][:8]
+        if ref in lanes:
+            if cancelled and ref not in settled:
+                lanes[ref]["cut"].append(at)
+            else:
+                settled.add(ref)
+            continue
+        if r["status"] != "completed":
+            result = "pending"
+        elif r["conclusion"] == "success":
+            result = "pass"
+        elif not cancelled:
+            result = "fail"
+        elif tag:
+            result = "cancelled"
+        else:
+            result = "behind" if now - iso_epoch(r["updatedAt"]) > REMOTE_TTL else "pending"
+        lanes[ref] = {"workflow": workflow, "kind": kind, "ref": ref, "result": result, "status": r["status"],
+                      "at": at, "url": r["url"], "created_at": r["createdAt"], "updated_at": r["updatedAt"], "cut": []}
+    return list(lanes.values())
 
 
 def github(umbrella, repo, spec, issue_ids, now, warnings):
@@ -381,7 +443,7 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
             cache = json.load(f)
     except (OSError, ValueError):
         cache = {}
-    stale = now - cache.get("fetched_at", 0) > REMOTE_TTL or "trunk" not in cache \
+    stale = now - cache.get("fetched_at", 0) > REMOTE_TTL or "lanes" not in cache \
         or any("pr" not in v for v in cache.get("issues", {}).values())
     if stale:
         # Record the attempt even when it fails, so a broken gh is retried every REMOTE_TTL,
@@ -395,10 +457,30 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
             errors.append("gh pr list failed for %s; PR data is older" % slug)
         if trunk is None:
             errors.append("gh run list failed for %s; trunk CI data is older" % slug)
+        names, names_at = cache.get("workflow_names"), cache.get("workflow_names_at", 0)
+        if names is None or now - names_at > WORKFLOWS_TTL:
+            out = run(["gh", "workflow", "list", "-R", slug, "--json", "name,state"])
+            if out is None:
+                errors.append("gh workflow list failed for %s; deploy lanes are older" % slug)
+            else:
+                names, names_at = sorted(w["name"] for w in json.loads(out) if w["state"] == "active"), now
+        # A schedule run on trunk marks a nightly that its name doesn't give away; remember it,
+        # since the next run on trunk is as likely a push.
+        scheduled = set(cache.get("scheduled", [])) | {w for w, r in (trunk or {}).items() if r.get("event") == "schedule"}
+        kinds = {w: k for w in names or [] for k in [lane_kind(w, scheduled, spec.get("lanes", {}))] if k}
+        lanes = []
+        for workflow, kind in sorted(kinds.items()):
+            found = fetch_lanes(slug, workflow, kind, now)
+            if found is None:
+                errors.append("gh run list failed for %s %s; its lane is older" % (slug, workflow))
+                found = [l for l in cache.get("lanes", []) if l["workflow"] == workflow]
+            lanes += found
         cache = {
             "fetched_at": now, "default_branch": branch or None, "errors": errors,
             "prs": cache.get("prs", []) if prs is None else prs,
             "trunk": cache.get("trunk", {}) if trunk is None else trunk,
+            "workflow_names": names, "workflow_names_at": names_at, "scheduled": sorted(scheduled),
+            "lane_kinds": kinds, "lanes": lanes,
             "issues": {},
         }
     warnings.extend(cache["errors"])
@@ -418,7 +500,10 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
     os.replace(f.name, cache_path)
     return {
         "prs": cache["prs"],
-        "trunk": {"branch": cache["default_branch"], "workflows": cache["trunk"]},
+        # A lane's workflow is reported by its lanes, cancelled runs and all, not as trunk CI.
+        "trunk": {"branch": cache["default_branch"],
+                  "workflows": {w: r for w, r in cache["trunk"].items() if w not in cache["lane_kinds"]}},
+        "lanes": cache["lanes"],
         "issues": {k: v for k, v in cache["issues"].items() if k in issue_ids},
     }
 
@@ -573,6 +658,8 @@ def signal(snap):
         trunk = entry.get("trunk") or {}
         for workflow, run_ in (trunk.get("workflows") or {}).items():
             flat["%s %s %s" % (repo, trunk["branch"], workflow)] = "fail" if run_["result"] == "fail" else None
+        for lane in entry.get("lanes", []):
+            flat["%s %s %s" % (repo, lane["ref"], lane["workflow"])] = lane["result"] if lane["result"] in ("fail", "behind") else None
         for issue, data in entry.get("issues", {}).items():
             flat["%s issue %s" % (repo, issue)] = data.get("state")
     for s in snap["elsewhere"]:
@@ -646,6 +733,28 @@ def pr_text(pr, paint):
     state = {"MERGED": "merged", "CLOSED": "closed"}.get(pr["state"], "draft" if pr["draft"] else "")
     conflicts = paint.red("conflicts") if pr["state"] == "OPEN" and pr.get("conflicts") else ""
     return " ".join(x for x in ("PR #%d" % pr["number"], state, mark, review, conflicts) if x)
+
+
+def lane_text(repo, lane, both, now, paint):
+    """(rank, line) for the Actions section, or None while the lane is not news: a deploy shows
+    while it runs and for LANE_RECENT after it passed, a nightly only while it runs or is red.
+    both: the workflow has lanes on several refs, so the line names its ref."""
+    name = "%s %s%s" % (repo, lane["workflow"], " · " + lane["ref"] if both else "")
+    cut = " · carrying %s (cut off)" % ", ".join(lane["cut"]) if lane["cut"] else ""
+    done = now - iso_epoch(lane["updated_at"])
+    if lane["result"] == "pending" and lane["status"] == "completed":
+        return 0, "… %s: cut off at %s, next run not started%s" % (name, lane["at"], cut)
+    if lane["result"] == "pending":
+        status = {"in_progress": "running", "waiting": "waiting for approval"}.get(lane["status"], lane["status"])
+        return 0, "… %s: %s %s %s%s" % (name, status, lane["at"], age(now - iso_epoch(lane["created_at"])), cut)
+    if lane["result"] in ("fail", "behind"):
+        what = "behind %s at %s" % (lane["ref"], lane["at"]) if lane["result"] == "behind" else lane["at"]
+        line = "✗ %s: %s (%s ago)%s" % (name, what, age(done), cut)
+        return 1, paint.dim(line) if done > 7 * 86400 else paint.red(line)
+    if lane["kind"] == "nightly" or done > LANE_RECENT:
+        return None
+    mark, what = ("✓", lane["at"]) if lane["result"] == "pass" else ("·", lane["at"] + " cancelled")
+    return 2, paint.dim("%s %s: %s %s ago%s" % (mark, name, what, age(done), cut))
 
 
 def session_text(s, now, paint):
@@ -879,7 +988,7 @@ def board(snap, notes, paint, graphs=None, height=None):
     overrides = notes.get("overrides", {})
     hints = notes.get("workspaces", {})
     titles = notes.get("titles", {})
-    rows, ci, stray, sections = [], [], [], []
+    rows, actions, ci, stray, sections = [], [], [], [], []
     for repo, entry in snap["repos"].items():
         prs = entry.get("prs", [])
         claimed = set()
@@ -939,6 +1048,12 @@ def board(snap, notes, paint, graphs=None, height=None):
                 line = "✗ %s %s: %s (%s ago)" % (repo, trunk["branch"], workflow, age(since))
                 # A workflow red for a week is a known state, not something that just broke.
                 ci.append(paint.dim(line) if since > 7 * 86400 else paint.red(line))
+        lanes = entry.get("lanes", [])
+        for lane in lanes:
+            both = sum(l["workflow"] == lane["workflow"] for l in lanes) > 1
+            text = lane_text(repo, lane, both, now, paint)
+            if text:
+                actions.append(text)
         if (graphs or {}).get(repo):
             sections.append(("Path to unblock · " + repo, graphs[repo], on, hinted))
 
@@ -950,7 +1065,9 @@ def board(snap, notes, paint, graphs=None, height=None):
         line = "%-*s  %-*s  %-*s  %-*s  %s" % (widths[0], name, widths[1], issue, widths[2], title,
                                                widths[3], state, people)
         lines.append((paint.dim(line) if state == "free" and not extra else line) + ("  " + extra if extra else ""))
-    for title, items in (("CI on trunk", ci), ("Other open PRs", stray),
+    # Running first, then red, then what just passed; plain CI only shows red, below them.
+    actions = [line for _, line in sorted(actions, key=lambda a: a[0])] + ci
+    for title, items in (("Actions", actions), ("Other open PRs", stray),
                          ("Offers", notes.get("offers", [])), ("Notes", notes.get("notes", []))):
         if items:
             lines += ["", title] + ["  " + i for i in items]
