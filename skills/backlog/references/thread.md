@@ -74,13 +74,43 @@ blocker that holds up the most members, then the move that frees it:
 
 A member that is doable now except for one acceptance line that waits on the blocker stays
 listed under it, with the catch spelled out. Then `Elsewhere` as usual — a stalled thread is
-exactly when the global pick matters most.
+exactly when the global pick matters most, and the only time the closing pick comes from it.
+
+## Elsewhere
+
+One flat read, ranked on the rank contract, with the thread's members left out:
+
+- **Linear** — `list_issues` over the anchor's team, `statusType` `backlog` or `unstarted`, then
+  relations for contenders only, as in `references/linear.md` *Relations for the rank*: their
+  `blocks` edges are followed through issues already in that slice, never out of it.
+- **GitHub** — the rows of the one graph read the thread came from, minus the thread.
+
+Don't widen it by following the anchor's parent, what the anchor blocks, or what those block.
+Every issue found that way feeds something the thread also feeds, so it outranks the thread by
+construction, and the section becomes a list of blockers arguing against the work you are on.
+
+The outrank line fires only when an Elsewhere issue is strictly higher than every thread pick on
+priority tier, or sits in an earlier milestone: `INN-704 is Urgent, above everything in this
+thread.` Equal tiers, or no milestones, give no line. It informs and never moves the pick — you
+can overrule a one-line note at a glance, while a pick that hedges between two threads leaves
+you to redo the ranking yourself.
+
+## Side lines
+
+- **In flight (yours)** — name the ones in the thread (the anchor's parent, or a direct
+  relation). Collapse the rest into IDs: `+2 more in flight elsewhere (INN-704, INN-1103)`.
+  Finishing a thread member is often the real next step, so it leads; the rest is context.
+- **Blocked** — thread members that are blocked, plus an Elsewhere issue only if it would
+  otherwise have made Elsewhere's top `n`. Name each blocker with its owner and state from the
+  read you already have. Don't fetch the blocker's blockers: one hop says what to nudge, and
+  the second hop is how a ranking drifts off topic.
 
 ## Shape
 
 ```
 Anchor: #29 → #19 (Part of), parent #13 Launch the website
 In flight (yours): #19 Prepare the repo to go public — waits only on the PR #4 reword
+  +1 more in flight elsewhere (#37)
 
 Continue this thread
   Waits on acme/app#258 (open, other repo): it blocks #21 and holds #20's video ID.
@@ -90,8 +120,9 @@ Continue this thread
 
 Elsewhere
   1. #42 Fix broken links in the footer — earliest milestone (M2), unblocks 2
-  Nothing here outranks the thread on priority or milestone.
 
 Blocked
   #21 Publish the site on launch day — blocked by acme/app#258, #19
+
+Pick: #20, then /task implement #20
 ```
