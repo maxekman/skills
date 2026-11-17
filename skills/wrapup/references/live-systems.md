@@ -45,6 +45,18 @@ gh run watch <databaseId> --exit-status --interval 30
 Budget about 20 minutes in total. Past that, report the runs still going with their URLs rather
 than blocking the wrap-up on a slow pipeline.
 
+A `cancelled` deploy usually means a later merge cut it off (`concurrency` with
+`cancel-in-progress`). That later merge's run ships this one too, because trunk is linear, but
+under its own SHA, so the `--commit` query misses it. Find the next run of that workflow on the
+default branch and judge the merge by it, watching it if it is still going:
+
+```bash
+gh run list -w <workflowName> --branch <default> --limit 5 --json databaseId,headSha,status,conclusion,createdAt,url
+```
+
+Report it as `cut off; carried by <sha> ✓`. A cancelled deploy with no newer run means nothing
+shipped this merge: say that the environment is behind trunk.
+
 A failed run is the headline of the report. Pull the cause, not the whole log:
 
 ```bash
