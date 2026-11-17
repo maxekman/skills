@@ -1,6 +1,6 @@
 ---
 name: overview
-argument-hint: "[init|status]"
+argument-hint: "[init|status|find] [workspace, path or issue id]"
 allowed-tools: Bash(/usr/bin/python3 ${CLAUDE_SKILL_DIR}/scripts/snapshot.py *), Bash(gh *), Bash(jj *), Bash(rex split *), Bash(rex block ls *), Read, Write, Edit, Skill, Monitor, ListAgents, SendMessage, PushNotification
 description: Live guide for an umbrella folder of parallel, hand-run Claude sessions — watches every jj or git workspace under it, which issue each session is on, whether it is busy, idle or waiting on the user, and the PRs and tracker issues behind them, then says what needs attention - a session waiting on input, red checks or requested changes, a stalled session, a merge whose issue did not close. Suggests the next item for an idle free workspace and proposes the tracker follow-up after a merge, acting only on a yes. Use whenever the user wants an overview, orchestrator, dashboard or status of their agents or workspaces, asks where things stand, what the sessions are doing or which workspace is free, or starts Claude in a client or project umbrella folder rather than inside a repo, even without the word overview. Ranking work inside one repo is /backlog; post-merge cleanup inside a workspace is /wrapup.
 ---
@@ -94,6 +94,27 @@ a workspace is on, or what to pick up next.
 Print `--board` once and stop. No monitor, no writes. It works from any session under the
 umbrella, including one in a workspace.
 
+### `find <workspace | path | issue id>`
+
+Name the live session to `SendMessage`, found by where it works rather than by its name. Other
+sessions run this before messaging one: `ListAgents` shows only names, which are folder names
+plus a suffix, and a near-match can be another project entirely.
+
+Run the snapshot once. Match the argument against each workspace's name, each session's `cwd`
+(at or below a given path, `elsewhere` included), and the issue IDs a workspace is on
+(`stack_ids`, `todo_ids`, `prompt_ids`, and `overrides` in the umbrella's
+`.overview/notes.json`). Print each matching live session as
+`name · cwd · status · prompt_head`, one per line:
+
+```
+backend-3-37 · ~/Development/work/innspire/backend-3 · idle · /skills:task implement INN-1588 now…
+```
+
+Zero matches: say so and print every live session under the umbrella instead, so the caller can
+spot the one by what it is doing rather than by a similar name. Several: print them all. Never
+pick one, since the caller is about to message whichever it gets. Read-only like `status`: no board, no monitor,
+no writes, from any session under the umbrella.
+
 ## The board
 
 `snapshot.py --board` draws it, and with `--watch` redraws it every 5 seconds, at no token
@@ -154,7 +175,7 @@ time and reason, and decisions the user made that `notes.json` has no field for.
 - `references/reports.md`: `config.json` has `reports`, on the first wake of a day and when the
   user asks for a report.
 
-`status` reads neither.
+`status` and `find` read none of them.
 
 ## Safety
 
