@@ -1,7 +1,7 @@
 ---
 name: todo
 argument-hint: "[add|done|list|prune|implement] [details]"
-allowed-tools: Read, Edit, Write, Glob, Grep
+allowed-tools: Read, Edit, Write, Glob, Grep, Skill
 description: Lightweight TODO.md task management for local, in-progress work — break a feature into implementation steps, track progress as you build, and check items off as they're done. Use TODO.md as working memory for multi-step tasks. For external issue trackers (Linear, GitHub Issues), use /task.
 ---
 
@@ -82,7 +82,7 @@ When removing an item, also remove its indented detail lines (everything indente
 Show what will be removed grouped by category, confirm before editing. Clean up empty sections — if removing items leaves a `##` header with no items, remove the header too.
 
 ### `implement <text or pattern>`
-Gather context for a local item before starting work. Read-only — never modifies files. See `references/implement.md` for the full flow.
+Gather context for a local item, then carry the built item to a PR. Gathering is read-only, so it is safe in plan mode. Once the item is built and its gate passes, `/jj` commits it and `/skills:pr` opens the PR — or updates the one an earlier item opened — without asking. Read `references/implement.md` whole: its delivery step has to be in context when the build finishes.
 
 ## Safety
 

@@ -1,6 +1,6 @@
-# `/todo implement` — gather local context for a TODO item
+# `/todo implement` — gather local context, then carry the item to a PR
 
-Read-only — collects information to support planning. Never modifies files.
+Steps 1–5 are read-only: they collect information to support planning and never modify files, so they are safe in plan mode. Step 6 runs once the item is built.
 
 ## Step 1 — Find the item
 
@@ -42,3 +42,21 @@ Extract 1-2 core keywords from the item text (main noun/concept, not filler). Se
 ```
 
 Keep excerpts focused — show the relevant section between `##` headers, not entire files. The goal is enough context to plan, not a wall of text.
+
+## Step 6 — Deliver
+
+When the item is built, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` without asking: starting `/todo implement` was the user's request to commit, push and open the PR, and they review at the PR.
+
+**Gate — all must hold:**
+
+- The item and its detail lines are done, not partly done.
+- The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
+- The diff stays inside the item. Unrelated drive-by edits mean stop and ask, not a bigger PR.
+- No debug leftovers, stubs, or new `FIXME`s from this work remain in the diff.
+
+If any condition fails, stop and say which one and what is left.
+
+**On a pass, hand off in order:**
+
+1. `/jj` — commits, checking the item off in the same commit and carrying its tracker tag (`[ACME-407]`) into the message.
+2. `/skills:pr` — its *Handed off from `implement`* section decides whether to push without confirming and sets the report's shape. The first item of a section opens the PR, and later items push to its bookmark, which updates it; the open items left in TODO.md show what is still to come. An item from another `##` section is separate work: say so rather than pushing it onto that PR, since it would land as a stack.
