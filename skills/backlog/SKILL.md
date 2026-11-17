@@ -106,6 +106,13 @@ scope ("the software side") maps onto labels, milestones or projects that exist 
 both sections — state the mapping you used. Close with one pick: the thread's top, or
 Elsewhere's only when the thread is stalled. Hand it to `/task implement <id>`.
 
+Every issue and PR the output names carries its title once: on its own ranked line, or at its
+first mention when it has none (`#19 / Prepare the repo to go public`, `PR #4 / Reword the
+launch post`, `app#258 / …` in another repo of the same org, `org/repo#258 / …` across orgs).
+An anchor, a blocker or an overflow ID left bare makes the user look it up before they can
+judge the pick. Keys inside a command stay bare so it still runs. Copy titles as the tracker
+has them, from the reads already made; fetch only the missing ones.
+
 ### `groom [scope]`
 The defect pass: read a slice of the backlog, find what is malformed, propose fixes, apply on
 confirmation, verify. Scope to a project or team (Linear), or a milestone or label (GitHub) — a
