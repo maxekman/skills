@@ -140,9 +140,14 @@ When the PR closed a tracker issue or went out in a release — a sign that some
 team is waiting on it — add one line: `Explain it to stakeholders: /skills:recap #<N>`. Offer
 it; don't run it, since who hears about the change is the user's call.
 
-When sync succeeded, every run is green, and nothing remains, end with one line:
-`Ready for the next one: /skills:backlog next <ref>`, naming the issue the work continues from,
-so `/backlog` ranks from its thread even after a compaction or in a fresh session. On Linear,
+When sync moved `@` onto a fresh change on trunk, end with one line, even when work remains or
+a run failed. Leftovers are rarely the next task: follow-ups reach the tracker through the
+offer, where `/backlog` ranks them in the same thread, and a wait on billing or a release is no
+task at all. When sync left `@` in place, the workspace isn't free, so leave the line out.
+
+The line is `Ready for the next one: /skills:backlog next <ref>`, naming the issue the work
+continues from, so `/backlog` ranks from its thread even after a compaction or in a fresh
+session. On Linear,
 `<ref>` is the tracker ID step 4 found (`ACME-407`), not the PR number, which no Linear issue
 answers to. On GitHub Issues it is `#<N>` when the PR closes or references an issue: `/backlog`
 resolves the PR to them, `Part of #M` included. A PR with no issue behind it, such as work picked
@@ -153,9 +158,9 @@ Don't invoke it — picking the next task is the user's call.
 Under an umbrella that `/skills:overview` watches, its guide has already ranked this
 workspace's next item, de-duplicated against what the other workspaces were offered, which a
 ranking from here cannot do. Read `../.overview/notes.json` from the repo root. When
-`workspaces.<repo root folder name>.next` is set, end with it instead, whether or not anything
-remains above: `Next: #761 (part of #402) — /clear, then /skills:task implement #761`. No file,
-or no `next` for this workspace → the `/skills:backlog next` line, under its usual conditions.
+`workspaces.<repo root folder name>.next` is set, end with it instead, under the same sync
+condition: `Next: #761 (part of #402) — /clear, then /skills:task implement #761`. No file, or
+no `next` for this workspace → the `/skills:backlog next` line.
 
 ## When to Read References
 
