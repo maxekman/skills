@@ -328,7 +328,7 @@ def checks(rollup):
 
 def fetch_prs(slug, everyone, now):
     fields = ("number,title,url,author,headRefName,state,isDraft,mergedAt,closedAt,reviewDecision,"
-              "statusCheckRollup,closingIssuesReferences")
+              "statusCheckRollup,closingIssuesReferences,mergeable")
     cmd = ["gh", "pr", "list", "-R", slug, "--state", "all", "--limit", "30", "--json", fields]
     out = run(cmd if everyone else cmd + ["--author", "@me"])
     if out is None:
@@ -344,6 +344,7 @@ def fetch_prs(slug, everyone, now):
             "head": pr["headRefName"], "state": pr["state"], "draft": pr["isDraft"],
             "merged_at": pr.get("mergedAt"), "review": pr.get("reviewDecision") or None,
             "checks": checks(pr.get("statusCheckRollup")),
+            "conflicts": pr.get("mergeable") == "CONFLICTING",
             "closes": ["#%d" % i["number"] for i in pr.get("closingIssuesReferences") or []],
         })
     return prs
@@ -502,6 +503,7 @@ def signal(snap):
             flat[key] = "MERGED" if pr["state"] == "MERGED" else ("DRAFT" if pr["draft"] else pr["state"])
             flat[key + " checks failing"] = (pr["state"] == "OPEN" and pr["checks"] == "fail") or None
             flat[key + " changes requested"] = (pr["state"] == "OPEN" and pr["review"] == "CHANGES_REQUESTED") or None
+            flat[key + " conflicts"] = (pr["state"] == "OPEN" and pr.get("conflicts")) or None
         trunk = entry.get("trunk") or {}
         for workflow, run_ in (trunk.get("workflows") or {}).items():
             flat["%s %s %s" % (repo, trunk["branch"], workflow)] = "fail" if run_["result"] == "fail" else None
@@ -576,7 +578,8 @@ def pr_text(pr, paint):
     mark = "" if pr["state"] != "OPEN" else {"pass": paint.green("✓"), "fail": paint.red("✗"), "pending": "…"}.get(pr["checks"], "")
     review = {"APPROVED": paint.green("approved"), "CHANGES_REQUESTED": paint.red("changes requested")}.get(pr["review"], "")
     state = {"MERGED": "merged", "CLOSED": "closed"}.get(pr["state"], "draft" if pr["draft"] else "")
-    return " ".join(x for x in ("PR #%d" % pr["number"], state, mark, review) if x)
+    conflicts = paint.red("conflicts") if pr["state"] == "OPEN" and pr.get("conflicts") else ""
+    return " ".join(x for x in ("PR #%d" % pr["number"], state, mark, review, conflicts) if x)
 
 
 def session_text(s, now, paint):

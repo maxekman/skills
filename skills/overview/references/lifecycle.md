@@ -87,7 +87,11 @@ Send a `PushNotification` only when the user is needed:
 
 - `waiting_long` turned true: a session has waited more than 5 minutes for permission or
   input. Name the session and its `waiting_for` when there is one.
-- A PR's checks turned `fail`, or its review turned `CHANGES_REQUESTED`.
+- A PR's checks turned `fail`, its review turned `CHANGES_REQUESTED`, or it turned
+  `conflicts`: usually another merge changed the same lines on trunk, so name that merge.
+  These go to the user, not the session. Each needs a judgement (a flaky run, a review to push
+  back on, which side of a conflict wins), and `/skills:pr` stops on rebase conflicts for the
+  user to resolve.
 - A workflow on the default branch turned `fail` (`trunk`). Name the workflow and the merge
   that went in just before it, which is usually the cause. A trunk workflow that was already red
   when the guide started goes on the board, not into a push.
