@@ -65,7 +65,8 @@ Run once per umbrella. Creating `.overview/` is the opt-in. Read `references/ini
 ### Default: the guide
 
 1. **Catch up.** Read `.overview/config.json`, `notes.json` and `state.md`, run the snapshot,
-   and fetch the state and title of each Linear issue a workspace is on.
+   and fetch the state and title of each Linear issue a workspace is on. Refresh a Linear
+   team's graph when `references/graph.md` says it is due.
 2. **Reconcile.** Derive each workspace's state and act on every transition, as
    `references/lifecycle.md` describes. Read it on the first wake of a session.
 3. **Write `notes.json`** (below) in one `Write`, only when something in it changed.
@@ -158,8 +159,10 @@ Path to unblock · opendecks
 while it runs or is red, and plain CI only when red, so a quiet, green umbrella shows none.
 
 **Path to unblock** is the board's guide to what comes next, drawn for each GitHub-tracked
-repo from its open issues. Roots are the open milestone due soonest, plus the milestones of the
-issues the workspaces are on or hinted at. Under each root, its epics (top-level parent issues)
+repo from its open issues, and for each Linear team from the graph the guide keeps in
+`.overview/graph-<TEAM>.json`, one tree for every repo on the team. Roots are the open milestone
+due soonest or the projects in progress, plus those of the issues the workspaces are on or
+hinted at. Under each root, its epics (top-level parent issues)
 hold blocker chains: each root is an issue that can start or is in flight, and its children are
 what finishing it unblocks. ● a workspace is on it, ○ ready, ◐ someone else has it, ⛔ waiting on
 an issue outside the epic. An issue with several blockers is drawn under one, and named
@@ -208,6 +211,9 @@ time and reason, and decisions the user made that `notes.json` has no field for.
   workspace became free, or a push is due.
 - `references/reports.md`: `config.json` has `reports`, on the first wake of a day and when the
   user asks for a report.
+- `references/graph.md`: a repo's tracker is `linear:…` and its graph file is missing, or it is
+  the first wake, a PR in that team merged, a workspace moved onto an issue not in the file, or
+  the heartbeat came.
 
 `status` and `find` read none of them.
 
