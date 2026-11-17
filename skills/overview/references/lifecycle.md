@@ -49,17 +49,23 @@ When a PR moves to `MERGED`:
    - **GitHub**: there is no "up next" state, and assigning an issue would mark it in flight.
      Show the ranked items as `next` hints in `notes.json`. Write nothing to the tracker.
 3. **Wrapup belongs to the worker.** It moves that workspace's `@` onto trunk, which only the
-   session that owns it may do. The snapshot sets `wrapup_ready` once the workspace holds a
-   merged PR and every session in it is idle.
+   session that owns it may do. The snapshot sets `wrapup_ready` only when that session still
+   owns the merge: the stack holds nothing but the merged PR, the workspace has exactly one
+   live session, it is idle, and its latest prompt that named an issue named this PR's issue
+   or `#M` (or none ever did). A session that moved on to other work in the same workspace
+   fails it, so the message would only make it decline.
    - With `"auto_wrapup": true` in the config, send `/skills:wrapup #M` to that session with
      `SendMessage` when `wrapup_ready` turns true. Send once per PR: check `state.md` first, and
      log the send there. Then say one line in chat, e.g. "sent wrapup to opendecks-3 for PR
-     #70". If the session doesn't run it, set the workspace's `note` to "needs wrapup" and don't
-     send again.
-   - Otherwise, set the `note` to "needs wrapup" in `notes.json`.
+     #70".
+   - Otherwise, or when the PR merged but `wrapup_ready` stays false, set the workspace's
+     `note` to "needs wrapup" in `notes.json`.
 
-   Clear the note once the workspace is free. Wrapup moves that workspace's `@` onto trunk, which only the session
-   that owns it may do.
+   Judge the outcome from the snapshot, never from what the session said. **Done** once the
+   workspace's `pr` is no longer `#M`, because wrapup moved it off the merged stack: log
+   "wrapped up" and clear the note. **Declined** when the session went busy and back to idle
+   after the send with `pr` still `#M`: log it, set the note, and never send for that PR again.
+   Anything else is still in progress; the note on the board is enough, so no timeout.
 
 Batch the offers from one merge into a single question, and carry each one out on its own yes.
 
