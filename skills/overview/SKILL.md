@@ -167,8 +167,9 @@ hold blocker chains: each root is an issue that can start or is in flight, and i
 what finishing it unblocks. ● a workspace is on it, ○ ready, ◐ someone else has it, ⛔ waiting on
 an issue outside the epic. An issue with several blockers is drawn under one, and named
 `(also ← …)` under the rest. In `--watch` the tree gets whatever lines the pane has left: it
-cuts deep chains first, then extra ready issues, then quiet epics, down to a ranked list of
-what to pick up. It never cuts what a workspace is on or hinted at before that last step.
+cuts deep chains first, then extra ready issues and quiet epics, then folds each epic and
+project nobody is on into one line naming its best pickup. It never cuts what a workspace is on
+or hinted at. Only a pane too short even for that gets a ranked list of what to pick up instead.
 `status` shows it whole. It is on the board only, not in the JSON, which stays small enough to
 read on every wake, so answer "what next" questions from `status`.
 

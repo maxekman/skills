@@ -855,7 +855,7 @@ def tree(graph, on, hinted, level):
     shown += sorted({project[i] for i in keep | anchored if project[i]} - set(shown), key=lambda p: list(projects).index(p) if p in projects else len(projects))
     unfiled = closure([i for i in keep if not project[i]], {i: [k for k in kids.get(i, []) if not project[k]] for i in leaves})
     unfiled |= {i for i in leaves if epic[i] in anchored and not project[i]}
-    if level >= 7:
+    if level >= 8:
         # The last resort for a short pane: what to pick up, best first. The board rows above
         # already show the work in flight.
         ready = [i for i in leaves if mark(i) == "○" and (project[i] in shown or i in unfiled)]
@@ -929,12 +929,16 @@ def tree(graph, on, hinted, level):
             others = [i for i in roots if i not in protected]
             counts = [("+%d ready" % (len(ready) - 1)) if len(ready) > 1 else "",
                       ("+%d other" % (len(others) - len(ready))) if len(others) > len(ready) else ""]
+            quiet = not any(mark(i) in ("●", "○") for i in roots)
+            if level >= 7 and not protected & set(roots):
+                # Nobody is on this group: its best pickup goes on the header line.
+                return rows, quiet, (["○ %s" % ready[0]] if ready else []) + [c for c in counts if c]
             for i in roots:
                 if i in protected:
                     walk(i, 0)
             if ready:
                 walk(ready[0], 0, bare=True)
-            return rows, not any(mark(i) in ("●", "○") for i in roots), [c for c in counts if c]
+            return rows, quiet, [c for c in counts if c]
         for i in roots:
             if i in cut:
                 continue
@@ -969,8 +973,11 @@ def tree(graph, on, hinted, level):
                 body += [[head_e, counts, False]] + sub
         for e in sorted(i for i in finished if p and project[i] == p):
             body.append(["  %s %s" % (e, nodes[e]["title"]), ["all done · close?"], False])
+        best = min((i for i in members if mark(i) == "○"), key=key, default=None)
         if level >= 4 and all_quiet:
             rows.append([head, ["nothing ready"], True])
+        elif level >= 7 and not members & protected:
+            rows.append([head, ["○ %s %s" % (best, short(best))] if best else ["nothing ready"], not best])
         else:
             rows += [[head, [], False]] + body
     return rows
@@ -987,8 +994,9 @@ def tree_text(rows, paint):
 
 def fit_trees(sections, budget, paint):
     """sections is [(header, graph, on, hinted)]. Cut level by level until every tree fits in
-    budget lines (None: no limit), then truncate."""
-    for level in range(8):
+    budget lines (None: no limit). When none fits, truncate the shortest, which keeps the most."""
+    tries = []
+    for level in range(9):
         lines = []
         for header, graph, on, hinted in sections:
             rows = tree(graph, on, hinted, level)
@@ -996,6 +1004,8 @@ def fit_trees(sections, budget, paint):
                 lines += ["", header] + ["  " + l for l in tree_text(rows, paint)]
         if budget is None or len(lines) <= budget:
             return lines
+        tries.append(lines)
+    lines = min(tries, key=len)
     if budget < 4:
         return []
     kept = lines[:budget - 1]
