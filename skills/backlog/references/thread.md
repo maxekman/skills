@@ -8,7 +8,8 @@ are asked first.
 ## Finding the anchor
 
 Take the first source that yields one, and print it as the output's first line:
-`Anchor: #29 → #19 (Part of), parent #13`.
+`Anchor: PR #29 / Add the launch checklist → #19 / Prepare the repo to go public (Part of),
+parent #13 / Launch the website`.
 
 1. **Args.** Any issue or PR ref — `#29`, `owner/repo#29`, a URL, `ACME-407`. On GitHub a `#N`
    may be either; `gh pr view` fails on an issue, so try it first and fall back to
@@ -70,9 +71,10 @@ The reason line names the tie: `sibling of #19 under #13 (7/10 done)`, `unblocke
 `related to ACME-407`, `filed in this session`, `same project as ACME-407`.
 
 **Overflow.** Whatever the thread holds beyond `n` goes on one line under the section, from the
-reads already made and with no relation fetch: `Also in this thread: INN-1190 (sibling) · 6 more
-open in project "Journey v0"`. GitHub counts the anchor's area label instead. It shows the topic
-has more without spending a slot on a looser tie, and `next 6` opens it up.
+reads already made and with no relation fetch: `Also in this thread: INN-1190 / Show the journey
+map (sibling) · 6 more open in project "Journey v0"`. GitHub counts the anchor's area label
+instead. It shows the topic has more without spending a slot on a looser tie, and `next 6`
+opens it up.
 
 ## A stalled thread
 
@@ -116,9 +118,9 @@ you to redo the ranking yourself.
 ## Side lines
 
 - **In flight (yours)** — name the ones in the thread (the anchor's parent or project, or a
-  direct relation). Collapse the rest into IDs:
-  `+2 more in flight elsewhere (INN-704, INN-1103)`. Finishing a thread member is often the
-  real next step, so it leads; the rest is context.
+  direct relation). Collapse the rest into one line:
+  `+2 more in flight elsewhere (INN-704 / Rotate the API keys, INN-1103 / Drop the v1 export)`.
+  Finishing a thread member is often the real next step, so it leads; the rest is context.
 - **Blocked** — thread members that are blocked, plus an Elsewhere issue only if it would
   otherwise have made Elsewhere's top `n`. Name each blocker with its owner and state from the
   read you already have. Don't fetch the blocker's blockers: one hop says what to nudge, and
@@ -127,22 +129,24 @@ you to redo the ranking yourself.
 ## Shape
 
 ```
-Anchor: #29 → #19 (Part of), parent #13 Launch the website
-In flight (yours): #19 Prepare the repo to go public — waits only on the PR #4 reword
-  +1 more in flight elsewhere (#37)
+Anchor: PR #29 / Add the launch checklist → #19 / Prepare the repo to go public (Part of),
+  parent #13 / Launch the website
+In flight (yours): #19 — waits only on PR #4 / Reword the launch post
+  +1 more in flight elsewhere (#37 / Record the demo video)
 
 Continue this thread
-  Waits on acme/app#258 (open, other repo): it blocks #21 and holds #20's video ID.
+  Waits on app#258 / Expose the video ID (open, other repo): it blocks #21 and holds #20's
+  video ID.
   Continue there: /skills:backlog next acme/app#258, run from acme/app
   1. #20 Add a click-to-load demo video — sibling of #19 under #13 (7/10 done). Buildable now
-     with no video ID; the network-panel check waits for #258, so it stays open after its PR.
+     with no video ID; the network-panel check waits for app#258, so it stays open after its PR.
   Also in this thread: 3 more open with label area:web
 
 Elsewhere
   1. #42 Fix broken links in the footer — earliest milestone (M2), unblocks 2
 
 Blocked
-  #21 Publish the site on launch day — blocked by acme/app#258, #19
+  #21 Publish the site on launch day — blocked by app#258, #19
 
 Pick: #20, then /task implement #20
 ```
