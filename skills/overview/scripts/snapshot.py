@@ -463,7 +463,8 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
             if out is None:
                 errors.append("gh workflow list failed for %s; deploy lanes are older" % slug)
             else:
-                names, names_at = sorted(w["name"] for w in json.loads(out) if w["state"] == "active"), now
+                # A repo without workflows gets no output at all, not an empty list.
+                names, names_at = sorted(w["name"] for w in json.loads(out or "[]") if w["state"] == "active"), now
         # A schedule run on trunk marks a nightly that its name doesn't give away; remember it,
         # since the next run on trunk is as likely a push.
         scheduled = set(cache.get("scheduled", [])) | {w for w, r in (trunk or {}).items() if r.get("event") == "schedule"}
