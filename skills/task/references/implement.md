@@ -158,7 +158,7 @@ This is a write, so it waits for plan approval the way creation does: in plan mo
 
 The user plans and builds. **Don't draft the plan inside this skill** — that's the caller's job. But the delivery contract below is yours, and it applies when the work is finished.
 
-When the implementation is complete, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` **without asking** — that autonomy is the point, and the user reviews at the PR.
+When the implementation is complete, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` **without asking**. Invoking `/task implement` was the user's request to commit, push and open the PR, so Claude Code's default of pushing only when asked is already met. That autonomy is the point: the user reviews at the PR, then reads your report.
 
 **Gate — all must hold:**
 
@@ -172,14 +172,13 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **Stop and report instead — do not auto-PR — when:**
 
 - Any gate condition fails. Say precisely which one and what is left.
-- The change touches secrets, credentials, DB migrations, infra/deploy config, or auth. These are cheap to review before a PR exists and expensive to unwind after.
 - The deliverable was **findings** and no code or docs changed — present the findings and offer to post them to the tracker. Posting is outward-facing, so ask first.
 - The deliverable was **follow-up issues** — list the issues you propose (title + one-line body each), as sub-issues of the current one, and ask before creating any. `/task create` mutates the tracker; that stays a human decision.
 
 **On a pass, hand off in order:**
 
 1. `/jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
-2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the `<ID> / Title` PR title and attaches the tracker link. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one.
-3. Report the PR URL, plus anything you consciously left out of scope.
+2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the `<ID> / Title` PR title and attaches the tracker link. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
+3. Report in that shape, adding anything you consciously left out of scope.
 
 A document-shaped deliverable goes through the same gate — an ADR lands as a docs PR. Skip only the "tests for new behavior" condition, which has nothing to bite on.
