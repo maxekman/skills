@@ -45,7 +45,9 @@ Rank key, highest first:
    A blocked issue cannot be next no matter its priority; surface it as blocked instead.
 3. **effective milestone** — the earliest of the issue's own milestone and those of every open
    issue it blocks, transitively. An issue that blocks M1 work is M1 work. Nearer first; no
-   milestone sorts after any milestone.
+   milestone sorts after any milestone. Only the tracker's milestone field counts: a gate issue
+   that others block ("Open to guests") is an ordinary issue, counted in reach, and two gates
+   have no order between them. When no candidate has a milestone, skip this step and say so.
 4. **reach** — how many open issues it unblocks, transitively. Repos that lean on blocking
    edges express priority this way, and it splits issues a milestone cannot.
 5. **age** — older `createdAt` first. Pure tiebreak; never promote on age alone.
@@ -91,16 +93,17 @@ None found → rank globally and say so. Then answer in two sections, both on th
   relations (what it unblocked, siblings under its parent, its blockers), then follow-ups this
   session filed, then the anchor's milestone or area label to fill what is left. When every
   member is blocked, lead with what the thread waits on and the move that frees it.
-- **Elsewhere** — the global top `n` outside the thread. When one outranks the whole thread on
-  priority tier or effective milestone, say so in one line, so that following a thread never
-  hides urgent work.
+- **Elsewhere** — the global top `n` outside the thread, from one flat backlog read, never a
+  walk out from the anchor. When one is strictly higher than every thread pick on priority tier
+  or milestone, say so in one line, so that following a thread never hides urgent work.
 
 Show *why* each ranks where it does — the reason line is the point, since a rank you cannot
 argue with is a rank you cannot correct. In the thread section it also names the tie (`sibling
 of #19 under #13`). Exclude anything blocked, and list blocked-but-otherwise-top issues
-separately with the blocker named. A free-text scope ("the software side") maps onto labels,
-milestones or projects that exist and narrows both sections — state the mapping you used.
-Hand the chosen issue to `/task implement <id>`.
+separately with the blocker named — one hop, never the blocker's own blockers. A free-text
+scope ("the software side") maps onto labels, milestones or projects that exist and narrows
+both sections — state the mapping you used. Close with one pick: the thread's top, or
+Elsewhere's only when the thread is stalled. Hand it to `/task implement <id>`.
 
 ### `groom [scope]`
 The defect pass: read a slice of the backlog, find what is malformed, propose fixes, apply on
@@ -132,8 +135,8 @@ home — priority tier, project or labels, milestone — and confirm as a batch.
   have a shape that breaks the obvious jq, and one call returns the whole graph if you ask for
   it right. Also carries the write surface and its read-back.
 - `references/thread.md` — args contain `next`. Finding the anchor is its first step, and the
-  file carries the PR-to-issue resolution, the workspace commands, the membership tiers and
-  the stalled-thread moves.
+  file carries the PR-to-issue resolution, the workspace commands, the membership tiers, the
+  stalled-thread moves, and how Elsewhere and the side lines are read.
 - `references/grooming.md` — args contain `groom` or `triage`.
 
 ## Safety
