@@ -87,4 +87,4 @@ The basic verbs (list/view/edit/comment/close) are predictable — go straight t
 - Don't put secrets or sensitive data in issue bodies.
 - `implement`'s context phase is read-only — never modifies files or mutates tracker state. That holds for the description form's tracker search too; creating or claiming the issue happens only after the plan is approved, never from inside plan mode.
 - `verify` is read-only: it never executes code, and it touches the tracker only to post its report as a comment after a yes. It never changes status, closes an issue, or edits its checklist.
-- `implement`'s delivery phase commits and opens PRs on its own once its gate passes, but still never writes to the tracker unprompted. Creating follow-up issues or posting findings as a comment needs explicit confirmation.
+- `implement`'s delivery phase commits and opens PRs on its own once its gate passes, stopping before the push only when merging would be hard to undo (`/skills:pr` holds that list). It still never writes to the tracker unprompted. Creating follow-up issues or posting findings as a comment needs explicit confirmation.
