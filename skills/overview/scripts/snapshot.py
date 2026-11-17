@@ -18,6 +18,7 @@ import json
 import os
 import re
 import shutil
+import signal as signals
 import subprocess
 import sys
 import time
@@ -38,6 +39,7 @@ TRACKER_ID = re.compile(r"(?<![\w/])(#\d+|[A-Z][A-Z0-9]+-\d+)\b")
 # /skills:pr names Linear-tracked bookmarks like max/dev-35-set-custom-domains.
 BOOKMARK_ID = re.compile(r"^[^/]+/([a-z][a-z0-9]*-\d+)-")
 DEPLOY_NAME = re.compile(r"deploy|release|publish|promote", re.I)
+ESCAPE = re.compile(r"(\033\[[0-9;?]*[A-Za-z])")
 NIGHTLY_NAME = re.compile(r"nightly|scheduled|cron", re.I)
 # A tag push runs with the tag as its head branch.
 TAG_REF = re.compile(r"^v?\d+(\.\d+)*")
@@ -1118,20 +1120,46 @@ def load_notes(umbrella):
         return {}
 
 
+def clip(line, width):
+    """Cut line to width columns. Escape codes take none, and all of them are kept, so a colour
+    cut mid-span is still reset."""
+    out, left = [], width
+    for i, part in enumerate(ESCAPE.split(line)):
+        if i % 2:
+            out.append(part)
+        elif left > 0:
+            out.append(part[:left])
+            left -= len(part)
+    return "".join(out)
+
+
 def board_watch(umbrella, config):
-    paint = Paint(sys.stdout.isatty() and "NO_COLOR" not in os.environ)
-    while True:
-        size = shutil.get_terminal_size()
-        try:
-            snap = snapshot(umbrella, config)
-            trees = graphs(umbrella, config, snap["generated_at"], snap["warnings"])
-            lines = board(snap, load_notes(umbrella), paint, trees, size.lines - 1)
-        except Exception as e:  # keep the pane alive; the next tick may succeed
-            lines = ["board error: %s" % e]
-        width = size.columns
-        sys.stdout.write("\033[H\033[2J" + "\n".join(l if "\033" in l else l[:width] for l in lines) + "\n")
-        sys.stdout.flush()
-        time.sleep(LOCAL_INTERVAL)
+    tty = sys.stdout.isatty()
+    paint = Paint(tty and "NO_COLOR" not in os.environ)
+    # Rex closes the pane with SIGHUP; exiting through finally gives the terminal back intact.
+    for s in (signals.SIGHUP, signals.SIGTERM):
+        signals.signal(s, lambda *_: sys.exit(0))
+    if tty:
+        sys.stdout.write("\033[?1049h\033[?25l")  # alternate screen, so scrollback survives
+    try:
+        while True:
+            size = shutil.get_terminal_size()
+            try:
+                snap = snapshot(umbrella, config)
+                trees = graphs(umbrella, config, snap["generated_at"], snap["warnings"])
+                lines = board(snap, load_notes(umbrella), paint, trees, size.lines - 1)
+            except Exception as e:  # keep the pane alive; the next tick may succeed
+                lines = ["board error: %s" % e]
+            # Overwrite in place rather than clear first, which flashed a blank frame every tick.
+            sys.stdout.write("\033[H" + "".join(clip(l, size.columns) + "\033[K\n" for l in lines) + "\033[J")
+            sys.stdout.flush()
+            time.sleep(LOCAL_INTERVAL)
+    except KeyboardInterrupt:
+        pass
+    finally:
+        if tty:
+            sys.stdout.write("\033[?25h\033[?1049l")
+            sys.stdout.flush()
 
 
 def find_umbrella(start):
