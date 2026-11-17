@@ -24,6 +24,7 @@ import time
 
 LOCAL_INTERVAL = 5
 REMOTE_TTL = 90
+GRAPH_TTL = 300
 WAITING_LONG = 5 * 60
 STALLED = 20 * 60
 RECENT_CLOSED = 12 * 3600
@@ -422,6 +423,71 @@ def github(umbrella, repo, spec, issue_ids, now, warnings):
     }
 
 
+def fetch_graph(slug):
+    """Open issues as tree nodes, milestones as projects. Node shape, shared with the Linear graph
+    the guide writes: {title, state, project, parent, blocked_by, priority, assignee, subs}, where
+    assignee is someone other than the user and blocked_by holds open blockers only."""
+    fields = "number,title,milestone,parent,blockedBy,subIssuesSummary,assignees"
+    out = run(["gh", "issue", "list", "-R", slug, "--state", "open", "--limit", "500", "--json", fields])
+    milestones = run(["gh", "api", "repos/%s/milestones?state=open&per_page=100" % slug])
+    me = (run(["gh", "api", "user", "--jq", ".login"]) or "").strip()
+    if out is None or milestones is None:
+        return None
+    own = "https://github.com/%s/issues/" % slug
+    nodes = {}
+    for i in json.loads(out):
+        logins = [a["login"] for a in i.get("assignees") or []]
+        parent = i.get("parent")
+        if parent and "#%d" % parent["number"] not in nodes:
+            # A closed epic can still hold open subs; keep it as a header. An open one is
+            # overwritten once its own row comes by.
+            nodes["#%d" % parent["number"]] = {"title": parent["title"], "state": "completed" if parent["state"] == "CLOSED" else "unstarted"}
+        summary = i.get("subIssuesSummary") or {}
+        nodes["#%d" % i["number"]] = {
+            "title": i["title"], "state": "unstarted",
+            "project": (i.get("milestone") or {}).get("title"),
+            "parent": "#%d" % parent["number"] if parent else None,
+            "blocked_by": [("#%d" % b["number"]) if b["url"].startswith(own) else b["url"].split("github.com/")[-1].replace("/issues/", "#")
+                           for b in i["blockedBy"]["nodes"] if b["state"] == "OPEN"],
+            "priority": None,
+            "assignee": None if not logins or me in logins else logins[0],
+            "subs": [summary.get("completed", 0), summary.get("total", 0)],
+        }
+    # The milestone due soonest is the active one; without due dates, the oldest.
+    ms = sorted((m for m in json.loads(milestones) if m["open_issues"]), key=lambda m: (not m["due_on"], m["due_on"] or "", m["number"]))
+    projects = {m["title"]: {"done": m["closed_issues"], "total": m["open_issues"] + m["closed_issues"], "active": n == 0}
+                for n, m in enumerate(ms)}
+    return {"projects": projects, "nodes": nodes}
+
+
+def graphs(umbrella, config, now, warnings):
+    """The issue graph of each GitHub-tracked repo, for the board only: the JSON snapshot is read
+    by a model on every wake, and a hundred nodes would swamp it. Relations change slowly, so
+    the cache lives longer than the PR cache."""
+    found = {}
+    for repo, spec in config["repos"].items():
+        if not spec.get("watch", True) or spec.get("tracker") != "github" or not spec.get("github"):
+            continue
+        cache_path = os.path.join(umbrella, ".overview", "cache", "gh-%s-graph.json" % repo)
+        try:
+            with open(cache_path) as f:
+                cache = json.load(f)
+        except (OSError, ValueError):
+            cache = {}
+        if now - cache.get("fetched_at", 0) > GRAPH_TTL:
+            graph = fetch_graph(spec["github"])
+            cache = {"fetched_at": now, "error": graph is None, "graph": cache.get("graph") if graph is None else graph}
+            os.makedirs(os.path.dirname(cache_path), exist_ok=True)
+            with open(cache_path + ".tmp%d" % os.getpid(), "w") as f:
+                json.dump(cache, f)
+            os.replace(f.name, cache_path)
+        if cache["error"]:
+            warnings.append("gh issue list failed for %s; the tree is older" % spec["github"])
+        if cache.get("graph"):
+            found[repo] = cache["graph"]
+    return found
+
+
 def iso_epoch(stamp):
     return calendar.timegm(time.strptime(stamp, "%Y-%m-%dT%H:%M:%SZ"))
 
@@ -593,17 +659,231 @@ def session_text(s, now, paint):
     return paint.dim("idle %s" % age(s["idle_age_s"]))
 
 
-def board(snap, notes, paint):
+DONE = ("completed", "canceled")
+
+
+def tree(graph, on, hinted, level):
+    """The path to unblock as [left, right, dim] rows: projects, then epics, then blocker chains
+    rooted at what can be started or is in flight. on maps an issue to the board text of the
+    workspace on it, hinted maps a next-up issue to its free workspace. Each level cuts more
+    of what nobody is on or hinted at, so the tree fits the guide's pane."""
+    nodes = graph["nodes"]
+    projects = graph.get("projects", {})
+    live = {i for i, n in nodes.items() if n["state"] not in DONE}
+
+    def up(i):
+        chain = [i]
+        while nodes[chain[-1]].get("parent") in nodes and nodes[chain[-1]]["parent"] not in chain:
+            chain.append(nodes[chain[-1]]["parent"])
+        return chain
+
+    epics = {n.get("parent") for i, n in nodes.items() if i in live} & set(nodes)
+    # An epic whose subs are all closed is ready to close, unless it still waits on something.
+    finished = {i for i in live - epics if (nodes[i].get("subs") or [0, 0])[1]
+                and nodes[i]["subs"][0] == nodes[i]["subs"][1]
+                and not any(b not in nodes or b in live for b in nodes[i].get("blocked_by") or [])}
+    leaves = live - epics - finished
+    project = {i: next((nodes[a]["project"] for a in up(i) if nodes[a].get("project")), None) for i in nodes}
+    epic = {i: (up(i)[1:] or [None])[-1] for i in leaves}
+    blockers = {i: [b for b in nodes[i].get("blocked_by") or [] if b not in nodes or b in live] for i in leaves}
+    kids = {}
+    for i in leaves:
+        for b in blockers[i]:
+            kids.setdefault(b, []).append(i)
+
+    def closure(start, edges):
+        seen, todo = set(), list(start)
+        while todo:
+            j = todo.pop()
+            if j not in seen:
+                seen.add(j)
+                todo += edges.get(j, [])
+        return seen
+
+    reach = {i: len(closure(kids.get(i, []), kids) - {i}) for i in leaves}
+    keep = (set(on) | set(hinted)) & leaves
+    # Never cut what a workspace is on or hinted at, nor the chain that leads to it.
+    protected = closure(keep, blockers)
+
+    def short(i):
+        title = nodes[i]["title"]
+        return title if len(title) <= TITLE_WIDTH else title[:TITLE_WIDTH - 1] + "…"
+
+    def mark(i):
+        if i in on:
+            return "●"
+        if nodes[i]["state"] == "started" or nodes[i].get("assignee"):
+            return "◐"
+        return "⛔" if blockers[i] else "○"
+
+    def key(i):
+        cls = {"●": 0, "○": 2, "◐": 3, "⛔": 4}[mark(i)] - (i in hinted and mark(i) == "○")
+        return (cls, nodes[i].get("priority") or 5, -reach[i], int(re.sub(r"\D", "", i) or 0))
+
+    shown = [p for p, meta in projects.items() if meta.get("active")]
+    shown += sorted({project[i] for i in keep if project[i]} - set(shown), key=lambda p: list(projects).index(p) if p in projects else len(projects))
+    unfiled = closure([i for i in keep if not project[i]], {i: [k for k in kids.get(i, []) if not project[k]] for i in leaves})
+    if level >= 7:
+        # The last resort for a short pane: what to pick up, best first. The board rows above
+        # already show the work in flight.
+        ready = [i for i in leaves if mark(i) == "○" and (project[i] in shown or i in unfiled)]
+        return [["○ %s %s" % (i, short(i)),
+                 (["→ " + hinted[i]] if i in hinted else []) + (["unblocks %d" % reach[i]] if reach[i] else [])
+                 + ([nodes[epic[i]]["title"]] if epic[i] else [project[i] or "Unfiled"]), False]
+                for i in sorted(ready, key=lambda i: (i not in hinted, (shown + [None]).index(project[i]), key(i)))]
+
+    def where(b, p, group):
+        """A blocker outside the group, named by the nearest grouping that differs."""
+        if b not in nodes:
+            return b
+        e = b if b in epics else epic.get(b)
+        if e and e != group:
+            return "%s (%s)" % (b, nodes[e]["title"])
+        return b if project[b] == p else "%s (%s)" % (b, project[b] or "Unfiled")
+
+    def group_rows(members, p, group, indent):
+        inside = {i: [b for b in blockers[i] if b in members] for i in members}
+        primary = {i: min(inside[i], key=key) for i in members if inside[i]}
+        children = {}
+        for i in sorted(members, key=key):
+            if i in primary:
+                children.setdefault(primary[i], []).append(i)
+        roots = sorted((i for i in members if i not in primary), key=key)
+        # A cycle of blockers has no root; start one from its best member so it is not lost.
+        while closure(roots, children) != members:
+            roots.append(min(members - closure(roots, children), key=key))
+        rows, placed = [], set()
+
+        def walk(i, depth, bare=False):
+            placed.add(i)
+            m = mark(i)
+            title = short(i)
+            right = [on[i]] if i in on else []
+            if i in hinted and m == "○":
+                right.append("→ " + hinted[i])
+            if m == "◐" and nodes[i].get("assignee"):
+                right.append(nodes[i]["assignee"])
+            if nodes[i].get("priority"):
+                right.append("P%d" % nodes[i]["priority"])
+            if reach[i]:
+                right.append("unblocks %d" % reach[i])
+            outside = [b for b in blockers[i] if b not in members]
+            if outside:
+                right.append(("also waiting on " if depth else "waiting on ") + ", ".join(where(b, p, group) for b in outside))
+            label = m if not depth or m in ("●", "◐") else ""
+            row = [indent + "  " * depth + ("└ " if depth else "") + " ".join(x for x in (label, i, title) if x),
+                   right, nodes[i]["state"] == "backlog" or (not depth and m == "⛔")]
+            rows.append(row)
+            deep = bare or level >= 1 and depth >= (0 if level >= 6 else 2)
+            hidden = set()
+            for k in children.get(i, []):
+                if k in placed:
+                    continue
+                if deep and (bare or k not in protected):
+                    hidden |= closure([k], children)
+                else:
+                    walk(k, depth + 1)
+            if not deep:
+                for k in sorted(members, key=key):
+                    if i in inside[k] and primary[k] != i:
+                        rows.append([indent + "  " * (depth + 1) + "└ %s (also ← %s)" % (k, primary[k]), [], True])
+            if hidden and not bare:
+                row[1].append("… +%d" % len(hidden))
+
+        ready = [i for i in roots if mark(i) == "○" and i not in protected]
+        cut = ready[3:] if level >= 2 else []
+        if level >= 5:
+            # Only the work that is on the board, what leads to it, and the best pickup.
+            others = [i for i in roots if i not in protected]
+            counts = [("+%d ready" % (len(ready) - 1)) if len(ready) > 1 else "",
+                      ("+%d other" % (len(others) - len(ready))) if len(others) > len(ready) else ""]
+            for i in roots:
+                if i in protected:
+                    walk(i, 0)
+            if ready:
+                walk(ready[0], 0, bare=True)
+            return rows, not any(mark(i) in ("●", "○") for i in roots), [c for c in counts if c]
+        for i in roots:
+            if i in cut:
+                continue
+            if cut and i == ready[2]:
+                rows_before = len(rows)
+            walk(i, 0)
+        if cut:
+            rows[rows_before][1].append("+%d ready" % len(cut))
+        quiet = not any(mark(i) == "●" for i in members) and not any(mark(i) == "○" for i in roots)
+        return rows, quiet, []
+
+    rows = []
+    for p in shown + ([None] if unfiled else []):
+        members = {i for i in leaves if project[i] == p} if p else unfiled
+        meta = projects.get(p) or {}
+        head = (p or "Unfiled") + (" · %d/%d" % (meta["done"], meta["total"]) if meta.get("total") else "")
+        by_epic = {}
+        for i in members:
+            by_epic.setdefault(epic[i], set()).add(i)
+        body, all_quiet = [], True
+        for e in sorted(by_epic, key=lambda e: (e is None, min(key(i) for i in by_epic[e]))):
+            sub, quiet, counts = group_rows(by_epic[e], p, e, "  " if e is None else "    ")
+            all_quiet = all_quiet and quiet
+            if e is None:
+                body += sub + ([["  " + " · ".join(counts), [], True]] if counts else [])
+                continue
+            done, total = nodes[e].get("subs") or [0, 0]
+            head_e = "  %s %s" % (e, nodes[e]["title"]) + (" · %d/%d" % (done, total) if total else "")
+            if level >= 3 and quiet:
+                body.append([head_e, ["nothing ready"], True])
+            else:
+                body += [[head_e, counts, False]] + sub
+        for e in sorted(i for i in finished if p and project[i] == p):
+            body.append(["  %s %s" % (e, nodes[e]["title"]), ["all done · close?"], False])
+        if level >= 4 and all_quiet:
+            rows.append([head, ["nothing ready"], True])
+        else:
+            rows += [[head, [], False]] + body
+    return rows
+
+
+def tree_text(rows, paint):
+    width = min(max([len(r[0]) for r in rows if r[1]] + [0]), TITLE_WIDTH + 20)
+    lines = []
+    for left, right, dim in rows:
+        line = ("%-*s  %s" % (width, left, " · ".join(right))).rstrip() if right else left
+        lines.append(paint.dim(line) if dim else line)
+    return lines
+
+
+def fit_trees(sections, budget, paint):
+    """sections is [(header, graph, on, hinted)]. Cut level by level until every tree fits in
+    budget lines (None: no limit), then truncate."""
+    for level in range(8):
+        lines = []
+        for header, graph, on, hinted in sections:
+            rows = tree(graph, on, hinted, level)
+            if rows:
+                lines += ["", header] + ["  " + l for l in tree_text(rows, paint)]
+        if budget is None or len(lines) <= budget:
+            return lines
+    if budget < 4:
+        return []
+    kept = lines[:budget - 1]
+    while kept and not kept[-1]:
+        kept.pop()
+    return kept + [paint.dim("  … +%d more; a taller pane shows the tree" % (len(lines) - len(kept)))]
+
+
+def board(snap, notes, paint, graphs=None, height=None):
     """The board as text lines. The snapshot gives the facts; notes.json gives what only the
     guide can judge: overrides, next-up hints, short notes and open offers."""
     now = snap["generated_at"]
     overrides = notes.get("overrides", {})
     hints = notes.get("workspaces", {})
     titles = notes.get("titles", {})
-    rows, ci, stray = [], [], []
+    rows, ci, stray, sections = [], [], [], []
     for repo, entry in snap["repos"].items():
         prs = entry.get("prs", [])
         claimed = set()
+        on, hinted = {}, {}
         for name, ws in entry["workspaces"].items():
             pr = next((p for p in prs if p["number"] == ws.get("pr")), None)
             if pr:
@@ -633,6 +913,9 @@ def board(snap, notes, paint):
             extra = [pr_text(pr, paint)] if pr else []
             if state == "free" and hint.get("next"):
                 extra.append("next up: " + hint["next"])
+                hinted.setdefault(next(iter(tracker_ids(hint["next"])), ""), name)
+            if issue and issue != "?":
+                on[issue] = " · ".join([name] + ([pr_text(pr, paint)] if pr and pr["state"] == "OPEN" else []))
             if hint.get("note"):
                 extra.append(hint["note"])
             # GitHub titles come from gh; Linear ones only the guide can fetch, into notes.json.
@@ -656,6 +939,8 @@ def board(snap, notes, paint):
                 line = "✗ %s %s: %s (%s ago)" % (repo, trunk["branch"], workflow, age(since))
                 # A workflow red for a week is a known state, not something that just broke.
                 ci.append(paint.dim(line) if since > 7 * 86400 else paint.red(line))
+        if (graphs or {}).get(repo):
+            sections.append(("Path to unblock · " + repo, graphs[repo], on, hinted))
 
     lines = ["%s · %s" % (os.path.basename(snap["umbrella"]), time.strftime("%H:%M", time.localtime(now)))]
     lines += [paint.red("⚠ " + w) for w in snap["warnings"]]
@@ -669,7 +954,7 @@ def board(snap, notes, paint):
                          ("Offers", notes.get("offers", [])), ("Notes", notes.get("notes", []))):
         if items:
             lines += ["", title] + ["  " + i for i in items]
-    return lines
+    return lines + fit_trees(sections, None if height is None else height - len(lines), paint)
 
 
 def load_notes(umbrella):
@@ -683,11 +968,14 @@ def load_notes(umbrella):
 def board_watch(umbrella, config):
     paint = Paint(sys.stdout.isatty() and "NO_COLOR" not in os.environ)
     while True:
+        size = shutil.get_terminal_size()
         try:
-            lines = board(snapshot(umbrella, config), load_notes(umbrella), paint)
+            snap = snapshot(umbrella, config)
+            trees = graphs(umbrella, config, snap["generated_at"], snap["warnings"])
+            lines = board(snap, load_notes(umbrella), paint, trees, size.lines - 1)
         except Exception as e:  # keep the pane alive; the next tick may succeed
             lines = ["board error: %s" % e]
-        width = shutil.get_terminal_size().columns
+        width = size.columns
         sys.stdout.write("\033[H\033[2J" + "\n".join(l if "\033" in l else l[:width] for l in lines) + "\n")
         sys.stdout.flush()
         time.sleep(LOCAL_INTERVAL)
@@ -729,7 +1017,9 @@ def main():
         board_watch(umbrella, config)
     elif args.board:
         paint = Paint(sys.stdout.isatty() and "NO_COLOR" not in os.environ)
-        print("\n".join(board(snapshot(umbrella, config), load_notes(umbrella), paint)))
+        snap = snapshot(umbrella, config)
+        trees = graphs(umbrella, config, snap["generated_at"], snap["warnings"])
+        print("\n".join(board(snap, load_notes(umbrella), paint, trees)))
     elif args.watch:
         watch(umbrella, config)
     else:
