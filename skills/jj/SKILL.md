@@ -58,7 +58,7 @@ These should always be two commits, not one:
 
 When in doubt, split. A reviewer reading `jj log` should see one intent per line.
 
-If a `TODO.md` is in the diff and your change clearly resolves an open `- [ ]` item, check it off (`- [x]`) as part of the same commit. Don't glob the whole repo — only check items in files you're already touching. If a checked item has a tracker ID (`[ABC-123]`), include it in the message and suggest closing it via `/task update <id> status done`.
+If a `TODO.md` is in the diff and your change clearly resolves an open `- [ ]` item, check it off (`- [x]`) as part of the same commit. Don't glob the whole repo — only check items in files you're already touching. If a checked item has a tracker ID (`[ABC-123]`), include it in the message and suggest closing it via `/task update <id> status done`. Name the issue with its title in that suggestion (`ABC-123 / Add rate limiting is done — close it with /task update ABC-123 status done`), since a bare key leaves the user looking up which issue it was; take the title from the TODO's `## ABC-123 — …` header, or fetch it when there is none. The key inside the command stays bare so it still runs.
 
 ## Commit Message Format
 
