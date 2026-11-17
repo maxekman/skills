@@ -40,7 +40,12 @@ When a PR moves to `MERGED`:
    still open, offer to close it with a one-line comment, "Closed by PR #M". GitHub:
    `gh issue close N -R owner/repo --reason completed --comment "…"`. Linear: set its state
    through `save_issue`, following `/backlog`'s Linear write contract.
-2. **What comes next?** Invoke `/skills:backlog next` for that repo only, asking for one more
+2. **What comes next?** In a Linear repo, refresh the team's graph first (`references/graph.md`).
+   Say the merge in one chat line that names what it unblocked: the issues it blocked that now
+   have no open blocker left, e.g. "PR #88 merged · unblocks DEV-44, DEV-45". Linear: compare
+   the graph before and after the refresh. GitHub: `gh issue view N -R owner/repo --json blocking`
+   gives them, with each one's other blockers in `gh issue view M --json blockedBy`.
+   Then invoke `/skills:backlog next` for that repo only, asking for one more
    item than there are free workspaces. The guide's cwd is not the repo, so name the repo
    (`-R owner/repo` for `gh`, or the Linear team). Neither tracker can store an order, so the
    way to "promote" depends on the tracker:

@@ -549,12 +549,26 @@ def fetch_graph(slug):
 
 
 def graphs(umbrella, config, now, warnings):
-    """The issue graph of each GitHub-tracked repo, for the board only: the JSON snapshot is read
-    by a model on every wake, and a hundred nodes would swamp it. Relations change slowly, so
-    the cache lives longer than the PR cache."""
-    found = {}
+    """The issue graph of each tracker, for the board only: the JSON snapshot is read by a model
+    on every wake, and a hundred nodes would swamp it. A GitHub graph is fetched here, keyed by
+    repo; relations change slowly, so its cache lives longer than the PR cache. The script can't
+    reach Linear, so the guide writes each team's graph, keyed by tracker."""
+    found, read = {}, set()
     for repo, spec in config["repos"].items():
-        if not spec.get("watch", True) or spec.get("tracker") != "github" or not spec.get("github"):
+        tracker = spec.get("tracker") or ""
+        if not spec.get("watch", True) or tracker in read:
+            continue
+        if tracker.startswith("linear:"):
+            read.add(tracker)
+            path = os.path.join(umbrella, ".overview", "graph-%s.json" % tracker.split(":", 1)[1])
+            if os.path.exists(path):
+                try:
+                    with open(path) as f:
+                        found[tracker] = json.load(f)
+                except (OSError, ValueError):
+                    warnings.append("%s is unreadable; the guide rewrites it on its next refresh" % os.path.basename(path))
+            continue
+        if tracker != "github" or not spec.get("github"):
             continue
         cache_path = os.path.join(umbrella, ".overview", "cache", "gh-%s-graph.json" % repo)
         try:
@@ -794,7 +808,8 @@ def tree(graph, on, hinted, level):
     finished = {i for i in live - epics if (nodes[i].get("subs") or [0, 0])[1]
                 and nodes[i]["subs"][0] == nodes[i]["subs"][1]
                 and not any(b not in nodes or b in live for b in nodes[i].get("blocked_by") or [])}
-    leaves = live - epics - finished
+    # Triage is not yet work anyone can pick up, but it still blocks what waits on it.
+    leaves = {i for i in live - epics - finished if nodes[i]["state"] != "triage"}
     project = {i: next((nodes[a]["project"] for a in up(i) if nodes[a].get("project")), None) for i in nodes}
     epic = {i: (up(i)[1:] or [None])[-1] for i in leaves}
     blockers = {i: [b for b in nodes[i].get("blocked_by") or [] if b not in nodes or b in live] for i in leaves}
@@ -994,11 +1009,13 @@ def board(snap, notes, paint, graphs=None, height=None):
     overrides = notes.get("overrides", {})
     hints = notes.get("workspaces", {})
     titles = notes.get("titles", {})
-    rows, actions, ci, stray, sections = [], [], [], [], []
+    rows, actions, ci, stray, sections, slots = [], [], [], [], [], {}
     for repo, entry in snap["repos"].items():
         prs = entry.get("prs", [])
         claimed = set()
-        on, hinted = {}, {}
+        # Repos on one Linear team share its tree, and with it the work in flight across them.
+        key = entry["tracker"] if (entry.get("tracker") or "").startswith("linear:") else repo
+        on, hinted = slots.setdefault(key, ({}, {}))
         for name, ws in entry["workspaces"].items():
             pr = next((p for p in prs if p["number"] == ws.get("pr")), None)
             if pr:
@@ -1060,14 +1077,21 @@ def board(snap, notes, paint, graphs=None, height=None):
             text = lane_text(repo, lane, both, now, paint)
             if text:
                 actions.append(text)
-        graph = (graphs or {}).get(repo)
-        if graph:
+        graph = (graphs or {}).get(key)
+        if graph and key == repo:
             # The graph holds open issues only; a closed one a workspace is still on keeps its
             # epic, and what closing it unblocked, on the tree.
             closed = {i: {"title": d["title"], "state": "completed", "parent": d["parent"]}
                       for i, d in (entry.get("issues") or {}).items()
                       if i in on and i not in graph["nodes"] and d.get("parent")}
             sections.append(("Path to unblock · " + repo, dict(graph, nodes=dict(graph["nodes"], **closed)), on, hinted))
+        elif graph and not any(s[2] is on for s in sections):
+            head = "Path to unblock · " + key.split(":", 1)[1]
+            try:
+                head += " · %s old" % age(now - iso_epoch(graph["fetched_at"]))
+            except (KeyError, ValueError):
+                head += " · age unknown"
+            sections.append((head, graph, on, hinted))
 
     lines = ["%s · %s" % (os.path.basename(snap["umbrella"]), time.strftime("%H:%M", time.localtime(now)))]
     lines += [paint.red("⚠ " + w) for w in snap["warnings"]]
