@@ -150,6 +150,13 @@ from a TODO.md or a doc's list, gets no ref: a bare PR number anchors on nothing
 the user asking what it is, while plain `/skills:backlog next` still anchors on the session.
 Don't invoke it — picking the next task is the user's call.
 
+Under an umbrella that `/skills:overview` watches, its guide has already ranked this
+workspace's next item, de-duplicated against what the other workspaces were offered, which a
+ranking from here cannot do. Read `../.overview/notes.json` from the repo root. When
+`workspaces.<repo root folder name>.next` is set, end with it instead, whether or not anything
+remains above: `Next: #761 (part of #402) — /clear, then /skills:task implement #761`. No file,
+or no `next` for this workspace → the `/skills:backlog next` line, under its usual conditions.
+
 ## When to Read References
 
 - `references/live-systems.md` — step 3 found an environment, a deploy workflow, or a repo-local
