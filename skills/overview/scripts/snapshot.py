@@ -428,6 +428,22 @@ def iso_epoch(stamp):
 # --- snapshot ----------------------------------------------------------------------------
 
 
+def owns_merge(ws, pr):
+    """Whether the workspace's one session still owns the merged PR, so a wrapup sent to it
+    lands on that work. A session that moved on to another issue in the same workspace, or a
+    stack carrying other work above the PR, would get a wrapup it can only decline."""
+    if len(ws["sessions"]) != 1 or ws["sessions"][0]["status"] != "idle":
+        return False
+    head = next(i for i, c in enumerate(ws["stack"]) if pr["head"] in c["bookmarks"])
+    above, below = ws["stack"][:head], ws["stack"][head:]
+    if any(not c["empty"] or c["bookmarks"] for c in above):
+        return False
+    if any(b != pr["head"] for c in below for b in c["bookmarks"]):
+        return False
+    named = ws["sessions"][0]["prompt_ids"]
+    return not named or bool(set(named) & {"#%d" % pr["number"], *pr["closes"], *ws["stack_ids"]})
+
+
 def snapshot(umbrella, config):
     now = time.time()
     warnings = []
@@ -459,8 +475,7 @@ def snapshot(umbrella, config):
             pr = next((p for p in prs if p["head"] in bookmarks), None)
             ws["pr"] = pr["number"] if pr else None
             # The moment auto_wrapup waits for: busy -> idle does not wake the guide by itself.
-            ws["wrapup_ready"] = bool(pr and pr["state"] == "MERGED" and ws["sessions"]
-                                      and all(x["status"] == "idle" for x in ws["sessions"]))
+            ws["wrapup_ready"] = bool(pr and pr["state"] == "MERGED" and owns_merge(ws, pr))
         out["repos"][repo] = entry
     for s in live:
         if s["session_id"] not in claimed:

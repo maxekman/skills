@@ -11,9 +11,10 @@ A monitor that follows along while the user runs every worker session by hand. I
 the umbrella folder (the non-repo parent of a project's repos and their `-N` workspaces), keeps
 a board of what each workspace is doing, and interrupts only when something needs the user. The
 user picks up work in the sessions themselves. When a session starts on something, that is the
-normal flow: record it on the board, without commentary. It never drives a session or touches a
-working copy. It ranks with `/backlog`
-and leaves each workspace's post-merge cleanup to `/wrapup`, run in that workspace.
+normal flow: record it on the board, without commentary. It never touches a working copy and
+never picks what a session works on. It ranks with `/backlog` and leaves each workspace's
+post-merge cleanup to `/wrapup`, run in that workspace: with `auto_wrapup` on, it sends that
+to the one session that owns a merged PR.
 
 Handle: $ARGUMENTS
 
@@ -183,9 +184,11 @@ time and reason, and decisions the user made that `notes.json` has no field for.
   edits. Every working copy belongs to the session in it. The only files the guide writes are
   in `.overview/`.
 - Every tracker write goes through an offer first and happens on the user's yes, because a
-  wrong tracker change shows up on the public timeline. `SendMessage` to a worker happens only
-  when the user asks for it: they drive the sessions, and a message that lands mid-task makes
-  the session lose its thread.
+  wrong tracker change shows up on the public timeline.
+- A message to a worker may only finish work that session already owns, such as the
+  `auto_wrapup` send. Starting new work, even the `next` item, waits for the user to ask:
+  choosing the work is theirs, and they do it in the session itself. Never send to a `busy`
+  session, because a message that lands mid-task makes it lose its thread.
 - Keep repos apart. Next items for a workspace come from its own repo's tracker. A tracker write
   stays in its own tracker and never names another repo, its issues or its paths. Links between
   repos go in `notes.json` and `state.md` only, because an umbrella can hold a private repo
