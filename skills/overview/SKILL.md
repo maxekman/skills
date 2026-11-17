@@ -67,7 +67,7 @@ Run once per umbrella. Creating `.overview/` is the opt-in. Read `references/ini
 4. **Open the board pane** above the guide, so its prompt stays at the bottom, once, unless a block labelled `overview-board` already exists in
    `rex block ls -s "$REX_SESSION"`:
    ```bash
-   rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=above --ratio 40 --focus=false \
+   rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=above --ratio 55 --focus=false \
      --label overview-board -- /usr/bin/python3 ${CLAUDE_SKILL_DIR}/scripts/snapshot.py --board --watch
    ```
    Outside Rex (`REX_BLOCK` unset), tell the user that command's last part instead, to run in
@@ -135,7 +135,28 @@ CI on trunk
 
 Offers
   close #61? PR #70 merged without "Closes"
+
+Path to unblock · opendecks
+  M1 First deck · 222/263
+    #402 Route the mainboard · 3/9
+      ● #680 Give the QSPI lines room round U3     opendecks-2 · unblocks 2
+        └ #742 Route the USB-C pair
+      ○ #63 Pin out the expansion header           → opendecks-3 · unblocks 3
+        └ #742 (also ← #680)
+    ⛔ #71 Mount the jog wheel                     waiting on #61 (Power the deck)
 ```
+
+**Path to unblock** is the board's guide to what comes next, drawn for each GitHub-tracked
+repo from its open issues. Roots are the open milestone due soonest, plus the milestones of the
+issues the workspaces are on or hinted at. Under each root, its epics (top-level parent issues)
+hold blocker chains: each root is an issue that can start or is in flight, and its children are
+what finishing it unblocks. ● a workspace is on it, ○ ready, ◐ someone else has it, ⛔ waiting on
+an issue outside the epic. An issue with several blockers is drawn under one, and named
+`(also ← …)` under the rest. In `--watch` the tree gets whatever lines the pane has left: it
+cuts deep chains first, then extra ready issues, then quiet epics, down to a ranked list of
+what to pick up. It never cuts what a workspace is on or hinted at before that last step.
+`status` shows it whole. It is on the board only, not in the JSON, which stays small enough to
+read on every wake, so answer "what next" questions from `status`.
 
 The script works out the facts. What only the guide can judge goes into
 `.overview/notes.json`, and the board draws it in:
