@@ -89,7 +89,8 @@ from, and state which one you used:
 4. in a fresh session, this workspace: its bookmark, or the newest one it pushed;
 5. your own in-flight issues that no other workspace carries.
 
-None found → rank globally and say so. Then answer in two sections, both on the rank contract:
+None found → rank globally and say so. A fresh session's bare `next` also lists dated work that
+can move now. Then answer in two sections, both on the rank contract:
 
 - **Continue this thread** — up to `n` candidates related to the anchor, closest first: direct
   relations (what it unblocked, siblings under its parent, its blockers, issues linked as

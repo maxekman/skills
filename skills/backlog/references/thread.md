@@ -135,6 +135,22 @@ thread.` Equal tiers, or no milestones, give no line. It informs and never moves
 can overrule a one-line note at a glance, while a pick that hedges between two threads leaves
 you to redo the ranking yourself.
 
+## Dated work — a fresh session's bare `next` only
+
+With no args and no conversation, the user is choosing a theme, so a date that is slipping
+matters. Inside a session the job is to continue the thread, and this section stays out.
+
+List up to 3 candidates (unblocked, unassigned) that are overdue or due within 7 days: the
+issue's own `dueDate` (Linear), or its milestone's date — GitHub `dueOn`, Linear only if
+`get_project(includeMilestones: true)` returns a target date. Also list an unblocked, unassigned
+blocker of such an issue, as the move that frees it: `INN-653 / Publish the chat widget… —
+blocks INN-296, due 11-20`. Put the section under the anchor, as `Dated`, with the date on each
+line.
+
+Only what can move now. Blocked dated work, counts of blockers, and "nothing overdue" lines are
+nagging: they ask for attention the user can't act on, so leave them out. No candidate → no
+section. The pick still comes from the thread.
+
 ## Side lines
 
 - **In flight (yours)** — name the ones in the thread (the anchor's parent or project, or a
