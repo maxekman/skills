@@ -60,7 +60,7 @@ the open-issue read doesn't return it, so fetch it once: GitHub
 ## Who is in the thread
 
 Closest tier first. Within a tier, order by the rank contract; the candidate filter is the same
-as the global one (open leaf, nobody on it).
+as the global one (open leaf, unassigned).
 
 **(a) Direct relations.**
 - What the anchor blocks — the issues its merge just moved closer to free.
@@ -103,7 +103,7 @@ blocker that holds up the most members, then the move that frees it:
 
 | Blocker | Move |
 |---|---|
-| Yours, in flight | Finish it — name what it still waits on |
+| Yours, in flight | Say the thread waits on it, and where (`in backend-2`) — never "finish it", since another session most likely holds it |
 | Someone else's | Name the owner; the move is a nudge, not a pick |
 | In another repo | `Continue there: /skills:backlog next owner/repo#N`, run from that repo |
 
@@ -138,9 +138,15 @@ you to redo the ranking yourself.
 ## Side lines
 
 - **In flight (yours)** — name the ones in the thread (the anchor's parent or project, or a
-  direct relation). Collapse the rest into one line:
+  direct relation), with `(in backend-2)` on any a sibling workspace's stack carries. Collapse
+  the rest into one line:
   `+2 more in flight elsewhere (INN-704 / Rotate the API keys, INN-1103 / Drop the v1 export)`.
-  Finishing a thread member is often the real next step, so it leads; the rest is context.
+  The line shows what the thread waits on. It is never a pick: with parallel sessions, your
+  in-flight work is usually another session's.
+- **Assigned to you, not started** (Linear only; on GitHub, assigned is in flight) — one line,
+  `Assigned to you, not started: INN-588 / Rotate ONE API keys… (Urgent)`. Visible so nothing
+  urgent hides, never a pick: a session may already be planning it, and `/task implement` claims
+  an issue only once its plan is approved.
 - **Blocked** — thread members that are blocked, plus an Elsewhere issue only if it would
   otherwise have made Elsewhere's top `n`. Name each blocker with its owner and state from the
   read you already have. Don't fetch the blocker's blockers: one hop says what to nudge, and
