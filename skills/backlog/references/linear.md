@@ -50,6 +50,7 @@ assignee assigneeId delegate delegateId project projectId parentId team teamId c
 
 Ask for the narrow set you need. A backlog read for ranking wants
 `id, title, status, statusType, priority, projectMilestone, assignee, parentId, createdAt, updatedAt`.
+A fresh session's bare `next` adds `dueDate` for its dated section (`references/thread.md`).
 
 ## Relations for the rank
 
