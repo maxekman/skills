@@ -54,10 +54,6 @@ When a PR moves to `MERGED`:
      that cap.
    - **GitHub**: there is no "up next" state, and assigning an issue would mark it in flight.
      Show the ranked items as `next` hints in `notes.json`. Write nothing to the tracker.
-
-   Set the merging workspace's `next` now, before it is free: `/skills:wrapup` in that
-   workspace reads it from `notes.json` and ends its report with it, so the user can `/clear`
-   and start the next item there.
 3. **Wrapup belongs to the worker.** It moves that workspace's `@` onto trunk, which only the
    session that owns it may do. The snapshot sets `wrapup_ready` only when that session still
    owns the merge: the stack holds nothing but the merged PR, the workspace has exactly one
