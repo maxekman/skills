@@ -11,25 +11,43 @@ Take the first source that yields one, and print it as the output's first line:
 `Anchor: PR #29 / Add the launch checklist → #19 / Prepare the repo to go public (Part of),
 parent #13 / Launch the website`.
 
-1. **Args.** Any issue or PR ref — `#29`, `owner/repo#29`, a URL, `ACME-407`. On GitHub a `#N`
-   may be either; `gh pr view` fails on an issue, so try it first and fall back to
+1. **An issue or PR ref in the args** — `#29`, `owner/repo#29`, a URL, `ACME-407`. On GitHub a
+   `#N` may be either; `gh pr view` fails on an issue, so try it first and fall back to
    `gh issue view`. A PR resolves to its issues:
    `gh pr view <n> --json closingIssuesReferences,body,headRefName`. `closingIssuesReferences`
    holds only the closing keywords (`Closes`, `Fixes`), so also scan the body for `Part of #N`
    and `Refs #N` — the issue a PR only advances is usually the one the thread continues. On
-   Linear, the ID sits in the PR title (`ACME-407 / Title`) or the branch name.
-2. **The conversation.** Issues and PRs this session implemented, wrapped up, verified or filed.
-   The most recent wins; several from the same piece of work are one anchor set.
-3. **The workspace.** A fresh session has no conversation, but the workspace remembers:
+   Linear, the ID sits in the PR title (`ACME-407 / Title`) or the branch name. A topic beside
+   the ref narrows that thread rather than replacing it.
+2. **A topic in the args** — `next for CI improvements`. Map it onto something the tracker
+   already has, first match wins: a Linear project, an open parent issue whose title matches,
+   an area label. Its open issues are the thread, and no later source is read, because a topic
+   the user names outranks anything inferred. Matches none → say so and go on to 3.
+3. **This session's theme.** The issues and PRs this session implemented, wrapped up, verified
+   or filed. Sessions usually run one theme as a chain under an epic, so the theme is the
+   nearest open parent that at least two of them share, or failing that their shared project.
+   Issues filed only as side follow-ups don't count toward it. The newest issue is the anchor
+   and the theme is its parent for tier (a): `Anchor: INN-1611 / Gate releases on the fake
+   suite, theme INN-1609 / Make CI block only on systems we control (3 this session)`. No
+   shared parent or project → the newest issue alone, as a single-issue anchor.
+4. **This workspace.** A fresh session has no conversation, but the workspace remembers. Other
+   workspaces of the same repo merge into the same trunk under your name, so read only what
+   this one did:
    - `jj log -r '@ | @-' --no-graph -T 'bookmarks ++ "\n"'` — a bookmark carrying an issue ID or
-     slug, as `/task implement` pins them.
-   - After `/wrapup`, `@` sits on trunk with no bookmark. Read the refs from your recent trunk
-     commits instead, taking the newest commit that has any:
-     `jj log -r 'ancestors(trunk(), 15) & mine()' --no-graph -T 'description ++ "\n"'`.
-   - A non-default workspace name (`jj workspace list`) often names the thread. Use it as a
-     scope hint that maps onto an existing label or milestone, never as an anchor on its own.
-4. **Your in-flight issues.** Several → anchor on the most recently updated and leave the rest
-   on the in-flight line.
+     slug. That is unfinished work in this workspace: say to finish it before anything else.
+   - After `/wrapup`, `@` sits on trunk with no bookmark. Take the newest bookmark this workspace
+     pushed, with `<name>` the workspace `jj workspace list` marks `(current)`:
+     `jj op log --no-graph -n 500 -T 'if(self.workspace_name() == "<name>@" && description.starts_with("push bookmark"), self.time().end().ago() ++ " " ++ description.first_line() ++ "\n")'`.
+     Resolve it to issues: on Linear the ID is in the name (`max/inn-1611-…`); otherwise
+     `gh pr list --head <bookmark> --state all --json number,title,closingIssuesReferences,body`
+     and read it as a PR ref from 1. Older than 3 days → skip to 5, since an idle workspace's
+     last push says little about what comes next.
+   - Print its age on the anchor line, then `New theme? /skills:backlog next for <topic>`:
+     sessions change theme, and the previous one's thread is only a guess.
+5. **Your in-flight issues** that no sibling workspace carries. Read the other workspaces'
+   stacks with `jj log -r 'trunk()..working_copies() ~ ::@' --no-graph -T 'working_copies ++ " "
+   ++ bookmarks ++ " " ++ description.first_line() ++ "\n"'`; an issue whose ID shows there is
+   another session's work. Anchor on the most recently updated of the rest.
 
 Nothing found → rank globally and say "no thread found — global ranking". Don't guess an anchor
 from titles: a wrong thread is worse than none, because the reason lines then argue for it.
@@ -54,6 +72,8 @@ as the global one (open leaf, nobody on it).
 - Related (Linear) — issues linked to the anchor as related, from the same
   `get_issue(includeRelations: true)` read. Someone drew that link by hand, so it is as
   deliberate as a blocking edge. GitHub has no such edge.
+- With a theme, siblings are the theme's open children, and what the anchor blocks or is related
+  to ranks ahead of them: that is the chain's next link.
 
 **(b) Session follow-ups.** Issues this session filed or named as leftovers — `/wrapup`'s
 follow-ups, a PR body's "follow-up in #N".

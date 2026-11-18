@@ -83,9 +83,10 @@ not the backlog's global top. So find the **anchor** first, the issues the work 
 from, and state which one you used:
 
 1. an issue or PR ref in the args (`#29`, a URL, `ACME-407`) — `/wrapup` hands off this way;
-2. the issues and PRs this session worked on, wrapped up or filed;
-3. in a fresh session, the workspace: its bookmark, or the issue refs in your recent commits;
-4. your own in-flight issues.
+2. a topic in the args (`for CI improvements`), mapped onto a project, parent issue or label;
+3. this session's theme — what it worked on, wrapped up or filed, and the epic those share;
+4. in a fresh session, this workspace: its bookmark, or the newest one it pushed;
+5. your own in-flight issues that no other workspace carries.
 
 None found → rank globally and say so. Then answer in two sections, both on the rank contract:
 
@@ -102,9 +103,9 @@ Show *why* each ranks where it does — the reason line is the point, since a ra
 argue with is a rank you cannot correct. In the thread section it also names the tie (`sibling
 of #19 under #13`). Exclude anything blocked, and list blocked-but-otherwise-top issues
 separately with the blocker named — one hop, never the blocker's own blockers. A free-text
-scope ("the software side") maps onto labels, milestones or projects that exist and narrows
-both sections — state the mapping you used. Close with one pick: the thread's top, or
-Elsewhere's only when the thread is stalled. Hand it to `/task implement <id>`.
+scope ("the software side") maps onto labels, milestones or projects that exist: alone it is the
+anchor, beside a ref it narrows both sections — state the mapping you used. Close with one pick:
+the thread's top, or Elsewhere's only when the thread is stalled. Hand it to `/task implement <id>`.
 
 Every issue and PR the output names carries its title once: on its own ranked line, or at its
 first mention when it has none (`#19 / Prepare the repo to go public`, `PR #4 / Reword the
