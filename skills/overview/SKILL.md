@@ -198,8 +198,8 @@ The script works out the facts. What only the guide can judge goes into
 
 - **overrides**: what the user said a workspace is on. It beats every derived source.
 - **workspaces**: per workspace, `next` (shown only while it is free) and a short `note`.
-  `/wrapup` reads `next` too and ends its report with it, so keep the field's name and shape:
-  the issue's key first, then its title, then the reason.
+  Put the issue's key first, then its title, then the reason: the board reads the key to tell
+  which issues are already hinted.
 - **titles**: the title of each Linear issue on the board. The script gets GitHub titles itself
   but can't reach Linear. Add a title whenever a workspace moves to a new Linear issue, and drop
   titles no row uses.
