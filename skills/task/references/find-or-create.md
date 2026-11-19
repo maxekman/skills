@@ -119,7 +119,7 @@ the full step 6 block would be mostly empty headings. Present the condensed form
 
 ```
 ## Task
-[ID] — [title]  ([url])
+[ID](url) — [title]
 
 ## Codebase
 [what step 5's search found: path, line range, excerpt]

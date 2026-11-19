@@ -22,6 +22,12 @@ If both are available, prefer whichever the project actively uses. When uncertai
 
 - **Titles**: imperative, 3-7 words ("Fix login timeout on mobile").
 - **Descriptions**: problem + context in 1-2 sentences max.
+- **Keys you print**: write each issue or PR key as a markdown link to it, `[ACME-407](url)`,
+  `[#42](url)`. A terminal that supports links shows only the key and opens it on Cmd-click; any
+  other prints the URL beside it. Take the URL from the `url` field the read returned; on GitHub,
+  `https://github.com/<owner>/<repo>/issues/<n>` also opens a PR. Keys inside a command or a code
+  block stay plain: a command has to stay runnable when copied, and links don't render in a code
+  block.
 
 ## Commands
 
