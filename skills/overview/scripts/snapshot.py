@@ -39,7 +39,7 @@ TRACKER_ID = re.compile(r"(?<![\w/])(#\d+|[A-Z][A-Z0-9]+-\d+)\b")
 # /skills:pr names Linear-tracked bookmarks like max/dev-35-set-custom-domains.
 BOOKMARK_ID = re.compile(r"^[^/]+/([a-z][a-z0-9]*-\d+)-")
 DEPLOY_NAME = re.compile(r"deploy|release|publish|promote", re.I)
-ESCAPE = re.compile(r"(\033\[[0-9;?]*[A-Za-z])")
+ESCAPE = re.compile(r"(\033\[[0-9;?]*[A-Za-z]|\033\]8;[^\033]*\033\\)")
 NIGHTLY_NAME = re.compile(r"nightly|scheduled|cron", re.I)
 # A tag push runs with the tag as its head branch.
 TAG_REF = re.compile(r"^v?\d+(\.\d+)*")
@@ -746,13 +746,31 @@ class Paint:
     def dim(self, t):
         return self("2", t)
 
+    def link(self, url, t):
+        # OSC 8: the terminal shows t and opens url on Cmd-click, so the board looks the same.
+        return "\033]8;;%s\033\\%s\033]8;;\033\\" % (url, t) if self.on and url and t else t
+
+
+def visible(text):
+    return len(ESCAPE.sub("", text))
+
+
+def pad(text, width):
+    return text + " " * (width - visible(text))
+
+
+def issue_url(slug, issue):
+    # GitHub redirects /issues/N to /pull/N, so this serves a PR number too.
+    m = re.match(r"^([\w.-]+/[\w.-]+)?#(\d+)$", issue)
+    return "https://github.com/%s/issues/%s" % (m.group(1) or slug, m.group(2)) if m and (m.group(1) or slug) else None
+
 
 def pr_text(pr, paint):
     mark = "" if pr["state"] != "OPEN" else {"pass": paint.green("✓"), "fail": paint.red("✗"), "pending": "…"}.get(pr["checks"], "")
     review = {"APPROVED": paint.green("approved"), "CHANGES_REQUESTED": paint.red("changes requested")}.get(pr["review"], "")
     state = {"MERGED": "merged", "CLOSED": "closed"}.get(pr["state"], "draft" if pr["draft"] else "")
     conflicts = paint.red("conflicts") if pr["state"] == "OPEN" and pr.get("conflicts") else ""
-    return " ".join(x for x in ("PR #%d" % pr["number"], state, mark, review, conflicts) if x)
+    return " ".join(x for x in (paint.link(pr.get("url"), "PR #%d" % pr["number"]), state, mark, review, conflicts) if x)
 
 
 def lane_text(repo, lane, both, now, paint):
@@ -791,11 +809,11 @@ def session_text(s, now, paint):
 DONE = ("completed", "canceled")
 
 
-def tree(graph, on, hinted, level):
+def tree(graph, on, hinted, level, ref):
     """The path to unblock as [left, right, dim] rows: projects, then epics, then blocker chains
     rooted at what can be started or is in flight. on maps an issue to the board text of the
-    workspace on it, hinted maps a next-up issue to its free workspace. Each level cuts more
-    of what nobody is on or hinted at, so the tree fits the guide's pane."""
+    workspace on it, hinted maps a next-up issue to its free workspace, ref renders an issue key.
+    Each level cuts more of what nobody is on or hinted at, so the tree fits the guide's pane."""
     nodes = graph["nodes"]
     projects = graph.get("projects", {})
     live = {i for i, n in nodes.items() if n["state"] not in DONE}
@@ -864,7 +882,7 @@ def tree(graph, on, hinted, level):
         # The last resort for a short pane: what to pick up, best first. The board rows above
         # already show the work in flight.
         ready = [i for i in leaves if mark(i) == "○" and (project[i] in shown or i in unfiled)]
-        return [["○ %s %s" % (i, short(i)),
+        return [["○ %s %s" % (ref(i), short(i)),
                  (["→ " + hinted[i]] if i in hinted else []) + (["unblocks %d" % reach[i]] if reach[i] else [])
                  + ([nodes[epic[i]]["title"]] if epic[i] else [project[i] or "Unfiled"]), False]
                 for i in sorted(ready, key=lambda i: (i not in hinted, (shown + [None]).index(project[i]), key(i)))]
@@ -872,11 +890,11 @@ def tree(graph, on, hinted, level):
     def where(b, p, group):
         """A blocker outside the group, named by the nearest grouping that differs."""
         if b not in nodes:
-            return b
+            return ref(b)
         e = b if b in epics else epic.get(b)
         if e and e != group:
-            return "%s (%s)" % (b, nodes[e]["title"])
-        return b if project[b] == p else "%s (%s)" % (b, project[b] or "Unfiled")
+            return "%s (%s)" % (ref(b), nodes[e]["title"])
+        return ref(b) if project[b] == p else "%s (%s)" % (ref(b), project[b] or "Unfiled")
 
     def group_rows(members, p, group, indent):
         inside = {i: [b for b in blockers[i] if b in members] for i in members}
@@ -908,7 +926,7 @@ def tree(graph, on, hinted, level):
             if outside:
                 right.append(("also waiting on " if depth else "waiting on ") + ", ".join(where(b, p, group) for b in outside))
             label = m if not depth or m in ("●", "◐") else ""
-            row = [indent + "  " * depth + ("└ " if depth else "") + " ".join(x for x in (label, i, title) if x),
+            row = [indent + "  " * depth + ("└ " if depth else "") + " ".join(x for x in (label, ref(i), title) if x),
                    right, nodes[i]["state"] == "backlog" or (not depth and m == "⛔")]
             rows.append(row)
             deep = bare or level >= 1 and depth >= (0 if level >= 6 else 2)
@@ -923,7 +941,7 @@ def tree(graph, on, hinted, level):
             if not deep:
                 for k in sorted(members, key=key):
                     if i in inside[k] and primary[k] != i:
-                        rows.append([indent + "  " * (depth + 1) + "└ %s (also ← %s)" % (k, primary[k]), [], True])
+                        rows.append([indent + "  " * (depth + 1) + "└ %s (also ← %s)" % (ref(k), ref(primary[k])), [], True])
             if hidden and not bare:
                 row[1].append("… +%d" % len(hidden))
 
@@ -937,7 +955,7 @@ def tree(graph, on, hinted, level):
             quiet = not any(mark(i) in ("●", "○") for i in roots)
             if level >= 7 and not protected & set(roots):
                 # Nobody is on this group: its best pickup goes on the header line.
-                return rows, quiet, (["○ %s" % ready[0]] if ready else []) + [c for c in counts if c]
+                return rows, quiet, (["○ %s" % ref(ready[0])] if ready else []) + [c for c in counts if c]
             for i in roots:
                 if i in protected:
                     walk(i, 0)
@@ -971,41 +989,41 @@ def tree(graph, on, hinted, level):
                 body += sub + ([["  " + " · ".join(counts), [], True]] if counts else [])
                 continue
             done, total = nodes[e].get("subs") or [0, 0]
-            head_e = "  %s %s" % (e, nodes[e]["title"]) + (" · %d/%d" % (done, total) if total else "")
+            head_e = "  %s %s" % (ref(e), nodes[e]["title"]) + (" · %d/%d" % (done, total) if total else "")
             if level >= 3 and quiet:
                 body.append([head_e, ["nothing ready"], True])
             else:
                 body += [[head_e, counts, False]] + sub
         for e in sorted(i for i in finished if p and project[i] == p):
-            body.append(["  %s %s" % (e, nodes[e]["title"]), ["all done · close?"], False])
+            body.append(["  %s %s" % (ref(e), nodes[e]["title"]), ["all done · close?"], False])
         best = min((i for i in members if mark(i) == "○"), key=key, default=None)
         if level >= 4 and all_quiet:
             rows.append([head, ["nothing ready"], True])
         elif level >= 7 and not members & protected:
-            rows.append([head, ["○ %s %s" % (best, short(best))] if best else ["nothing ready"], not best])
+            rows.append([head, ["○ %s %s" % (ref(best), short(best))] if best else ["nothing ready"], not best])
         else:
             rows += [[head, [], False]] + body
     return rows
 
 
 def tree_text(rows, paint):
-    width = min(max([len(r[0]) for r in rows if r[1]] + [0]), TITLE_WIDTH + 20)
+    width = min(max([visible(r[0]) for r in rows if r[1]] + [0]), TITLE_WIDTH + 20)
     lines = []
     for left, right, dim in rows:
-        line = ("%-*s  %s" % (width, left, " · ".join(right))).rstrip() if right else left
+        line = (pad(left, width) + "  " + " · ".join(right)).rstrip() if right else left
         lines.append(paint.dim(line) if dim else line)
     return lines
 
 
 def fit_trees(sections, budget, paint):
-    """sections is [(header, graph, on, hinted)], graph None for one the guide has yet to write.
-    Cut level by level until every tree fits in budget lines (None: no limit). When none fits,
-    truncate the shortest, which keeps the most."""
+    """sections is [(header, graph, on, hinted, slug)], graph None for one the guide has yet to
+    write, slug None off GitHub. Cut level by level until every tree fits in budget lines (None:
+    no limit). When none fits, truncate the shortest, which keeps the most."""
     tries = []
     for level in range(9):
         lines = []
-        for header, graph, on, hinted in sections:
-            rows = tree(graph, on, hinted, level) if graph else []
+        for header, graph, on, hinted, slug in sections:
+            rows = tree(graph, on, hinted, level, lambda i: paint.link(issue_url(slug, i), i)) if graph else []
             if rows or not graph:
                 lines += ["", header] + ["  " + l for l in tree_text(rows, paint)]
         if budget is None or len(lines) <= budget:
@@ -1077,7 +1095,7 @@ def board(snap, notes, paint, graphs=None, height=None):
                 title = "%d local commit%s: %s" % (len(commits), "" if len(commits) == 1 else "s", described)
             if len(title) > TITLE_WIDTH:
                 title = title[:TITLE_WIDTH - 1] + "…"
-            rows.append((name, issue, title, state, people, " · ".join(extra)))
+            rows.append((name, paint.link(issue_url(entry.get("github"), issue), issue), title, state, people, " · ".join(extra)))
         for p in prs:
             if p["state"] == "OPEN" and p["number"] not in claimed:
                 who = " by " + p["author"] if entry.get("everyone") and p.get("author") else ""
@@ -1102,7 +1120,8 @@ def board(snap, notes, paint, graphs=None, height=None):
             closed = {i: {"title": d["title"], "state": "completed", "parent": d["parent"]}
                       for i, d in (entry.get("issues") or {}).items()
                       if i in on and i not in graph["nodes"] and d.get("parent")}
-            sections.append(("Path to unblock · " + repo, dict(graph, nodes=dict(graph["nodes"], **closed)), on, hinted))
+            sections.append(("Path to unblock · " + repo, dict(graph, nodes=dict(graph["nodes"], **closed)), on, hinted,
+                             entry.get("github")))
         elif key != repo and key in (graphs or {}) and not any(s[2] is on for s in sections):
             head = "Path to unblock · " + key.split(":", 1)[1]
             if not graph:
@@ -1118,15 +1137,14 @@ def board(snap, notes, paint, graphs=None, height=None):
                 unread = sum(1 for n in open_ if n.get("blocked_by") is None)
                 if unread:
                     head += " · blockers read for %d/%d" % (len(open_) - unread, len(open_))
-            sections.append((head, graph, on, hinted))
+            sections.append((head, graph, on, hinted, None))
 
     lines = ["%s · %s" % (os.path.basename(snap["umbrella"]), time.strftime("%H:%M", time.localtime(now)))]
     lines += [paint.red("⚠ " + w) for w in snap["warnings"]]
     lines.append("")
-    widths = [max([len(r[i]) for r in rows] + [0]) for i in range(4)]
+    widths = [max([visible(r[i]) for r in rows] + [0]) for i in range(4)]
     for name, issue, title, state, people, extra in rows:
-        line = "%-*s  %-*s  %-*s  %-*s  %s" % (widths[0], name, widths[1], issue, widths[2], title,
-                                               widths[3], state, people)
+        line = "  ".join(pad(cell, w) for cell, w in zip((name, issue, title, state), widths)) + "  " + people
         lines.append((paint.dim(line) if state == "free" and not extra else line) + ("  " + extra if extra else ""))
     # Running first, then red, then what just passed; plain CI only shows red, below them.
     actions = [line for _, line in sorted(actions, key=lambda a: a[0])] + ci
