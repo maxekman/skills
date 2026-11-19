@@ -130,7 +130,15 @@ Print it as markdown, not inside a code block, where links don't render:
 - **Review**: 2 unresolved threads — <links>
 - **PR body**: `- [ ] update runbook`
 - **Diff**: `lib/foo.ex` `# TODO: drop shim after v3`
+
+<the one batched offer>
+
+Explain it to stakeholders: /skills:recap #<N>
+Ready for the next one: /skills:backlog next ACME-407
 ```
+
+The last two lines have their own conditions, below; when they apply, they close the report in
+that order, after the offer, so the pointer to the next task is the last thing the user reads.
 
 Name each issue and PR with its title the first time the report mentions it: `ACME-407 / Add
 rate limiting`, `#42 / Fix the footer links`, `PR #541 / Add the export endpoint`, and
@@ -158,7 +166,9 @@ it; don't run it, since who hears about the change is the user's call.
 When sync moved `@` onto a fresh change on trunk, end with one line, even when work remains or
 a run failed. Leftovers are rarely the next task: follow-ups reach the tracker through the
 offer, where `/backlog` ranks them in the same thread, and a wait on billing or a release is no
-task at all. When sync left `@` in place, the workspace isn't free, so leave the line out.
+task at all. Neither is a rollout still to run against live systems, even with the issue moved
+back to In Progress until it is done: it needs no workspace. When sync left `@` in place, the
+workspace isn't free, so leave the line out.
 
 The line is `Ready for the next one: /skills:backlog next <ref>`, naming the issue the work
 continues from, so `/backlog` ranks from its thread even after a compaction or in a fresh
