@@ -25,6 +25,7 @@ for it: the board picks up each write by itself.
 ```json
 {
   "fetched_at": "2026-11-17T15:40:00Z",
+  "linear_workspace": "acme",
   "projects": {"Offline mode": {"done": 4, "total": 11, "active": true}},
   "nodes": {
     "DEV-44": {"title": "Sync on reconnect", "state": "unstarted", "project": "Offline mode",
@@ -36,6 +37,8 @@ for it: the board picks up each write by itself.
 ```
 
 - `fetched_at`: UTC in exactly this format, or the board can't show the age.
+- `linear_workspace`: the Linear workspace's URL key, `acme` in `linear.app/acme/issue/DEV-44/…`.
+  The board links every Linear key with it; without it they stay plain text.
 - `state`: the issue's `statusType`. The board hides `triage`, `completed` and `canceled`.
 - `parent`: the parent's human ID. A top-level parent is the issue's epic on the board.
 - `blocked_by`: blockers that are not `completed` or `canceled`, or `null` until they are read.
@@ -53,10 +56,11 @@ for it: the board picks up each write by itself.
    gives fewer than two, add projects in progress from `list_projects`, up to two in all: a busy
    team has dozens in progress, far more than a pane can show. Mark each one `active`.
 2. **Issues.** One `list_issues` per project, in every state, with
-   `fields: id, title, statusType, priority, assignee, assigneeId, parentId, project, updatedAt`;
-   follow `cursor` until it runs out. Count each project's `done` (`completed` or `canceled`) and
-   `total`, and each parent's `subs`. Keep every open row as a node, and each issue a workspace
-   is on even once it closed, with its `parent`: the board keeps that epic in view.
+   `fields: id, title, statusType, priority, assignee, assigneeId, parentId, project, updatedAt,
+   url`; follow `cursor` until it runs out. Take `linear_workspace` from any row's `url`. Count
+   each project's `done` (`completed` or `canceled`) and `total`, and each parent's `subs`. Keep
+   every open row as a node, and each issue a workspace is on even once it closed, with its
+   `parent`: the board keeps that epic in view.
    Carry `blocked_by` and `read_at` over from the old file. **Write the file now.**
 3. **Blockers.** `get_issue(id, includeRelations: true)` for at most 30 open issues that aren't
    epics, in this order, each once:

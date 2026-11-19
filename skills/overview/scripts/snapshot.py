@@ -759,10 +759,15 @@ def pad(text, width):
     return text + " " * (width - visible(text))
 
 
-def issue_url(slug, issue):
+def issue_url(slug, issue, linear=None):
+    """linear is the Linear workspace's URL key, which only the guide's graph knows."""
     # GitHub redirects /issues/N to /pull/N, so this serves a PR number too.
     m = re.match(r"^([\w.-]+/[\w.-]+)?#(\d+)$", issue)
-    return "https://github.com/%s/issues/%s" % (m.group(1) or slug, m.group(2)) if m and (m.group(1) or slug) else None
+    if m and (m.group(1) or slug):
+        return "https://github.com/%s/issues/%s" % (m.group(1) or slug, m.group(2))
+    if linear and re.match(r"^[A-Z][A-Z0-9]+-\d+$", issue):
+        return "https://linear.app/%s/issue/%s" % (linear, issue)
+    return None
 
 
 def pr_text(pr, paint):
@@ -1023,7 +1028,8 @@ def fit_trees(sections, budget, paint):
     for level in range(9):
         lines = []
         for header, graph, on, hinted, slug in sections:
-            rows = tree(graph, on, hinted, level, lambda i: paint.link(issue_url(slug, i), i)) if graph else []
+            rows = tree(graph, on, hinted, level,
+                        lambda i: paint.link(issue_url(slug, i, graph.get("linear_workspace")), i)) if graph else []
             if rows or not graph:
                 lines += ["", header] + ["  " + l for l in tree_text(rows, paint)]
         if budget is None or len(lines) <= budget:
@@ -1052,6 +1058,7 @@ def board(snap, notes, paint, graphs=None, height=None):
         # Repos on one Linear team share its tree, and with it the work in flight across them.
         key = entry["tracker"] if (entry.get("tracker") or "").startswith("linear:") else repo
         on, hinted = slots.setdefault(key, ({}, {}))
+        linear_ws = ((graphs or {}).get(key) or {}).get("linear_workspace")
         for name, ws in entry["workspaces"].items():
             pr = next((p for p in prs if p["number"] == ws.get("pr")), None)
             if pr:
@@ -1095,7 +1102,8 @@ def board(snap, notes, paint, graphs=None, height=None):
                 title = "%d local commit%s: %s" % (len(commits), "" if len(commits) == 1 else "s", described)
             if len(title) > TITLE_WIDTH:
                 title = title[:TITLE_WIDTH - 1] + "…"
-            rows.append((name, paint.link(issue_url(entry.get("github"), issue), issue), title, state, people, " · ".join(extra)))
+            rows.append((name, paint.link(issue_url(entry.get("github"), issue, linear_ws), issue), title, state, people,
+                         " · ".join(extra)))
         for p in prs:
             if p["state"] == "OPEN" and p["number"] not in claimed:
                 who = " by " + p["author"] if entry.get("everyone") and p.get("author") else ""
