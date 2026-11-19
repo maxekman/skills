@@ -52,18 +52,29 @@ jobs:
         env:
           VERSION: ${{ steps.next.outputs.version }}
         run: |
-          tmp="$(mktemp)"
-          jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > "$tmp"
-          mv "$tmp" .claude-plugin/plugin.json
-
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git commit -m "chore(release): skills $VERSION [skip ci]" .claude-plugin/plugin.json
 
-          # main first: if the push is rejected, nothing has been tagged yet.
-          git push origin HEAD:main
+          # A re-run after a failed tag push finds the bump already on main; committing
+          # it again would fail on an empty commit.
+          if [ "$(jq -r .version .claude-plugin/plugin.json)" != "$VERSION" ]; then
+            tmp="$(mktemp)"
+            jq --arg v "$VERSION" '.version = $v' .claude-plugin/plugin.json > "$tmp"
+            mv "$tmp" .claude-plugin/plugin.json
+            git commit -m "chore(release): skills $VERSION [skip ci]" .claude-plugin/plugin.json
+
+            # main first: if the push is rejected, nothing has been tagged yet.
+            git push origin HEAD:main
+          fi
+
           git tag -a "skills--v$VERSION" -m "skills $VERSION"
-          git push origin "refs/tags/skills--v$VERSION"
+          # GitHub can reject a tag on a commit pushed a moment earlier with "missing
+          # necessary objects", so give it a few tries before failing.
+          for _ in 1 2 3; do
+            git push origin "refs/tags/skills--v$VERSION" && exit 0
+            sleep 10
+          done
+          exit 1
 
       - name: Publish the GitHub release
         if: steps.next.outputs.version && inputs.dry-run != true
