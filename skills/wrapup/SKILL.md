@@ -114,32 +114,37 @@ Collect from every source; an empty source is omitted from the report, not liste
 
 ### 5. Report
 
-```
-## Wrap-up — #<N> <title>
+Print it as markdown, not inside a code block, where links don't render:
 
-Sync
-  fetched; @ is a new change on main          (or: left in place — <reason>)
+```markdown
+## Wrap-up — [#<N>](<url>) <title>
 
-Live systems
-  Release (push) ✓
-  <one line per environment, when step 3 found any>
+**Sync**: fetched; @ is a new change on main (or: left in place — <reason>)
 
-Remaining work
-  Tracker   ACME-407 / Add rate limiting still "In Review" (did not auto-close)
-  Review    2 unresolved threads — <links>
-  PR body   - [ ] update runbook
-  Diff      lib/foo.ex  # TODO: drop shim after v3
+**Live systems**
+- Release (push) ✓
+- <one line per environment, when step 3 found any>
+
+**Remaining work**
+- **Tracker**: [ACME-407](<url>) / Add rate limiting still "In Review" (did not auto-close)
+- **Review**: 2 unresolved threads — <links>
+- **PR body**: `- [ ] update runbook`
+- **Diff**: `lib/foo.ex` `# TODO: drop shim after v3`
 ```
 
 Name each issue and PR with its title the first time the report mentions it: `ACME-407 / Add
 rate limiting`, `#42 / Fix the footer links`, `PR #541 / Add the export endpoint`, and
 `app#123 / …` for another repo in the same org, `org/repo#123 / …` across orgs. A bare key makes
-the user stop and look it up before they can answer the offer. Later mentions in the same report
-stay bare, and so does a key inside a command, which has to stay runnable. Use the titles this
-run already read and fetch the missing ones in one batch before printing:
-`gh issue view <n> --json title`, `gh pr view` when `<n>` is a PR, `/skills:task show <id>` on
-Linear. Copy the tracker's title as written, since that is what the user can search for; when a
-lookup fails, leave the key bare rather than guess.
+the user stop and look it up before they can answer the offer. Make every key a markdown link
+to its issue or PR, `[ACME-407](<url>) / Add rate limiting`: a terminal that supports links
+shows only the key and opens it on Cmd-click, and any other prints the URL beside it. Later
+mentions drop the title but keep the link. A key inside a command stays plain, since the
+command has to stay runnable when copied. Use the titles and URLs this run already read and
+fetch the missing ones in one batch before printing: `gh issue view <n> --json title,url`,
+`gh pr view` when `<n>` is a PR, `/skills:task show <id>` on Linear. On GitHub,
+`https://github.com/<owner>/<repo>/issues/<n>` also opens a PR. Copy the tracker's title as
+written, since that is what the user can search for; when a lookup fails, leave the key bare
+rather than guess.
 
 Then make **one** batched offer covering whichever apply: close the tracker issue (via
 `/skills:task update <id> status done`), file follow-ups (via `/skills:task create`, one per
@@ -170,9 +175,9 @@ workspace's next item, de-duplicated against what the other workspaces were offe
 ranking from here cannot do. Read `../.overview/notes.json` from the repo root. When
 `workspaces.<repo root folder name>.next` is set, end with it instead, under the same sync
 condition: `Next: #761 / Route the USB-C pair (part of #402 / Route the mainboard) — /clear,
-then /skills:task implement #761`. The guide writes the titles into `next`; add any it left
-out, as for the report. No file, or no `next` for this workspace → the `/skills:backlog next`
-line.
+then /skills:task implement #761`. The guide writes the titles into `next`, as plain text for
+its board; add any it left out, and the links, as for the report. No file, or no `next` for
+this workspace → the `/skills:backlog next` line.
 
 ## When to Read References
 
