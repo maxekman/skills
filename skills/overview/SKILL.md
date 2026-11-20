@@ -37,25 +37,27 @@ standard library only) so the umbrella's mise pins can't break it:
 Per workspace it reports the `trunk()..@` stack (read with `--ignore-working-copy`, so it never
 snapshots another session's files), bookmarks, `free`, and the tracker IDs found in commits and
 bookmarks (`stack_ids`), `TODO.md` headers (`todo_ids`) and the latest prompt that named one
-(`prompt_ids`), plus the TODO-queue items it is on (`queue_items`, below). It finds the umbrella by walking up from the cwd, so a drifting shell is fine. For
-each live Claude session, taken from Claude Code's session registry (`~/.claude/sessions/`), it
-gives `name` (the `SendMessage` address), `status`, `waiting_long`, `stalled`, `prompt_head` and
-`asked` (idle, and its last message since the user's last prompt ended on a question).
-Per repo it gives PRs by the user (or by anyone, with `"prs": "all"` in the config) that are
-open or closed in the last 12 hours, with checks and review state. It also gives `queues`: each `*TODO.md` file
-on trunk (narrowed by the repo's `"todos"` globs) with its open and done counts and `next`, its
-first open box with that box's `label` (`S22`), `title`, `section` heading and tracker `ids`. A
-workspace's `queue_items` are the open boxes it is on, `via` `stack` when a commit in its stack
-ticks or edits the box, or `prompt` when the latest prompt naming work names the box's label or
-its file. A box that carries a tracker ID is that issue, and goes by its ID. It also gives `trunk`: the
-current result of each CI workflow on the default branch. Deploy and nightly workflows are
-`lanes` instead, one per workflow and ref (a branch, or `tags`), so tag and release runs show
-too. A lane is `pending`, `pass`, `fail`, `behind` (a deploy cancelled with no run after it,
-so its target lags that branch) or `cancelled` (a tag run). `cut` lists the deploys a newer
-merge cancelled, which went live with this run. The name says which workflows are lanes:
-deploy, release, publish or promote, or nightly, scheduled or cron, or a `schedule` run seen
-on trunk. `"lanes"` in a repo's config overrides it, and `"ci"` opts a workflow out. Last, it
-gives GitHub issue states for the IDs it found. `gh` results are cached for 90 seconds in `.overview/cache/`. Linear issues are not in it: fetch those through the Linear MCP.
+(`prompt_ids`), plus the TODO-queue items it is on (`queue_items`, below). It finds the umbrella
+by walking up from the cwd, so a drifting shell is fine. For each live Claude session, taken
+from Claude Code's session registry (`~/.claude/sessions/`), it gives `name` (the `SendMessage`
+address), `status`, `waiting_long`, `stalled`, `prompt_head` and `asked` (idle, and its last
+message since the user's last prompt ended on a question). Per repo it gives PRs by the user (or
+by anyone, with `"prs": "all"` in the config) that are open or closed in the last 12 hours, with
+checks and review state. It also gives `queues`: each `*TODO.md` file on trunk (narrowed by the
+repo's `"todos"` globs) with its open and done counts and `next`, its first open box with that
+box's `label` (`S22`), `title`, `section` heading and tracker `ids`. A workspace's `queue_items`
+are the open boxes it is on, `via` `stack` when a commit in its stack ticks or edits the box, or
+`prompt` when the latest prompt naming work names the box's label or its file. A box that
+carries a tracker ID is that issue, and goes by its ID. It also gives `trunk`: the current
+result of each CI workflow on the default branch. Deploy and nightly workflows are `lanes`
+instead, one per workflow and ref (a branch, or `tags`), so tag and release runs show too. A
+lane is `pending`, `pass`, `fail`, `behind` (a deploy cancelled with no run after it, so its
+target lags that branch) or `cancelled` (a tag run). `cut` lists the deploys a newer merge
+cancelled, which went live with this run. The name says which workflows are lanes: deploy,
+release, publish or promote, or nightly, scheduled or cron, or a `schedule` run seen on trunk.
+`"lanes"` in a repo's config overrides it, and `"ci"` opts a workflow out. Last, it gives GitHub
+issue states for the IDs it found. `gh` results are cached for 90 seconds in `.overview/cache/`.
+Linear issues are not in it: fetch those through the Linear MCP.
 
 `warnings` comes first in the output. A registry-format warning means Claude Code changed the
 file, and session data is missing until the script is fixed. The board shows it at the top;
@@ -75,8 +77,8 @@ Run once per umbrella. Creating `.overview/` is the opt-in. Read `references/ini
 2. **Reconcile.** Derive each workspace's state and act on every transition, as
    `references/lifecycle.md` describes. Read it on the first wake of a session.
 3. **Write `notes.json`** (below) in one `Write`, only when something in it changed.
-4. **Open the board pane** above the guide, so its prompt stays at the bottom, once, unless a block labelled `overview-board` already exists in
-   `rex block ls -s "$REX_SESSION"`:
+4. **Open the board pane** above the guide, so its prompt stays at the bottom, once, unless a
+   block labelled `overview-board` already exists in `rex block ls -s "$REX_SESSION"`:
    ```bash
    rex split -s "$REX_SESSION" -b "$REX_BLOCK" --split=above --ratio 55 --focus=false \
      --label overview-board -- /usr/bin/python3 ${CLAUDE_SKILL_DIR}/scripts/snapshot.py --board --watch
@@ -132,8 +134,8 @@ app-3-37 · ~/Development/work/acme/app-3 · idle · /skills:task implement ACME
 
 Zero matches: say so and print every live session under the umbrella instead, so the caller can
 spot the one by what it is doing rather than by a similar name. Several: print them all. Never
-pick one, since the caller is about to message whichever it gets. Read-only like `status`: no board, no monitor,
-no writes, from any session under the umbrella.
+pick one, since the caller is about to message whichever it gets. Read-only like `status`: no
+board, no monitor, no writes, from any session under the umbrella.
 
 ## The board
 
