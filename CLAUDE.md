@@ -15,6 +15,32 @@ checks that the manifests agree with the tree and that the skills validate, then
 "Correct" means the frontmatter is valid, the prose is tight, and the manifests agree with the
 tree. Editing skills *is* the work in this repo.
 
+## This repo is public — keep private data out
+
+Everything here ships to a public GitHub repo and into every installed copy of the plugin, and
+git history keeps whatever lands even after a later commit removes it. So nothing private goes
+into a skill, reference, eval, script, README, commit message or PR body:
+
+- client, company and private-repo names, including the folders and workspaces they live in
+  (`~/Development/work/<client>/…`)
+- tracker keys, issue and PR titles, and project, milestone or label names copied from a real
+  tracker, however harmless they look, since a title describes someone's work
+- internal hostnames and URLs, account IDs, email addresses other than the author's,
+  credentials, customer or personal data, and log excerpts
+
+A repo that is private today and public later counts as private.
+
+Examples are where it slips in, because the natural way to write one is to paste what a real
+session printed. Write them from the placeholders the docs already use: `acme/app` with
+workspaces `app` … `app-4` under an `acme` umbrella, Linear keys `ACME-…` and `DEV-…`, GitHub
+`#N`, and invented titles that read like ordinary product work. An eval that needs a real repo
+names a placeholder `cwd`; point it at the real one locally and leave that out of the commit.
+
+Before committing, read the diff for all of the above, and grep it for the names of the private
+repos and clients you work with; their folder names make a good list. If something private has
+already landed, replace it in a follow-up commit and say so. Don't rewrite history to hide it:
+a force-push to `main` breaks every clone and the release tags.
+
 ## Always use skill-creator
 
 Before creating or editing **any** `SKILL.md`, reference file, or description — including
