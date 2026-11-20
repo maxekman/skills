@@ -10,7 +10,7 @@ workspace inside it.
 ```
 
 It lists every direct subfolder that has `.jj` or `.git`. jj workspaces of one repo are folded
-under that repo (`opendecks-2` … `opendecks-4` under `opendecks`), and each repo gets its GitHub
+under that repo (`app-2` … `app-4` under `app`), and each repo gets its GitHub
 `owner/repo` from `origin`. A repo with no GitHub remote gets `"watch": false`.
 
 `nested` lists folders that hold repos one level further down, such as a `labs/` with its own
@@ -48,10 +48,10 @@ watched. Then write `.overview/config.json`:
 ```json
 {
   "repos": {
-    "opendecks": {
-      "github": "opendecks/opendecks",
+    "app": {
+      "github": "acme/app",
       "tracker": "github",
-      "workspaces": ["opendecks", "opendecks-2", "opendecks-3", "opendecks-4"],
+      "workspaces": ["app", "app-2", "app-3", "app-4"],
       "watch": true,
       "lanes": {"Deploy (dev)": "deploy", "Ship": "deploy", "E2E": "nightly", "Release Drafter": "ci"},
       "todos": ["docs/*_TODO.md"]
@@ -71,7 +71,7 @@ teammates' PRs matter to the user's sessions; it makes the board longer.
 user doesn't work in through sessions, such as slides or an archive.
 
 `workspaces` are folder names relative to the umbrella. A workspace added later
-(`jj workspace add ../opendecks-5`) needs either a new entry here or `init` run again.
+(`jj workspace add ../app-5`) needs either a new entry here or `init` run again.
 `init` merges into an existing config. It never drops a repo the user set to `"watch": false`.
 
 Also create `.overview/notes.json` as `{}` and an empty `.overview/state.md`.

@@ -100,7 +100,7 @@ slice the snapshot.
 
 In those lines, and in the `next` and `offers` you write to `notes.json`, name each issue and
 PR with its title the first time it appears: `DEV-44 / Cache the venue list`,
-`#63 / Pin out the expansion header`, `PR #70 / Wire the power rail`, and `app#123 / …` in
+`#63 / Add a CSV export endpoint`, `PR #70 / Publish the API reference`, and `app#123 / …` in
 another repo of the same org, `org/repo#123 / …` across orgs. A one-line push gets read without
 the board beside it, and a bare key leaves the user asking which issue it was. Keys inside a
 command stay bare so the command still runs. Take titles from the snapshot or `titles`, fetch
@@ -141,35 +141,35 @@ no writes, from any session under the umbrella.
 cost:
 
 ```
-opendecks · 13:51
+acme · 13:51
 
-opendecks    #418  Choose the browse row size in settings  working    idle 6m
-opendecks-2  #680  Give the QSPI lines room round U3       working    ⚠ waiting 8m
-opendecks-3                                                free       idle 3m     next up: #63 / Pin out the expansion header (P1)
-opendecks-4  #266  Bring up the DAC2 Pro on the bench Pi   in review  no session  PR #677 draft ✓
-site               Publish the press kit                   merged     no session  PR #31 merged · needs wrapup
+app    #418  Let users pick the list page size     working    idle 6m
+app-2  #680  Retry failed webhook deliveries       working    ⚠ waiting 8m
+app-3                                              free       idle 3m     next up: #63 / Add a CSV export endpoint (P1)
+app-4  #266  Move image uploads to object storage  in review  no session  PR #677 draft ✓
+site         Publish the pricing page              merged     no session  PR #31 merged · needs wrapup
 
 Actions
-  … opendecks Deploy (dev): running d4e5f6a7 3m · carrying a1b2c3d4 (cut off)
-  ✗ opendecks Nightly e2e: 9f8e7d6c (6h ago)
-  ✓ opendecks Release · tags: v1.4.0 18m ago
-  ✗ opendecks main: CI (1h ago)
+  … app Deploy (dev): running d4e5f6a7 3m · carrying a1b2c3d4 (cut off)
+  ✗ app Nightly e2e: 9f8e7d6c (6h ago)
+  ✓ app Release · tags: v1.4.0 18m ago
+  ✗ app main: CI (1h ago)
 
 Offers
-  close #61 / Power the deck? PR #70 / Wire the power rail merged without "Closes"
+  close #61 / Ship the public API docs? PR #70 / Publish the API reference merged without "Closes"
 
-Queues · opendecks
-  BRINGUP_TODO  4 open  ● B3 Probe the 3V3 rail under load  opendecks-4
-  SAFETY_TODO   2 open  ○ F1 Fuse the barrel jack           = #75
+Queues · app
+  MIGRATION_TODO  4 open  ● M3 Backfill the invoices table  app-4
+  SECURITY_TODO   2 open  ○ S1 Rotate the deploy key        = #75
 
-Path to unblock · opendecks
-  M1 First deck · 222/263
-    #402 Route the mainboard · 3/9
-      ● #680 Give the QSPI lines room round U3     opendecks-2 · unblocks 2
-        └ #742 Route the USB-C pair
-      ○ #63 Pin out the expansion header           → opendecks-3 · unblocks 3
+Path to unblock · app
+  M1 Public beta · 222/263
+    #402 Harden the integrations · 3/9
+      ● #680 Retry failed webhook deliveries      app-2 · unblocks 2
+        └ #742 Alert on stuck webhooks
+      ○ #63 Add a CSV export endpoint             → app-3 · unblocks 3
         └ #742 (also ← #680)
-    ⛔ #71 Mount the jog wheel                     waiting on #61 (Power the deck)
+    ⛔ #71 Open the API to partners               waiting on #61 (Ship the public API docs)
 ```
 
 **Actions** shows a deploy lane while it runs and for 2 hours after it passed, a nightly only
@@ -200,11 +200,11 @@ The script works out the facts. What only the guide can judge goes into
 
 ```json
 {
-  "overrides": {"opendecks-2": "#680"},
-  "workspaces": {"opendecks-3": {"next": "#63 / Pin out the expansion header (P1, unblocks #64)"},
+  "overrides": {"app-2": "#680"},
+  "workspaces": {"app-3": {"next": "#63 / Add a CSV export endpoint (P1, unblocks #64)"},
                  "site": {"note": "needs wrapup"}},
   "titles": {"DEV-88": "Cache the venue list offline"},
-  "offers": ["close #61 / Power the deck? PR #70 / Wire the power rail merged without \"Closes\""],
+  "offers": ["close #61 / Ship the public API docs? PR #70 / Publish the API reference merged without \"Closes\""],
   "notes": ["#442 is the last open sub-issue of #440"]
 }
 ```
