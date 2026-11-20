@@ -160,11 +160,10 @@ supported, and used by `jj` and `pr`. Guard every `` !`cmd` `` with `2>/dev/null
 so a missing tool can't poison the context.
 
 Limits: `description` ≤1024 chars with **no angle brackets** under the portable Agent Skills
-spec. `task`'s description currently contains `<id-or-url>` — fine in Claude Code, but it would
-fail a portable check, so don't copy that pattern into new skills.
+spec. Claude Code accepts angle brackets, but a portable check fails on them, so leave them out.
 
 **`skill-creator/scripts/quick_validate.py` validates against the portable spec**, so it flags
-`argument-hint` as an "unexpected key" on seven of eight skills. That is a false positive here —
+`argument-hint` as an "unexpected key" on eight of nine skills. That is a false positive here —
 never strip `argument-hint` to satisfy it. It also requires PyYAML, which isn't installed.
 
 ## SKILL.md house shape
@@ -186,10 +185,12 @@ Handle: $ARGUMENTS
 ## Safety
 ```
 
-Budget: bodies here run 75–145 lines against a hard ceiling of 500; references sit one level
-deep and run 24–157 lines. `grill-me` is the deliberate outlier — 10 lines, no references,
-because the whole skill is one instruction. When a body outgrows ~150 lines, move detail into
-`references/` rather than adding another level of nesting.
+Budget: bodies here run 97–207 lines, with `overview` at 263, against a hard ceiling of 500;
+references sit one level deep and run 25–197 lines. `grill-me` is the deliberate outlier — 10
+lines, no references, because the whole skill is one instruction. Move detail into
+`references/` when only some runs need it, rather than adding another level of nesting. Text
+every run reads, such as `wrapup`'s report or `overview`'s snapshot fields, stays in the body:
+a reference that every run must read is only a longer body with an extra step.
 
 ## Writing defaults
 
@@ -238,11 +239,17 @@ writes, and a pointer to another skill's file is easy to skip right then. Edit b
 
 ## Evals (optional)
 
-The repo has none today. For a new skill or a description rewrite — where triggering accuracy is
+Only `recap` has evals (`skills/recap/evals/evals.json`), and its prompts point at a placeholder
+`cwd`. For a new skill or a description rewrite — where triggering accuracy is
 what actually matters — skill-creator's trigger-eval loop (`scripts/run_loop.py`) measures
 whether a description fires on the right prompts. Negative cases should be near-misses, not
 obvious non-matches. `package_skill.py` excludes `evals/` from the packaged artifact, so adding
 them costs nothing downstream.
+
+Where the loop runs decides what it measures. It writes the candidate as a temporary command and
+runs `claude -p` with your normal config, so the installed copy of the same skill, and a global
+`CLAUDE.md` that names it, compete for every prompt: the candidate loses most of them whatever
+its wording, and the score describes your setup. Run it under a config with neither, or skip it.
 
 ## Out of scope here
 

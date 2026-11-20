@@ -2,7 +2,7 @@
   Example ~/.claude/CLAUDE.md — copy to that path and adapt.
 
   This is close to the file I actually run, generalized slightly: the skills
-  section lists all eight skills this repo ships, where mine had grown to mention
+  section lists all nine skills this repo ships, where mine had grown to mention
   only the three I reach for most. Everything else is as-is, opinions included.
 
   Keep your own version short. It loads into every session in every project, so
