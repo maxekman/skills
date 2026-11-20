@@ -101,7 +101,7 @@ summary of what changed; the board already shows it. To read one workspace, use
 slice the snapshot.
 
 In those lines, and in the `next` and `offers` you write to `notes.json`, name each issue and
-PR with its title the first time it appears: `DEV-44 / Cache the venue list`,
+PR with its title the first time it appears: `DEV-44 / Cache the report list`,
 `#63 / Add a CSV export endpoint`, `PR #70 / Publish the API reference`, and `app#123 / …` in
 another repo of the same org, `org/repo#123 / …` across orgs. A one-line push gets read without
 the board beside it, and a bare key leaves the user asking which issue it was. Keys inside a
@@ -205,7 +205,7 @@ The script works out the facts. What only the guide can judge goes into
   "overrides": {"app-2": "#680"},
   "workspaces": {"app-3": {"next": "#63 / Add a CSV export endpoint (P1, unblocks #64)"},
                  "site": {"note": "needs wrapup"}},
-  "titles": {"DEV-88": "Cache the venue list offline"},
+  "titles": {"DEV-88": "Cache the report list offline"},
   "offers": ["close #61 / Ship the public API docs? PR #70 / Publish the API reference merged without \"Closes\""],
   "notes": ["#442 is the last open sub-issue of #440"]
 }

@@ -48,8 +48,8 @@ When a PR moves to `MERGED`:
 2. **What comes next?** A merge that ticked a queue box moves that file's `next` on; rank it
    with the tracker items as *Suggesting the next item* says. In a Linear repo, start a refresh of the team's graph
    (`references/graph.md`). Say the merge in one chat line that names what it unblocked: the
-   issues it blocked that now have no open blocker left, e.g. "PR #88 / Sync the venue list
-   merged · unblocks DEV-44 / Cache the venue list, DEV-45 / Show the venue map". Linear: the
+   issues it blocked that now have no open blocker left, e.g. "PR #88 / Sync the report list
+   merged · unblocks DEV-44 / Cache the report list, DEV-45 / Show the report preview". Linear: the
    nodes in the graph file whose `blocked_by` holds the merged issue and nothing else. GitHub: `gh issue view N -R owner/repo --json blocking` gives them, with each
    one's other blockers in `gh issue view M --json blockedBy`.
    Then invoke `/skills:backlog next <n> owner/repo#M` (Linear: `next <n> <merged issue ID>`),
