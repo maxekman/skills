@@ -20,7 +20,7 @@ Success → create a **new PR** seeded from the issue:
 
 - Derive the PR title from the issue title (apply normal title-format rules).
 - Name the branch `<user>/<N>-<slug>`, the slug from the issue title (apply normal branch-naming rules).
-- Include `Closes #N` in the PR description.
+- Link the issue as *Tracker Links* says: `Closes #N` only when this PR finishes it, `Part of #N` otherwise.
 - Use the issue body as context when writing the description.
 
 ## 3. Neither

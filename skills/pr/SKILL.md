@@ -155,7 +155,9 @@ Don't write `feat(branding): tenant-configurable background (DEV-169)` — the t
 
 ## Tracker Links
 
-Scan the bookmark name and commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md` for recently checked-off items (`- [x]`) with tracker IDs. Include them in the PR description — Linear IDs bare, as `ABC-123`, GitHub issues as `Closes #42`.
+Scan the bookmark name and commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md` for recently checked-off items (`- [x]`) with tracker IDs. Include them in the PR description — Linear IDs bare, as `ABC-123`.
+
+A GitHub issue goes in as `Closes #42` only when this PR finishes it: a `/task implement` run whose gate passed with no sub-issue still open, or `/todo implement` on the last open box under that issue's `## #42 — …` header, or on a box tagged `[#42]` itself. Anything else, including a bare run that found `#42` only in commits or the bookmark, is `Part of #42`, and the report says so in one line. The asymmetry decides the default: an issue left open is caught after the merge, where `/wrapup` and `/overview` both offer to close it, while one closed early goes unnoticed.
 
 ## Safety
 
