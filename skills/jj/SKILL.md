@@ -68,16 +68,6 @@ If a `TODO.md` is in the diff and your change clearly resolves an open `- [ ]` i
 - **Title**: imperative, describes the *outcome*, not the mechanism. No filenames or function names — the diff already shows those.
 - **Body** (when needed): present-tense prose. Explain how the approach works conceptually and why it improves things. No bullet lists, no filenames, no function signatures. See `references/commit-style.md` for examples.
 
-## Custom Aliases
-
-The user's jj config defines these — prefer them over raw commands:
-
-- `jj l` — log of working-copy bookmark vs `main`.
-- `jj bc <name>` — create bookmark at latest non-empty ancestor.
-- `jj lift` — rebase entire feature stack onto latest trunk (`jj rebase -s 'roots(trunk()..@)' -d trunk()`). Use after `jj git fetch`.
-- `jj log-recent` — last 3 months of changes.
-- `jj tug` — move closest bookmark forward to `@-`. **DANGER**: tug moves whatever bookmark is closest, **including `main`**. Before tug, run `jj log -r 'closest_bookmark(@-)'`. If it resolves to a protected bookmark (`main`, `master`, `develop`, `staging`, `prod`), do NOT tug — use `jj bc <feature-name>` instead.
-
 ## Critical Safety
 
 - **NEVER** use `-i`/`--interactive`/`--tool` — they require a TTY and fail in non-interactive sessions.
