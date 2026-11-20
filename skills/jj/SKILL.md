@@ -11,10 +11,10 @@ Expert helper for the Jujutsu (jj) version control system. Handle the user's req
 
 ## Context
 
-Current repo state (already gathered — don't re-check):
+Current repo state (already gathered — don't re-check; step 1 reads the diff itself):
 
 - `jj status`: !`jj status 2>/dev/null || echo "not a jj repo"`
-- `jj diff`: !`jj diff 2>/dev/null || echo "no diff"`
+- `jj diff --stat`: !`jj diff --stat 2>/dev/null || echo "no diff"`
 - Recent commits: !`jj log --limit 10 2>/dev/null || echo "no log"`
 - Submodules: !`git submodule status 2>/dev/null || echo "No git submodules"`
 - Repo root: !`jj root 2>/dev/null || echo "not a jj repo"`
@@ -30,7 +30,7 @@ If no arguments, commit the current working copy following the workflow below.
 
 The happy path is short — read the diff, write a good message, commit:
 
-1. **Look at the diff.** Assume the changes are yours. Only stop to investigate if something looks foreign (unfamiliar files, unexpected churn) — see `references/edge-cases.md` for the parallel-work playbook.
+1. **Look at the diff.** The context carries only `jj diff --stat`, because a lockfile bump or regenerated code would otherwise flood it. Read `jj diff` for the files that matter; a lockfile or generated file is judged from its stat line. Assume the changes are yours. Only stop to investigate if something looks foreign (unfamiliar files, unexpected churn) — see `references/edge-cases.md` for the parallel-work playbook.
 2. **Write a conventional-commit message** (`type(scope): title`, optional prose body). Format below.
 3. **Before committing, ask: "Is this one conceptual change?"** A single conceptual change is one feature, one fix, one refactor, or one chore. If the diff contains two or more of those, split. Concretely, split when the working copy mixes any of:
    - product change + dev-tooling change (`.mise.toml`, editor config, lint config, scripts) — unless the tooling change *directly enables* the product change (e.g., bumping a dep to use a new API it adds).
