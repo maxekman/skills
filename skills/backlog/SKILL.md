@@ -126,8 +126,12 @@ Every issue and PR the output names carries its title once: on its own ranked li
 first mention when it has none (`#19 / Prepare the repo to go public`, `PR #4 / Reword the
 launch post`, `app#258 / …` in another repo of the same org, `org/repo#258 / …` across orgs).
 An anchor, a blocker or an overflow ID left bare makes the user look it up before they can
-judge the pick. Keys inside a command stay bare so it still runs. Copy titles as the tracker
-has them, from the reads already made; fetch only the missing ones.
+judge the pick. Make every key a markdown link to its issue or PR, `[#19](<url>) / Prepare the
+repo to go public`, and print the answer as markdown rather than inside a code block, where
+links don't render: a terminal that supports links shows only the key and opens it on Cmd-click.
+On GitHub the URL is `https://github.com/<owner>/<repo>/issues/<n>`, which opens a PR too; on
+Linear it is the `url` field of the read. Keys inside a command stay bare so it still runs. Copy
+titles as the tracker has them, from the reads already made; fetch only the missing ones.
 
 ### `groom [scope]`
 The defect pass: read a slice of the backlog, find what is malformed, propose fixes, apply on
