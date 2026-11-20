@@ -187,7 +187,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **On a pass, hand off in order:**
 
 1. `/jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
-2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the PR title and attaches the tracker link. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
+2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the PR title and attaches the tracker link. Say the issue is complete unless a sub-issue is still open: the gate just passed, and that is what lets a GitHub issue go in as `Closes` rather than `Part of`. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
 3. Report in that shape, adding anything you consciously left out of scope.
 
 A document-shaped deliverable goes through the same gate — an ADR lands as a docs PR. Skip only the "tests for new behavior" condition, which has nothing to bite on.
