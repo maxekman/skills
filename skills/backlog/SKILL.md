@@ -14,7 +14,7 @@ If no arguments, show the health snapshot (`status` below).
 
 `/task` is the single-issue verb — create, update, implement one ticket. `/backlog` is the
 plural one: it reads many issues, ranks them against each other, and proposes changes in a
-batch. When grooming settles on an issue to actually work, hand off with `/task implement <id>`.
+batch. When grooming settles on an issue to actually work, hand off with `/skills:task implement <id>`.
 
 ## Context
 
@@ -120,7 +120,7 @@ separately with the blocker named — one hop, never the blocker's own blockers.
 scope ("the software side") maps onto labels, milestones or projects that exist: alone it is the
 anchor, beside a ref it narrows both sections — state the mapping you used. Close with one pick:
 the thread's top, or Elsewhere's only when the thread is stalled, and any alternative you offer
-is a candidate too. Hand it to `/task implement <id>`.
+is a candidate too. Hand it to `/skills:task implement <id>`.
 
 Every issue and PR the output names carries its title once: on its own ranked line, or at its
 first mention when it has none (`#19 / Prepare the repo to go public`, `PR #4 / Reword the

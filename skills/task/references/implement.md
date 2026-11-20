@@ -4,7 +4,7 @@ Two phases:
 
 - **Phase 1 — context (steps 1-7).** Read-only. Fetches, reads, greps, presents. Never creates, updates, or comments — safe inside Claude Code plan mode.
 - **Claim (step 8).** On plan approval, assigns you and moves the issue to in progress — the only tracker write before delivery.
-- **Phase 2 — delivery (step 9).** Runs after the work is actually done. This is where `/jj` and `/skills:pr` get invoked.
+- **Phase 2 — delivery (step 9).** Runs after the work is actually done. This is where `/skills:jj` and `/skills:pr` get invoked.
 
 Phase 2 lives in this file rather than in a lazily-read reference on purpose: by the time the implementation is finished, nothing will prompt you to go read another file. It has to already be in context, so keep it here. The one exception is the gate's criteria check, which it shares with `/task verify`. The gate line itself tells you to read `verify.md`, so that read is prompted.
 
@@ -167,7 +167,7 @@ The issue ID then lives in the workspace from the start, where `/skills:pr`, `/o
 
 The user plans and builds. **Don't draft the plan inside this skill** — that's the caller's job. But the delivery contract below is yours, and it applies when the work is finished.
 
-When the implementation is complete, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` **without asking**. Invoking `/task implement` was the user's request to commit, push and open the PR, so Claude Code's default of pushing only when asked is already met. That autonomy is the point: the user reviews at the PR, then reads your report.
+When the implementation is complete, run the gate. If every condition holds, invoke `/skills:jj` and then `/skills:pr` **without asking**. Invoking `/task implement` was the user's request to commit, push and open the PR, so Claude Code's default of pushing only when asked is already met. That autonomy is the point: the user reviews at the PR, then reads your report.
 
 **Gate — all must hold:**
 
@@ -186,7 +186,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 
 **On a pass, hand off in order:**
 
-1. `/jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
+1. `/skills:jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
 2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the PR title and attaches the tracker link. Say the issue is complete unless a sub-issue is still open: the gate just passed, and that is what lets a GitHub issue go in as `Closes` rather than `Part of`. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
 3. Report in that shape, adding anything you consciously left out of scope.
 

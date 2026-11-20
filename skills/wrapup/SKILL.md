@@ -161,7 +161,7 @@ rather than guess.
 
 Then make **one** batched offer covering whichever apply: close the tracker issue (via
 `/skills:task update <id> status done`), file follow-ups (via `/skills:task create`, one per
-leftover the user picks), prune finished TODO items (`/todo prune done`). Act only on what the
+leftover the user picks), prune finished TODO items (`/skills:todo prune done`). Act only on what the
 user approves.
 
 When the PR closed a tracker issue or went out in a release — a sign that someone outside the
