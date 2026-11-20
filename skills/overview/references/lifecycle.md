@@ -66,7 +66,7 @@ When a PR moves to `MERGED`:
    fails it, so the message would only make it decline.
    - With `"auto_wrapup": true` in the config, send `/skills:wrapup #M` to that session with
      `SendMessage` when `wrapup_ready` turns true. Send once per PR: check `state.md` first, and
-     log the send there. Then say one line in chat, e.g. "sent wrapup to opendecks-3 for PR
+     log the send there. Then say one line in chat, e.g. "sent wrapup to app-3 for PR
      #70".
    - Otherwise, or when the PR merged but `wrapup_ready` stays false, set the workspace's
      `note` to "needs wrapup" in `notes.json`.
@@ -86,7 +86,7 @@ hint on the board, not a plan that the user then departs from. For a free worksp
 session is idle, or that has no session, take the top ranked item not already shown for
 another workspace. Set it as that workspace's `next` in `notes.json`, with the reason in one
 short clause, after the issue's title:
-`"#63 / Pin out the expansion header (P1, unblocks #64 and #66)"`. The board shows it while the
+`"#63 / Add a CSV export endpoint (P1, unblocks #64 and #66)"`. The board shows it while the
 workspace is free and hides it once work starts, so a suggestion the user passes over needs no
 cleanup and no comment.
 

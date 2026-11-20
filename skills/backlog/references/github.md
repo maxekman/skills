@@ -15,7 +15,7 @@ gh issue list --state open --limit 300 --json \
 
 If the result has exactly `--limit` rows, say so and rank what came back rather than silently
 truncating. Narrow server-side with `--search` when the scope allows (`label:area:ui`,
-`milestone:"M1 First deck"`).
+`milestone:"M1 Public beta"`).
 
 **Never request `projectItems` or `projectCards`.** They need the `read:project` scope, and
 without it the *whole* call fails, not just those fields.
