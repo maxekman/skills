@@ -3,6 +3,8 @@
 #   - every skills/<name>/ is listed in plugin.json (an unlisted one loads as nothing)
 #   - every listed path actually has a SKILL.md
 #   - marketplace.json declares no version, which would override plugin.json
+#   - the Linear write contract reads the same in task and backlog, which each keep a copy
+#     because nothing prompts a read of another skill's file at the moment of a write
 set -euo pipefail
 
 cd "$(git rev-parse --show-toplevel)"
@@ -28,6 +30,15 @@ done
 
 if jq -e 'any(.plugins[]; has("version"))' "$marketplace" >/dev/null; then
   echo "marketplace.json declares a version; it would override plugin.json" >&2
+  fail=1
+fi
+
+# The section up to the next heading. $(…) drops the blank line a following heading leaves, so
+# a copy at the end of its file still compares equal.
+contract() { awk '/^## Write contract$/ { on = 1; print; next } on && /^## / { exit } on' "$1"; }
+task_contract="$(contract skills/task/references/linear.md)"
+if [ -z "$task_contract" ] || [ "$task_contract" != "$(contract skills/backlog/references/linear.md)" ]; then
+  echo "the '## Write contract' sections of task's and backlog's references/linear.md differ; keep both copies identical" >&2
   fail=1
 fi
 
