@@ -1,7 +1,7 @@
 ---
 name: backlog
 argument-hint: "[status|next|groom|place|triage] [scope or id]"
-allowed-tools: mcp__*, Read, Grep, Glob, Bash, Skill
+allowed-tools: mcp__linear-server__*, mcp__claude_ai_Linear__*, Bash(gh issue *), Bash(gh label *), Bash(gh pr view *), Bash(gh pr list *), Bash(gh repo view *), Bash(jj log *), Bash(jj op log *), Bash(jj workspace list *), Bash(jj git remote list *), Read, Grep, Glob, Skill
 description: Backlog grooming and planning for Linear and GitHub Issues — rank what to work on next, decide where a new issue belongs, and clean up statuses, priorities, milestones and stale relations across many issues at once. Use when the question spans the backlog rather than one ticket, including "what should I pick up next" in a repo that tracks work in GitHub Issues. For single-issue operations and starting work, /task is the counterpart.
 ---
 
