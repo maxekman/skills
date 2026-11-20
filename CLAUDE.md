@@ -127,7 +127,7 @@ Every field used here is officially supported by Claude Code:
 | `name` | kebab-case, ≤64 chars, matches the directory name |
 | `description` | the trigger surface — see writing defaults below |
 | `argument-hint` | autocomplete hint; Claude Code only, not in the portable spec |
-| `allowed-tools` | keep it narrow — `pr` uses `Bash(gh *), Bash(jj *)`, never bare `Bash` |
+| `allowed-tools` | keep it narrow — `pr` uses `Bash(gh *), Bash(jj *)`, never bare `Bash`. Name MCP servers (`mcp__linear-server__*`): an unanchored `mcp__*` allow glob is skipped and approves nothing |
 
 `$ARGUMENTS` interpolation and `` !`cmd` `` pre-execution inside a `## Context` block are
 supported, and used by `jj` and `pr`. Guard every `` !`cmd` `` with `2>/dev/null || echo "…"`

@@ -1,7 +1,7 @@
 ---
 name: task
 argument-hint: "[create|update|search|implement|verify] [id or url] [guidance] | [description]"
-allowed-tools: mcp__*, Read, Grep, Glob, Bash, Edit, Skill
+allowed-tools: mcp__linear-server__*, mcp__claude_ai_Linear__*, Bash(gh issue *), Bash(gh label *), Bash(gh repo view *), Bash(jj log *), Bash(jj diff *), Bash(jj config get *), Bash(jj bookmark create *), Bash(jj git remote list *), Read, Grep, Glob, Edit, Skill
 description: Issue management for Linear (MCP) and GitHub Issues (gh CLI) - creation, updates, search, gathering context for implementation, and verifying an issue against the code. `implement` takes a tracker ID/URL, optionally followed by guidance, or a plain description of the work: given a description it searches the tracker first, adopts a matching issue or opens one assigned to you and moved to in progress, then carries the finished work to a commit and PR via /jj and /skills:pr. `verify` checks an issue's acceptance criteria against the working copy and reports each as met, partial or unmet with file:line evidence - use it whenever the user asks whether an issue is done, what is still missing for it, or to check a ticket against the code. Use for tracker operations, and whenever starting a piece of work that should have an issue. For local multi-step implementation checklists tied to a feature, /todo is the working-memory counterpart; for what a merged PR left behind, /wrapup.
 ---
 
