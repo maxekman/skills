@@ -110,8 +110,7 @@ Send a `PushNotification` only when the user is needed:
 - A PR's checks turned `fail`, its review turned `CHANGES_REQUESTED`, or it turned
   `conflicts`: usually another merge changed the same lines on trunk, so name that merge.
   These go to the user, not the session. Each needs a judgement (a flaky run, a review to push
-  back on, which side of a conflict wins), and `/skills:pr` stops on rebase conflicts for the
-  user to resolve.
+  back on, which side of a conflict wins).
 - A workflow on the default branch turned `fail` (`trunk`), or a lane turned `fail` or
   `behind` (`lanes`). Name the workflow and the merge that went in just before it, which is
   usually the cause. When the lane's `cut` is not empty, say those merges are not live either:

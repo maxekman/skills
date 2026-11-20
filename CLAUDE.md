@@ -200,7 +200,7 @@ trackers (Linear, GitHub Issues), use /task" is the pattern to copy. Lean slight
 undertrigger far more often than they overtrigger.
 
 **Reference routing names the firing signal, not the topic.** `pr` does this best: "args contain
-`#N`", "…shows a non-empty parent bookmark", closing with "Most PRs trigger none of these." A
+`#N`", "`Repo info` shows `origin <url>`", closing with "Most PRs trigger none of these." A
 section that merely lists what each file covers gets read every time, which defeats the purpose.
 
 **Explain why instead of shouting.** `**NEVER** use -i` is weaker than "`-i` requires a TTY and

@@ -29,7 +29,7 @@ Invoke autonomously when the trigger fires — do not improvise the workflows th
 - `/skills:todo` — a local `TODO.md` as working memory for a multi-step change. The counterpart to `/skills:task`: the tracker holds the goal, this holds the steps.
 - `/skills:grill-me` — stress-test a plan before executing it.
 - `/skills:jj [message]` — any commit, `jj describe`, rebasing stacks, `jj split`, `jj absorb`, fixing earlier commits, or resolving conflicts. Default for non-trivial jj work.
-- `/skills:pr [title]` — opening or updating a GitHub PR. Handles bookmarks, push, stacked PRs (auto-detects parent base), and rebasing after a parent merges.
+- `/skills:pr [title]` — opening or updating a GitHub PR. Handles bookmarks and push. Every PR targets the default branch; it never stacks.
 - `/skills:wrapup [#N]` — whenever a PR has merged or landed: sync to trunk, check the dev/staging deploy, and list leftover work from the PR.
 - `/skills:recap [period|#N]` — whenever someone non-technical needs to hear what got done: a weekly or status update, a client summary, or what a merged PR means for them. Plain language, default last 7 days, paste-ready.
 - `/skills:overview [init|status|find]` — a live guide for an umbrella folder of parallel sessions. Start it in its own tab at the umbrella root. It watches every workspace's session, stack, PR and issue, says what needs you, and suggests the next item for an idle free workspace. `status` prints the board once from any session, and `find <workspace | path | issue>` names the live session there, the `SendMessage` address to use instead of guessing from `ListAgents`.

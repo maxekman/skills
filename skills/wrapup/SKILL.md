@@ -2,7 +2,7 @@
 name: wrapup
 argument-hint: "[#N, PR url, or bookmark]"
 allowed-tools: Bash(jj *), Bash(gh *), Bash(curl *), Read, Grep, Glob, Skill
-description: Post-merge wrap-up for a GitHub PR. Fetches and moves onto a fresh change on trunk when nothing else is in flight, confirms the merge actually reached dev or staging (the deploy and smoke runs it triggered, plus a read-only health probe), and lists the work the PR left behind - unresolved review threads, unchecked PR-body items, tracker issues that did not close, open TODO.md items, new TODO/FIXME lines. Use whenever the user says a PR merged, landed, or went in, asks to wrap up or clean up after a merge, asks what is left from #N, or wants to know whether staging picked up the change, even without the words "wrap up". Opening or updating a PR, and rebasing a stack after its parent merged, belong to /skills:pr; choosing what to work on next belongs to /backlog.
+description: Post-merge wrap-up for a GitHub PR. Fetches and moves onto a fresh change on trunk when nothing else is in flight, confirms the merge actually reached dev or staging (the deploy and smoke runs it triggered, plus a read-only health probe), and lists the work the PR left behind - unresolved review threads, unchecked PR-body items, tracker issues that did not close, open TODO.md items, new TODO/FIXME lines. Use whenever the user says a PR merged, landed, or went in, asks to wrap up or clean up after a merge, asks what is left from #N, or wants to know whether staging picked up the change, even without the words "wrap up". Opening or updating a PR belongs to /skills:pr; choosing what to work on next belongs to /backlog.
 ---
 
 # Post-merge Wrap-up
@@ -74,8 +74,8 @@ jj log --no-graph -r 'trunk()..@-' -T 'commit_id ++ "\n"'
 
 - **Safe** → `jj new trunk()`.
 - **Not safe** → leave `@` where it is and name what blocked it (working-copy changes, or the
-  unrelated commits by title). Read `references/sync.md` — the blocker is often a stacked
-  child PR.
+  unrelated commits by title). Read `references/sync.md` — the blocker is often work built on
+  top of the merged PR.
 
 Either way, check that no merged commits are still visible:
 `jj log -r '::visible_heads() & (commit_id(<oid1>) | commit_id(<oid2>))'` — anything listed is
