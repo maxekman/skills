@@ -39,6 +39,9 @@ REGISTRY_FIELDS = ("pid", "sessionId", "cwd", "name", "status", "statusUpdatedAt
 TRACKER_ID = re.compile(r"(?<![\w/])(#\d+|[A-Z][A-Z0-9]+-\d+)\b")
 # /skills:pr names Linear-tracked bookmarks like max/dev-35-set-custom-domains.
 BOOKMARK_ID = re.compile(r"^[^/]+/([a-z][a-z0-9]*-\d+)-")
+# ...and GitHub-tracked ones like max/42-fix-the-footer-links. A conventional prefix names no
+# user, so fix/2-step-login is not issue #2.
+BOOKMARK_NUMBER = re.compile(r"^(?!(?:feat|fix|chore|docs|ci|dev|test|refactor)/)[^/]+/(\d+)-")
 DEPLOY_NAME = re.compile(r"deploy|release|publish|promote", re.I)
 ESCAPE = re.compile(r"(\033\[[0-9;?]*[A-Za-z]|\033\]8;[^\033]*\033\\)")
 NIGHTLY_NAME = re.compile(r"nightly|scheduled|cron", re.I)
@@ -341,6 +344,8 @@ def workspace(umbrella, name):
             m = BOOKMARK_ID.match(b)
             if m:
                 ids.append(m.group(1).upper())
+            elif BOOKMARK_NUMBER.match(b):
+                ids.append("#" + BOOKMARK_NUMBER.match(b).group(1))
     ws["stack_ids"] = sorted(set(ids))
     ws["todo_ids"] = sorted(set(todo_ids(path)))
     return ws

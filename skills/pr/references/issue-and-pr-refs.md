@@ -19,7 +19,7 @@ gh issue view N --json number,title,body,labels
 Success → create a **new PR** seeded from the issue:
 
 - Derive the PR title from the issue title (apply normal title-format rules).
-- Derive the branch name from the issue title (apply normal branch-naming rules).
+- Name the branch `<user>/<N>-<slug>`, the slug from the issue title (apply normal branch-naming rules).
 - Include `Closes #N` in the PR description.
 - Use the issue body as context when writing the description.
 

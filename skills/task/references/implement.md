@@ -58,6 +58,7 @@ Then dispatch:
 1. `gitBranchName` from the Linear response, if present — it reflects the user's own Linear branch-format setting.
 2. Otherwise `<git-user>/<id-lower>-<slug>`, where `<git-user>` is the local part of `jj config get user.email` (`max@looplab.se` → `max`) and `<slug>` is the URL slug verbatim. This reproduces Linear's default format; Linear links the PR off the ID regex anyway, so a near-miss slug still attaches.
 3. No slug in the URL and no `gitBranchName` → kebab-case the issue title yourself.
+4. **GitHub** → `<git-user>/<number>-<slug>` (`max/42-fix-the-footer-links`), with `<slug>` the issue title in kebab case, cut at a word boundary near 50 characters. GitHub URLs carry no slug. The number leads so `/skills:pr` and `/overview` can read the issue back off the bookmark.
 
 If the issue is already closed, flag it prominently — the user may want context, not new work, and should confirm before planning.
 
@@ -112,7 +113,7 @@ Extract 1-2 core keywords from the issue title (the main noun/concept, not fille
 ## Delivery plan
 **Deliverable**: [shape(s) from step 3]
 **Branch**: [pinned in step 2]
-**PR title**: [ID] / [issue title, sentence case]
+**PR title**: [ID] / [issue title, sentence case] — Linear; GitHub: a conventional `type(scope): …`
 **Done when**:
 - [acceptance criterion]
 - [acceptance criterion]
@@ -145,7 +146,7 @@ Getting these answered now is what makes step 9 able to run unattended: an unres
 
 Starting work on an issue means owning it in the tracker: assigned to you and in the team's `started` state, the same as an issue `find-or-create.md` creates. Left alone, it sits unassigned in Todo while its PR is in review, and anyone triaging the backlog reads it as free to pick up.
 
-This is a write, so it waits for plan approval the way creation does: in plan mode it goes *into* the plan as its first action, and a rejected plan leaves the tracker untouched. Skip it for an issue `find-or-create.md` just created — that one is claimed already.
+This is a write, so it waits for plan approval the way creation does: in plan mode it goes *into* the plan as its first action, and a rejected plan leaves the tracker untouched. Skip the tracker writes for an issue `find-or-create.md` just created — that one is claimed already — but still plant the bookmark below.
 
 - **Linear** — under the write contract in `linear.md`:
   1. `get_user` → you. Already the assignee → go to 3.
@@ -153,6 +154,14 @@ This is a write, so it waits for plan approval the way creation does: in plan mo
   3. `statusType` already `started` → done. Otherwise resolve the team's `started` state with `list_issue_statuses` and send it as its own `id` + `state` call, separate from the assignee write so one failing can't take the other with it.
   4. Read `assignee` and `status` back off each response. A mismatch is a failed write — report it, quoting what came back.
 - **GitHub** — `gh issue edit <number> --add-assignee @me`. It adds rather than replaces, so nobody already on the issue is dropped. There is no in-progress state; apply an in-progress label only if `gh label list` shows one, and otherwise don't narrate a status change.
+
+**Then plant the bookmark**, whenever the Delivery plan kept its **Branch** line:
+
+```bash
+jj bookmark create <pinned branch> -r @
+```
+
+The issue ID then lives in the workspace from the start, where `/skills:pr`, `/overview` and `/backlog next` read it back after a compaction or a restart, not only once a PR exists. Creating it on an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays on that change, which becomes the first commit once it is described. It stays local until `/skills:pr` pushes it. If the name already exists, check `gh pr list --head <name> --state merged`: merged → plant `<name>-2` instead and say so; otherwise it is this issue's resumed work, so keep it. If the work is abandoned, `jj bookmark delete <name>` cleans up.
 
 ## Step 9 — Deliver
 
@@ -178,7 +187,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **On a pass, hand off in order:**
 
 1. `/jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
-2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the `<ID> / Title` PR title and attaches the tracker link. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
+2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the PR title and attaches the tracker link. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
 3. Report in that shape, adding anything you consciously left out of scope.
 
 A document-shaped deliverable goes through the same gate — an ADR lands as a docs PR. Skip only the "tests for new behavior" condition, which has nothing to bite on.

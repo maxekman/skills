@@ -88,17 +88,6 @@ Write the issue in the house style from `SKILL.md`: an imperative title of 3-7 w
 description that states problem plus context in one or two sentences. The prose you were handed is
 raw material, not the issue body.
 
-Then plant the bookmark, so the issue survives outside this session's memory:
-
-```bash
-jj bookmark create <gitBranchName> --revision @
-```
-
-Creating it on an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays
-on that change, and the change becomes your first commit once you describe it. The tracker ID then
-lives in the bookmark name, where `/skills:pr` finds it without any help from the transcript. If the work
-is abandoned, `jj bookmark delete <name>` cleans up.
-
 **GitHub**: `gh issue create --title "<title>" --body "<body>" --assignee @me --label "<resolved>"`, then read the number
 from the returned URL. GitHub Issues has no in-progress state — the only analogue is a project
 board, which `gh issue` cannot drive. Apply an in-progress label if `gh label list` shows one;
@@ -126,7 +115,7 @@ the full step 6 block would be mostly empty headings. Present the condensed form
 ## Delivery plan
 **Deliverable**: [one line]
 **Branch**: [pinned]
-**PR title**: [ID] / [title, sentence case]
+**PR title**: [ID] / [title, sentence case] — Linear; GitHub: a conventional `type(scope): …`
 **Done when**:
 - [acceptance criterion]
 

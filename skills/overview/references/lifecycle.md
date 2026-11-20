@@ -6,7 +6,9 @@ First that names one:
 
 1. **Override** in `notes.json`. The user said so.
 2. **`stack_ids`**: a tracker ID in a `trunk()..@` commit or a bookmark. `/skills:pr` builds
-   bookmarks like `max/dev-35-…`, and the snapshot already turns those into `DEV-35`. Alongside
+   bookmarks like `max/dev-35-…` and `max/42-…`, and the snapshot already turns those into
+   `DEV-35` and `#42`. `/task implement` plants that bookmark at claim, so it shows before the
+   first commit. Alongside
    them, `queue_items` with `via: stack`: a commit in the stack ticks or edits that box.
 3. **`todo_ids`**: a `## ACME-407 — …` header that `/task implement` wrote into `TODO.md`.
 4. **`prompt_ids`**: the IDs in the latest prompt that named any, e.g.

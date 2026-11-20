@@ -86,9 +86,9 @@ bookmark to `@-`.
 
 **Pick the name first.** For NEW bookmarks, use the first option that fires — earlier options preserve the canonical Linear slug, which is what the tracker matches against:
 
-1. **Linear branch name already in this session's context.** If `/task implement <id-or-url>` ran earlier, its Delivery plan pinned a `**Branch**:` line (e.g. `max/dev-35-set-custom-domains-in-staging`), taken from the issue's `gitBranchName` or its URL slug. Use that string verbatim — it's what Linear expects and it round-trips cleanly when the PR is reopened or rebased. `/task` may also pass it as the argument to this skill; an explicit argument wins.
+1. **Branch name already pinned.** If `/task implement <id-or-url>` ran earlier, its Delivery plan pinned a `**Branch**:` line — `max/dev-35-set-custom-domains-in-staging` from a Linear issue's `gitBranchName` or URL slug, `max/42-fix-the-footer-links` for a GitHub issue — and planted a bookmark by that name. Use that string verbatim — it's what Linear expects and it round-trips cleanly when the PR is reopened or rebased. `/task` may also pass it as the argument to this skill; an explicit argument wins.
 2. **Tracker ID in a `**/*TODO.md`** (area queues like `SECURITY_TODO.md` included). Check section headers (`## ACME-407 — Add rate limiting`) first, then trailing item tags (`- [ ] … [ACME-407]`, `[#42]`). `/task implement` writes the header form when it seeds a breakdown, so this survives a session boundary that the context above does not. Build the name as in option 3.
-3. **Tracker ID in `trunk()..@` commits, no `/task` context.** Scan `jj log -r 'trunk()..@' -T description` for `[A-Z]+-\d+`. Construct `<git-user>/<tracker-id-lowercase>-<kebab-from-commit-title>` to mirror Linear's format. Get `<git-user>` from the local part of `jj config get user.email` (e.g. `max@looplab.se` → `max`). Linear matches on the tracker ID regex, not the exact slug, so close-enough is fine.
+3. **Tracker ID in `trunk()..@` commits, no `/task` context.** Scan `jj log -r 'trunk()..@' -T description` for `[A-Z]+-\d+` or `#\d+`. Construct `<git-user>/<tracker-id-lowercase>-<kebab-from-commit-title>` to mirror Linear's format, or `<git-user>/<number>-<kebab-from-commit-title>` for a GitHub issue. Get `<git-user>` from the local part of `jj config get user.email` (e.g. `max@looplab.se` → `max`). Linear matches on the tracker ID regex, not the exact slug, so close-enough is fine.
 4. **No tracker ID anywhere.** Use `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/` — match conventions from `gh pr list --limit 10`.
 
 Then create or move it, by name both times:
@@ -98,7 +98,7 @@ jj bookmark create <branch-name> -r @-   # NEW
 jj bookmark move <branch-name> --to @-   # UPDATE: the bookmark step 2 matched to the open PR
 ```
 
-Never move "the closest bookmark" instead: the bookmark nearest `@-` can be `main`. To target a commit other than `@-`, pass its change id to `-r`.
+A pinned bookmark that `/task implement` planted at claim already exists with no PR: move it, don't create it. Never move "the closest bookmark" instead: the bookmark nearest `@-` can be `main`. To target a commit other than `@-`, pass its change id to `-r`.
 
 ### 4. Push
 
@@ -134,14 +134,17 @@ Most PRs trigger none of these. The 5-step workflow above is enough.
 
 Step 3 above has the full priority order. Quick reference:
 
-- Tracker-ID work → `<user>/<tracker-id-lower>-<slug>` (Linear's format).
+- Linear issue → `<user>/<tracker-id-lower>-<slug>` (Linear's format).
+- GitHub issue → `<user>/<number>-<slug>`.
 - Anything else → `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/` — pick from `gh pr list --limit 10`.
 
 ## PR Title Format
 
 Default: `<type>(<scope>): <description>` — match conventions from existing PRs.
 
-**When a tracker ID is in the branch name or args** (`ACME-3141`, `DEV-169`, `PROJ-42`), use `<TRACKER-ID> / <description>` instead. The tracker ID *replaces* the conventional prefix — don't combine the two. Convert the slug to a human-readable title in sentence case.
+A GitHub issue number keeps the default: the issue goes in the body (Tracker Links below), and repos that squash-merge turn the PR title into the commit message, where `#42 / …` would break conventional-commit release tooling.
+
+**When a Linear key is in the branch name or args** (`ACME-3141`, `DEV-169`, `PROJ-42`), use `<TRACKER-ID> / <description>` instead. The tracker ID *replaces* the conventional prefix — don't combine the two. Convert the slug to a human-readable title in sentence case.
 
 Examples:
 - No tracker ID → `feat(auth): add OAuth2 login support`
@@ -152,7 +155,7 @@ Don't write `feat(branding): tenant-configurable background (DEV-169)` — the t
 
 ## Tracker Links
 
-Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md` for recently checked-off items (`- [x]`) with tracker IDs. Include them in the PR description — Linear IDs as `ABC-123`, GitHub issues as `Closes #42`.
+Scan the bookmark name and commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md` for recently checked-off items (`- [x]`) with tracker IDs. Include them in the PR description — Linear IDs bare, as `ABC-123`, GitHub issues as `Closes #42`.
 
 ## Safety
 
