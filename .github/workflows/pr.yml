@@ -29,11 +29,12 @@ jobs:
       # Pinned: --strict turns warnings into errors, so a CLI upgrade that adds a new
       # warning would otherwise turn CI red on an unrelated day.
       - name: Install the Claude Code CLI
-        run: npm install -g @anthropic-ai/claude-code@2.1.236
+        run: npm install -g @anthropic-ai/claude-code@2.1.311
 
-      # Three targets, because `validate .` reads only marketplace.json.
+      # Three targets, each named directly: `validate .` also treats the repo root as a plugin
+      # and fails --strict on the root CLAUDE.md, which is repo memory and not plugin content.
       - name: Marketplace manifest
-        run: claude plugin validate . --strict
+        run: claude plugin validate .claude-plugin/marketplace.json --strict
 
       - name: Skills
         run: claude plugin validate ./skills --strict
