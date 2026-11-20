@@ -26,9 +26,9 @@ for it: the board picks up each write by itself.
 {
   "fetched_at": "2026-11-17T15:40:00Z",
   "linear_workspace": "acme",
-  "projects": {"Offline mode": {"done": 4, "total": 11, "active": true}},
+  "projects": {"Offline reports": {"done": 4, "total": 11, "active": true}},
   "nodes": {
-    "DEV-44": {"title": "Sync on reconnect", "state": "unstarted", "project": "Offline mode",
+    "DEV-44": {"title": "Cache the report list", "state": "unstarted", "project": "Offline reports",
                "parent": "DEV-40", "blocked_by": ["DEV-41"], "priority": 2, "assignee": null,
                "subs": [0, 0], "updated_at": "2026-11-17T09:12:44Z",
                "read_at": "2026-11-17T15:41:02Z"}
