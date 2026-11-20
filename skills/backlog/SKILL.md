@@ -16,6 +16,10 @@ If no arguments, show the health snapshot (`status` below).
 plural one: it reads many issues, ranks them against each other, and proposes changes in a
 batch. When grooming settles on an issue to actually work, hand off with `/task implement <id>`.
 
+## Context
+
+- Repo info: !`gh repo view --json nameWithOwner 2>/dev/null || jj git remote list 2>/dev/null || echo "no remote detected"`
+
 ## Backend
 
 Detect it the way `/task` does:
@@ -24,8 +28,10 @@ Detect it the way `/task` does:
    `mcp__linear-server__<action>`; if a session exposes a differently-named Linear server, fall
    back to matching `mcp__*<action>*` — the actions are stable. Never scrape `linear.app` over
    HTTP.
-2. **GitHub Issues** — `gh repo view` succeeds. Use `gh issue` and `gh label` only, never
-   `gh api`.
+2. **GitHub Issues** — `Repo info` above names a GitHub repo. Use `gh issue` and `gh label`
+   only, never `gh api`. An `origin <url>` line instead of JSON means a secondary jj workspace,
+   which has no `.git`, so `gh` can't find the repo by itself: take `owner/repo` from the URL
+   and pass `-R owner/repo` to every `gh` call.
 
 If both are available, use the one the project actively tracks work in. When uncertain, ask.
 
