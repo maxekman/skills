@@ -104,7 +104,8 @@ Collect from every source; an empty source is omitted from the report, not liste
 - **Tracker** — a tracker ID from `headRefName` or the title (`[A-Z]+-\d+`), or
   `closingIssuesReferences`. Read it with `/skills:task show <id>`: state, and any open
   sub-issues. An issue still open after its PR merged usually means the auto-close didn't fire.
-- **TODO.md** — open items under a `## <ID> — …` header or tagged `[<ID>]`, in `**/TODO.md`.
+- **TODO.md** — open items under a `## <ID> — …` header or tagged `[<ID>]`, in `**/*TODO.md`
+  (area queues like `docs/SECURITY_TODO.md` included).
 - **Diff** — `TODO`, `FIXME`, `XXX`, `HACK` used as comment markers (`# TODO:`, `// FIXME`,
   `<!-- TODO`) on added lines in `gh pr diff <N>`. Only added lines, because pre-existing
   markers aren't this PR's leftovers. Only markers, because prose that merely mentions the word
