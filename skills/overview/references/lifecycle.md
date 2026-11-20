@@ -52,9 +52,9 @@ When a PR moves to `MERGED`:
    merged · unblocks DEV-44 / Cache the venue list, DEV-45 / Show the venue map". Linear: the
    nodes in the graph file whose `blocked_by` holds the merged issue and nothing else. GitHub: `gh issue view N -R owner/repo --json blocking` gives them, with each
    one's other blockers in `gh issue view M --json blockedBy`.
-   Then invoke `/skills:backlog next` for that repo only, asking for one more
-   item than there are free workspaces. The guide's cwd is not the repo, so name the repo
-   (`-R owner/repo` for `gh`, or the Linear team). Neither tracker can store an order, so the
+   Then invoke `/skills:backlog next <n> owner/repo#M` (Linear: `next <n> <merged issue ID>`),
+   with `<n>` one more than there are free workspaces. The ref names the repo, which the
+   guide's cwd is not, and anchors the ranking on the merge. Neither tracker can store an order, so the
    way to "promote" depends on the tracker:
    - **Linear**: offer to move the top items from Backlog to Todo, an `unstarted` state, up to
      that cap.
