@@ -16,12 +16,14 @@ Handle: $ARGUMENTS
 ## File Discovery
 
 ```
-**/TODO.md
+**/*TODO.md
 ```
+
+The leading `*` matters: it catches area queues like `docs/SECURITY_TODO.md` beside plain `TODO.md`, and a repo that splits its TODOs that way keeps most of its open work in them. Skip vendored and build directories (`node_modules/`, `deps/`, `_build/`, `vendor/`).
 
 If none exist and the user wants to add items, create `TODO.md` at the project root.
 
-When multiple TODO.md files exist, scope to the one closest to the user's working directory or context. If ambiguous, show what exists and ask.
+When multiple TODO files exist, scope to the one closest to the user's working directory or context. If ambiguous, show what exists and ask. A file that states its own rules (when an item counts as done, who may tick it) wins over the defaults here.
 
 ## Format
 
@@ -51,7 +53,7 @@ Preserve whatever structure and conventions the file already uses — task IDs, 
 ## Commands
 
 ### Default (no args)
-Show open (unchecked) items across all TODO.md files. Group by file if multiple. Include the section header for context.
+Show open (unchecked) items across all TODO files. Group by file if multiple. Include the section header for context.
 
 ### `add <text>`
 Append `- [ ] <text>`. If a section is specified ("add X to Networking"), put it under that `##` header — create the section if absent. Otherwise append to the end (or last section).
