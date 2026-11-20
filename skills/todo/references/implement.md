@@ -4,10 +4,12 @@ Steps 1–5 are read-only: they collect information to support planning and neve
 
 ## Step 1 — Find the item
 
-Match by substring (same as `done`). If multiple match, show them and ask which. Note:
+When the args lead with a TODO file (`@docs/SECURITY_TODO.md`, or any path ending in `TODO.md`), search only that file. A label-shaped token after it (`S9`, `B12`) picks the box whose bold key matches (`- [ ] **S9 …**`) before any substring match. A file with no label means its first open box, unless the file states its own order. A box marked `_decide_` waits on the user's decision rather than on work: show it and ask, never implement it.
+
+Otherwise match by substring (same as `done`). If multiple match, show them and ask which. Note:
 
 - The `##` section the item lives under.
-- Whether the item line ends with a tracker ID — `[ABC-123]` (Linear) or `[#42]` (GitHub Issues). If present, mention it but don't auto-fetch — the user can pull tracker context separately via `/task show <id>` if useful.
+- Whether the item carries a tracker ID — trailing `[ABC-123]` (Linear) or `[#42]` (GitHub Issues), or inside its label (`**S22 (DEV-377). …**`). If present, mention it but don't auto-fetch — the user can pull tracker context separately via `/task show <id>` if useful.
 
 ## Step 2 — Read detail lines
 

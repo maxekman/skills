@@ -1,6 +1,6 @@
 ---
 name: todo
-argument-hint: "[add|done|list|prune|implement] [details]"
+argument-hint: "[add|done|list|prune|implement] [@file] [label or details]"
 allowed-tools: Read, Edit, Write, Glob, Grep, Skill
 description: Lightweight TODO.md task management for local, in-progress work — break a feature into implementation steps, track progress as you build, and check items off as they're done. Use TODO.md as working memory for multi-step tasks. For external issue trackers (Linear, GitHub Issues), use /task.
 ---
@@ -50,6 +50,8 @@ Single line per item where possible. For more context, indent detail lines benea
 
 Preserve whatever structure and conventions the file already uses — task IDs, numbering, spec references, etc. Don't impose a new scheme on existing files.
 
+Area queues often label their boxes — `- [ ] **S22 (DEV-377). Protect main.** …` — so a box can be named by its key, `S22`. Keep the labels as the file writes them. A tracker ID inside the label makes the box that issue, the same as a trailing `[DEV-377]`.
+
 ## Commands
 
 ### Default (no args)
@@ -83,7 +85,9 @@ When removing an item, also remove its indented detail lines (everything indente
 
 Show what will be removed grouped by category, confirm before editing. Clean up empty sections — if removing items leaves a `##` header with no items, remove the header too.
 
-### `implement <text or pattern>`
+### `implement [@<file>] <label, text or pattern>`
+A leading TODO file (`@docs/SECURITY_TODO.md`) scopes the search to that file, and a label (`S9`) picks its box; the file alone means its first open box. Arguments that start with a TODO file and name no verb — `/todo @docs/SECURITY_TODO.md S9` — mean `implement`, since that is what someone typing them wants.
+
 Gather context for a local item, then carry the built item to a PR. Gathering is read-only, so it is safe in plan mode. Once the item is built and its gate passes, `/jj` commits it and `/skills:pr` opens the PR — or updates the one an earlier item opened — without asking. Read `references/implement.md` whole: its delivery step has to be in context when the build finishes.
 
 ## Safety
