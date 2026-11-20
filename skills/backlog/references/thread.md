@@ -18,7 +18,9 @@ parent #13 / Launch the website`.
    holds only the closing keywords (`Closes`, `Fixes`), so also scan the body for `Part of #N`
    and `Refs #N` — the issue a PR only advances is usually the one the thread continues. On
    Linear, the ID sits in the PR title (`ACME-407 / Title`) or the branch name. A topic beside
-   the ref narrows that thread rather than replacing it.
+   the ref narrows that thread rather than replacing it. A ref naming another repo
+   (`owner/repo#29`) also sets the repo for the run, as `SKILL.md` says: `-R owner/repo` on
+   every `gh` call.
 2. **A topic in the args** — `next for CI improvements`. Map it onto something the tracker
    already has, first match wins: a Linear project, an open parent issue whose title matches,
    an area label. Its open issues are the thread, and no later source is read, because a topic
@@ -30,7 +32,8 @@ parent #13 / Launch the website`.
    and the theme is its parent for tier (a): `Anchor: ACME-1611 / Gate releases on the fake
    suite, theme ACME-1609 / Make CI block only on systems we control (3 this session)`. No
    shared parent or project → the newest issue alone, as a single-issue anchor.
-4. **This workspace.** A fresh session has no conversation, but the workspace remembers. Other
+4. **This workspace**, unless the args named a repo this cwd is no workspace of, such as from
+   an umbrella folder: then neither this source nor 5 applies. A fresh session has no conversation, but the workspace remembers. Other
    workspaces of the same repo merge into the same trunk under your name, so read only what
    this one did:
    - `jj log -r '@ | @-' --no-graph -T 'bookmarks ++ "\n"'` — a bookmark carrying an issue ID or

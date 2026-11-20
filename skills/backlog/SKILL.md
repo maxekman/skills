@@ -1,6 +1,6 @@
 ---
 name: backlog
-argument-hint: "[status|next|groom|place|triage] [scope or id]"
+argument-hint: "[status|next|groom|place|triage] [scope, id or owner/repo]"
 allowed-tools: mcp__linear-server__*, mcp__claude_ai_Linear__*, Bash(gh issue *), Bash(gh label *), Bash(gh pr view *), Bash(gh pr list *), Bash(gh repo view *), Bash(jj log *), Bash(jj op log *), Bash(jj workspace list *), Bash(jj git remote list *), Read, Grep, Glob, Skill
 description: Backlog grooming and planning for Linear and GitHub Issues — rank what to work on next, decide where a new issue belongs, and clean up statuses, priorities, milestones and stale relations across many issues at once. Use when the question spans the backlog rather than one ticket, including "what should I pick up next" in a repo that tracks work in GitHub Issues. For single-issue operations and starting work, /task is the counterpart.
 ---
@@ -34,6 +34,12 @@ Detect it the way `/task` does:
    and pass `-R owner/repo` to every `gh` call.
 
 If both are available, use the one the project actively tracks work in. When uncertain, ask.
+
+**Args can name the repo.** A bare `owner/repo`, an `owner/repo#N` ref, or a Linear team key
+(`DEV`, or an issue ID such as `DEV-44`, which carries it) sets the repo for the whole run: pass
+`-R owner/repo` to every `gh` call, and when the cwd is not that repo's workspace, skip the
+anchor sources that read this workspace (`references/thread.md` sources 4 and 5). That is how `/overview` runs `next` from an umbrella folder, which
+is no repo at all.
 
 ## Rank contract
 
