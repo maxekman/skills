@@ -127,7 +127,7 @@ Run the snapshot once. Match the argument against each workspace's name, each se
 `name · cwd · status · prompt_head`, one per line:
 
 ```
-backend-3-37 · ~/Development/work/innspire/backend-3 · idle · /skills:task implement INN-1588 now…
+app-3-37 · ~/Development/work/acme/app-3 · idle · /skills:task implement ACME-1588 now…
 ```
 
 Zero matches: say so and print every live session under the umbrella instead, so the caller can

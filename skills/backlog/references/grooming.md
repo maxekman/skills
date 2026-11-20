@@ -64,24 +64,24 @@ Group by defect class, not by issue — the class is what the user is deciding a
 ### Mechanical (apply as a batch)
 
 no priority (4)
-  INN-402  Rewrite aws/README.md against the Terraform      → 3 Medium   (no date pressure, agreed work)
-  INN-403  Scope or drop the unscoped SNS grant             → 2 High     (in the current milestone)
+  ACME-402  Rewrite the install guide for the new CLI        → 3 Medium   (no date pressure, agreed work)
+  ACME-403  Add retries to the webhook sender                → 2 High     (in the current milestone)
   ...
 
 dead blocker (2)
-  INN-441  blockedBy INN-388 — INN-388 is Done              → remove edge
+  ACME-441  blockedBy ACME-388 — ACME-388 is Done            → remove edge
   ...
 
 started, unowned (1)
-  INN-417  Add E2E error-path coverage                      → assign to max, or back to Todo?
+  ACME-417  Add E2E error-path coverage                      → assign to max, or back to Todo?
 
 ### Judgment (each asks separately)
 
 stale >90d (1)
-  INN-207  Spike: evaluate Temporal    last touched 2026-04-02   → close?
+  ACME-207  Spike: evaluate Temporal    last touched 2026-04-02   → close?
 
 probable duplicate (1 pair)
-  INN-388 / INN-455   "Sentry: add @sentry/react…" / "Wire Sentry into the frontend"
+  ACME-388 / ACME-455   "Sentry: add @sentry/react…" / "Wire Sentry into the frontend"
 
 ### Health
 
@@ -110,9 +110,9 @@ Then report, with the failures impossible to miss:
 ```
 ✓ 6 applied
 ✗ 1 did not stick
-    INN-441  removeBlockedBy INN-388
-             → "Error: Failed to remove 1 relation(s)"
-             relation still present on re-read. Needs the Linear UI.
+    ACME-441  removeBlockedBy ACME-388
+              → "Error: Failed to remove 1 relation(s)"
+              relation still present on re-read. Needs the Linear UI.
 ```
 
 If everything applied, say so in one line. Do not pad a clean run into a report.
