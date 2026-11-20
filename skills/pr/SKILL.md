@@ -2,7 +2,7 @@
 name: pr
 argument-hint: "[branch name or title]"
 allowed-tools: Bash(gh *), Bash(jj *), Read, Grep, Glob
-description: GitHub PR creation and updating with jj bookmark integration - handles branch creation, push, PR workflow, updating existing PRs, and creating PRs from GitHub issues (#N). Every PR targets the default branch; work built on another open PR waits for it or joins it rather than stacking
+description: Open or update a GitHub pull request from a jj repo - names the bookmark after the tracker issue, pushes it, writes a terse PR body that links the issue (closing it only when the work finishes it), and seeds a PR from a GitHub issue (#N). Use whenever the user wants a PR opened, pushed, updated or sent for review, and when /task implement or /todo implement hands finished work over. Every PR targets the default branch; work built on another open PR waits for it or joins it rather than stacking. Committing is /skills:jj; what happens after the merge is /wrapup.
 ---
 
 # GitHub PR Creation & Update
