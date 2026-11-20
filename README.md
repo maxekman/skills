@@ -119,7 +119,7 @@ one names its type. A flat `{ "source": "github", "repo": ... }` fails settings 
 > **Type `/skills:pr`, not `/pr`.** A plugin skill is named `<plugin>:<skill>` and keeps its
 > short name only as an alias — and only while nothing else claims it. Claude Code 2.1.267
 > ships a built-in skill called `pr`, so that alias is dropped at load time: `/pr` resolves to
-> nothing, and an agent that calls it gets *Unknown skill: pr*. The other seven still answer to
+> nothing, and an agent that calls it gets *Unknown skill: pr*. The others still answer to
 > their short names, but `/skills:<name>` is the spelling that always works, and the one to put
 > in a `CLAUDE.md`.
 
