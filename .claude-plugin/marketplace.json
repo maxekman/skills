@@ -9,7 +9,7 @@
     {
       "name": "skills",
       "source": "./",
-      "description": "An opinionated ticket-to-PR workflow for Claude Code: issue tracking, working checklists, plan stress-testing, commits and pull requests. Jujutsu (jj) based.",
+      "description": "An opinionated ticket-to-PR workflow for Claude Code: issue tracking and backlog ranking, working checklists, plan stress-testing, commits and pull requests, post-merge wrap-up, plain-language recaps, and an overview of parallel sessions. Jujutsu (jj) based.",
       "category": "productivity",
       "keywords": [
         "workflow",
