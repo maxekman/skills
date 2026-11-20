@@ -74,7 +74,7 @@ Merged → treat as **new PR**, prefer a fresh bookmark name. Reusing a merged b
 **Pick the name first.** For NEW bookmarks, use the first option that fires — earlier options preserve the canonical Linear slug, which is what the tracker matches against:
 
 1. **Linear branch name already in this session's context.** If `/task implement <id-or-url>` ran earlier, its Delivery plan pinned a `**Branch**:` line (e.g. `max/dev-35-set-custom-domains-in-staging`), taken from the issue's `gitBranchName` or its URL slug. Use that string verbatim — it's what Linear expects and it round-trips cleanly when the PR is reopened or rebased. `/task` may also pass it as the argument to this skill; an explicit argument wins.
-2. **Tracker ID in a `**/TODO.md`.** Check section headers (`## ACME-407 — Add rate limiting`) first, then trailing item tags (`- [ ] … [ACME-407]`, `[#42]`). `/task implement` writes the header form when it seeds a breakdown, so this survives a session boundary that the context above does not. Build the name as in option 3.
+2. **Tracker ID in a `**/*TODO.md`** (area queues like `SECURITY_TODO.md` included). Check section headers (`## ACME-407 — Add rate limiting`) first, then trailing item tags (`- [ ] … [ACME-407]`, `[#42]`). `/task implement` writes the header form when it seeds a breakdown, so this survives a session boundary that the context above does not. Build the name as in option 3.
 3. **Tracker ID in `trunk()..@` commits, no `/task` context.** Scan `jj log -r 'trunk()..@' -T description` for `[A-Z]+-\d+`. Construct `<git-user>/<tracker-id-lowercase>-<kebab-from-commit-title>` to mirror Linear's format. Get `<git-user>` from the local part of `jj config get user.email` (e.g. `max@looplab.se` → `max`). Linear matches on the tracker ID regex, not the exact slug, so close-enough is fine.
 4. **No tracker ID anywhere.** Use `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/` — match conventions from `gh pr list --limit 10`.
 
@@ -146,7 +146,7 @@ Don't write `feat(branding): tenant-configurable background (DEV-169)` — the t
 
 ## Tracker Links
 
-Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/TODO.md` for recently checked-off items (`- [x]`) with tracker IDs. Include them in the PR description — Linear IDs as `ABC-123`, GitHub issues as `Closes #42`.
+Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md` for recently checked-off items (`- [x]`) with tracker IDs. Include them in the PR description — Linear IDs as `ABC-123`, GitHub issues as `Closes #42`.
 
 ## Safety
 
