@@ -1,7 +1,7 @@
 ---
 name: jj
 argument-hint: "[commit message or operation]"
-allowed-tools: Bash(jj *), Bash(git submodule status *), Bash(git add *), Bash(git commit *), Read, Glob, Edit
+allowed-tools: Bash(jj *), Bash(gh pr list *), Bash(git submodule status *), Bash(git add *), Bash(git commit *), Read, Glob, Edit
 description: Jujutsu (jj) version control - commits with conventional messages, splitting a working copy that mixes unrelated changes into separate commits, describe, squash, absorb, rebase, conflict resolution, bookmarks, and recovering with undo or the operation log. Use for any commit or history edit in a jj repo, including "commit this", "split these changes", "fold this into the earlier commit", "fix the commit message" or "undo that", even when the user says git. Keeps formatter churn in its own commit and never rewrites commits already on trunk. Opening or updating a pull request is /skills:pr; cleaning up after a merge is /wrapup.
 ---
 
@@ -13,11 +13,11 @@ Expert helper for the Jujutsu (jj) version control system. Handle the user's req
 
 Current repo state (already gathered — don't re-check):
 
-- `jj status`: !`jj status`
-- `jj diff`: !`jj diff`
-- Recent commits: !`jj log --limit 10`
+- `jj status`: !`jj status 2>/dev/null || echo "not a jj repo"`
+- `jj diff`: !`jj diff 2>/dev/null || echo "no diff"`
+- Recent commits: !`jj log --limit 10 2>/dev/null || echo "no log"`
 - Submodules: !`git submodule status 2>/dev/null || echo "No git submodules"`
-- Repo root: !`jj root 2>/dev/null`
+- Repo root: !`jj root 2>/dev/null || echo "not a jj repo"`
 - Working dir: !`pwd`
 
 ## Task
