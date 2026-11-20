@@ -2,7 +2,7 @@
 name: jj
 argument-hint: "[commit message or operation]"
 allowed-tools: Bash(jj *), Bash(git submodule status *), Bash(git add *), Bash(git commit *), Read, Glob, Edit
-description: Jujutsu (jj) version control operations - handles commit descriptions and workflow management
+description: Jujutsu (jj) version control - commits with conventional messages, splitting a working copy that mixes unrelated changes into separate commits, describe, squash, absorb, rebase, conflict resolution, bookmarks, and recovering with undo or the operation log. Use for any commit or history edit in a jj repo, including "commit this", "split these changes", "fold this into the earlier commit", "fix the commit message" or "undo that", even when the user says git. Keeps formatter churn in its own commit and never rewrites commits already on trunk. Opening or updating a pull request is /skills:pr; cleaning up after a merge is /wrapup.
 ---
 
 # Jujutsu (jj) Helper
