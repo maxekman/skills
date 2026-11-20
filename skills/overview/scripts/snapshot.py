@@ -12,6 +12,7 @@ umbrella's mise pins.
 
 import argparse
 import calendar
+import fnmatch
 import glob
 import hashlib
 import json
@@ -43,6 +44,12 @@ ESCAPE = re.compile(r"(\033\[[0-9;?]*[A-Za-z]|\033\]8;[^\033]*\033\\)")
 NIGHTLY_NAME = re.compile(r"nightly|scheduled|cron", re.I)
 # A tag push runs with the tag as its head branch.
 TAG_REF = re.compile(r"^v?\d+(\.\d+)*")
+VENDORED = ("node_modules", "target", "_build", "deps", "vendor")
+BOX = re.compile(r"^\s*- \[([ xX])\]\s+(.*)")
+# A queue item that opens with its own key: **S22 (DEV-377). Protect main.**
+ITEM_KEY = re.compile(r"^\*\*([A-Z]{1,3}\d+)\b")
+ITEM_KEYS = re.compile(r"\b[A-Z]{1,3}\d+\b")
+TODO_PATH = re.compile(r"[\w./-]*TODO\.md")
 PR_EVENTS = ("pull_request", "pull_request_target", "merge_group")
 SEP = "\x1f"
 
@@ -57,7 +64,8 @@ def run(cmd, cwd=None, timeout=20):
 
 def jj(path, *args):
     # --ignore-working-copy: never snapshot a working copy that belongs to another session.
-    return run(["jj", "--ignore-working-copy", "--no-pager", "--color=never", "-R", path] + list(args))
+    # cwd=path: jj prints file paths relative to the cwd, and they should be repo-relative.
+    return run(["jj", "--ignore-working-copy", "--no-pager", "--color=never", "-R", path] + list(args), cwd=path)
 
 
 def tracker_ids(text):
@@ -107,10 +115,11 @@ def discover(umbrella):
                            or os.path.exists(os.path.join(path, e, ".git")))
             if inner:
                 nested[entry] = inner
-    repos, workflows = {}, {}
+    repos, workflows, todos = {}, {}, {}
     for store, members in groups.items():
         path = os.path.join(umbrella, members[0])
-        if store.endswith(os.path.join(".jj", "repo")):
+        jj_repo = store.endswith(os.path.join(".jj", "repo"))
+        if jj_repo:
             name = os.path.basename(os.path.dirname(os.path.dirname(store)))
             remotes = jj(path, "git", "remote", "list") or ""
             origin = next((l.split(None, 1)[1] for l in remotes.splitlines() if l.startswith("origin ")), None)
@@ -118,6 +127,7 @@ def discover(umbrella):
             name = members[0]
             origin = (run(["git", "-C", path, "remote", "get-url", "origin"]) or "").strip()
         github = github_slug(origin)
+        todos[name] = trunk_files(path, "jj" if jj_repo else "git")[1]
         repos[name] = {
             "github": github,
             "tracker": "github" if github else None,
@@ -128,9 +138,9 @@ def discover(umbrella):
             out = run(["gh", "workflow", "list", "-R", github, "--json", "name,state"])
             workflows[name] = sorted(w["name"] for w in json.loads(out) if w["state"] == "active") if out else []
             repos[name]["lanes"] = {w: k for w in workflows[name] for k in [lane_kind(w, (), {})] if k}
-    # Not part of the config: folders that hold repos a level down, and every workflow name,
-    # for init to ask about.
-    return {"repos": repos, "nested": nested, "workflows": workflows}
+    # Not part of the config: folders that hold repos a level down, every workflow name and
+    # every TODO file on trunk, for init to ask about.
+    return {"repos": repos, "nested": nested, "workflows": workflows, "todos": todos}
 
 
 # --- sessions ----------------------------------------------------------------------------
@@ -159,13 +169,14 @@ _prompts = {}
 
 def prompts(path):
     """The last thing a human typed, cut to 80 characters; the tracker IDs of the latest prompt
-    that names any; and whether the session's last words since then were a question.
+    that names any work, and that prompt itself when it names a TODO file or runs /todo; and
+    whether the session's last words since then were a question.
     A task starts with `/skills:task implement #57` and the prompts after it rarely repeat the
     number, so the IDs have to outlive the prompt that carried them, often by megabytes of
     transcript. The file is read once, then only what was appended since."""
-    offset, head, ids, asked = _prompts.get(path, (0, None, [], False))
+    offset, head, ids, todo, asked = _prompts.get(path, (0, None, [], None, False))
     if os.path.getsize(path) < offset:
-        offset, head, ids, asked = 0, None, [], False
+        offset, head, ids, todo, asked = 0, None, [], None, False
     with open(path, "rb") as f:
         f.seek(offset)
         data = f.read()
@@ -173,11 +184,15 @@ def prompts(path):
     for kind, text in turns(complete.decode("utf-8", "replace").splitlines()):
         if kind == "prompt":
             head, asked = text[:80], False
-            ids = tracker_ids(text) or ids
+            named = tracker_ids(text)
+            queue = TODO_PATH.search(text) or re.match(r"/?(skills:)?todo\b", text)
+            # Whichever kind of work the latest such prompt named replaces the other.
+            if named or queue:
+                ids, todo = named, text[:200] if queue else None
         else:
             asked = asks(text)
-    _prompts[path] = (offset + len(complete), head, ids, asked)
-    return head, ids, asked
+    _prompts[path] = (offset + len(complete), head, ids, todo, asked)
+    return head, ids, todo, asked
 
 
 def asks(text):
@@ -244,7 +259,7 @@ def sessions(umbrella, now, warnings):
         log = transcript(cwd, entry["sessionId"])
         activity = max(since, os.path.getmtime(log) if log else 0)
         status = entry["status"]
-        head, ids, asked = prompts(log) if log else (None, [], False)
+        head, ids, todo, asked = prompts(log) if log else (None, [], None, False)
         found.append({
             "name": entry["name"],
             "session_id": entry["sessionId"],
@@ -258,6 +273,7 @@ def sessions(umbrella, now, warnings):
             "prompt_head": head,
             "asked": status == "idle" and asked,
             "prompt_ids": ids,
+            "todo_prompt": todo,
         })
     return found
 
@@ -269,7 +285,7 @@ def todo_ids(path):
     ids = []
     for root, dirs, files in os.walk(path):
         depth = os.path.relpath(root, path).count(os.sep)
-        dirs[:] = [] if depth >= 1 else [d for d in dirs if not d.startswith(".") and d not in ("node_modules", "target", "_build", "deps", "vendor")]
+        dirs[:] = [] if depth >= 1 else [d for d in dirs if not d.startswith(".") and d not in VENDORED]
         if "TODO.md" in files:
             with open(os.path.join(root, "TODO.md"), errors="replace") as f:
                 ids += [i for line in f if line.startswith("## ") for i in tracker_ids(line)]
@@ -328,6 +344,117 @@ def workspace(umbrella, name):
     ws["stack_ids"] = sorted(set(ids))
     ws["todo_ids"] = sorted(set(todo_ids(path)))
     return ws
+
+
+# --- local TODO queues -------------------------------------------------------------------
+
+
+_queues = {}
+
+
+def trunk_files(path, vcs):
+    """(trunk commit, [TODO files on trunk]). Trunk, not a working copy: every workspace of the
+    repo shares one queue, and it changes only when a merge lands."""
+    if vcs == "jj":
+        commit = jj(path, "log", "-r", "trunk()", "--no-graph", "-T", "commit_id")
+        files = jj(path, "file", "list", "-r", "trunk()", 'root-glob:"**/*TODO.md"') if commit else None
+    else:
+        commit = run(["git", "-C", path, "rev-parse", "origin/HEAD"])
+        files = run(["git", "-C", path, "ls-tree", "-r", "--name-only", "origin/HEAD"]) if commit else None
+    files = [f for f in (files or "").splitlines() if f.endswith("TODO.md") and not set(f.split("/")) & set(VENDORED)]
+    return (commit or "").strip(), files
+
+
+def trunk_show(path, vcs, file):
+    if vcs == "jj":
+        return jj(path, "file", "show", "-r", "trunk()", 'root-file:"%s"' % file) or ""
+    return run(["git", "-C", path, "show", "origin/HEAD:" + file]) or ""
+
+
+def queue_items(text):
+    """Every checkbox in a TODO file, in file order, with the heading it sits under."""
+    items, section = [], ""
+    for line in text.splitlines():
+        if line.startswith("#"):
+            section = line.lstrip("#").strip()
+            continue
+        m = BOX.match(line)
+        if not m:
+            continue
+        key = ITEM_KEY.match(m.group(2))
+        # A bold lead-in is the item's headline; the prose after it can cite PRs that aren't it.
+        bold = re.match(r"^\*\*(.+?)\*\*", m.group(2))
+        headline = bold.group(1) if bold else m.group(2)
+        title = re.sub(r"^[A-Z]{1,3}\d+\s*(\([^)]*\))?[\s.:—–-]*", "", headline) if key else headline
+        items.append({"label": key.group(1) if key else None, "title": title.replace("`", "").rstrip("."),
+                      "section": section, "ids": tracker_ids(headline), "open": m.group(1) == " ",
+                      "raw": m.group(2)})
+    return items
+
+
+def queues(path, vcs, patterns):
+    """{file: items} for the repo's TODO files on trunk, narrowed by the config's `todos`
+    globs. Read again only when trunk moves."""
+    commit, files = trunk_files(path, vcs)
+    key = (path, commit, tuple(patterns or ()))
+    if key not in _queues:
+        files = [f for f in files if not patterns or any(fnmatch.fnmatch(f, p) for p in patterns)]
+        _queues[key] = (commit, {f: queue_items(trunk_show(path, vcs, f)) for f in files})
+    return _queues[key]
+
+
+_touched = {}
+
+
+def touched(path, vcs, at, commit, files):
+    """The trunk text of every checkbox the workspace's stack changed in a TODO file: /jj ticks
+    an item in the commit that does it, so a ticked or edited box names the work."""
+    key = (path, at, commit)
+    if key not in _touched:
+        if vcs == "jj":
+            out = jj(path, "diff", "--from", "trunk()", "--to", "@", "--git", *['root-file:"%s"' % f for f in files])
+        else:
+            out = run(["git", "-C", path, "diff", "origin/HEAD...HEAD", "--"] + files)
+        _touched[key] = {m.group(2) for l in (out or "").splitlines()
+                         if l.startswith("-") and not l.startswith("---") for m in [BOX.match(l[1:])] if m}
+    return _touched[key]
+
+
+def queue_key(file, item):
+    """What the board names a queue item by: the tracker issue it was filed as, its own key, or
+    its file."""
+    return next(iter(item["ids"]), None) or item["label"] or os.path.basename(file)[:-3]
+
+
+def on_queue(ws, path, vcs, commit, found):
+    """The open queue items the workspace is on: from its stack first, then from the latest
+    prompt that named a TODO file or ran /todo."""
+    open_ = {f: [i for i in items if i["open"]] for f, items in found.items()}
+    on = []
+    if found and ws["stack"]:
+        changed = touched(path, vcs, ws["stack"][0]["commit"], commit, sorted(found))
+        on += [(f, i, "stack") for f, items in open_.items() for i in items if i["raw"] in changed]
+    for s in ws["sessions"]:
+        prompt = s.get("todo_prompt")
+        if not prompt:
+            continue
+        named = [p.lstrip("./") for p in TODO_PATH.findall(prompt)]
+        files = [f for f in open_ if any(f == p or f.endswith("/" + p) for p in named)] if named else list(open_)
+        keys = set(ITEM_KEYS.findall(prompt))
+        for f in files:
+            hit = [i for i in open_[f] if i["label"] in keys]
+            # One file named without an item works its next one, one item per /todo run. Not
+            # once the stack is empty again: the item it did merged, and the next is unclaimed.
+            if not hit and named and len(files) == 1 and not ws["free"]:
+                hit = open_[f][:1]
+            on += [(f, i, "prompt") for i in hit]
+    seen, out = set(), []
+    for f, i, via in on:
+        if (f, i["raw"]) not in seen:
+            seen.add((f, i["raw"]))
+            out.append({"file": f, "key": queue_key(f, i), "label": i["label"], "title": i["title"],
+                        "ids": i["ids"], "via": via})
+    return out
 
 
 # --- GitHub (cached) ---------------------------------------------------------------------
@@ -628,16 +755,25 @@ def snapshot(umbrella, config):
         entry = {"tracker": spec.get("tracker"), "github": spec.get("github"), "everyone": spec.get("prs") == "all", "workspaces": {}}
         ids = set()
         overrides = load_notes(umbrella).get("overrides", {})
+        found = None
         for name in spec["workspaces"]:
             ws = workspace(umbrella, name)
             root = os.path.join(umbrella, name)
             ws["sessions"] = [s for s in live if s["cwd"] == root or s["cwd"].startswith(root + os.sep)]
             claimed.update(s["session_id"] for s in ws["sessions"])
             ws["prompt_ids"] = sorted({i for s in ws["sessions"] for i in s["prompt_ids"]})
-            ids.update(ws["stack_ids"] + ws["todo_ids"] + ws["prompt_ids"])
+            if found is None:  # every workspace of a repo shares its trunk
+                commit, found = queues(root, ws["vcs"], spec.get("todos"))
+            ws["queue_items"] = on_queue(ws, root, ws["vcs"], commit, found)
+            ids.update(ws["stack_ids"] + ws["todo_ids"] + ws["prompt_ids"] + [i for q in ws["queue_items"] for i in q["ids"]])
             if overrides.get(name):
                 ids.add(overrides[name])
             entry["workspaces"][name] = ws
+        entry["queues"] = []
+        for f, items in sorted((found or {}).items()):
+            open_ = [{k: i[k] for k in ("label", "title", "section", "ids")} for i in items if i["open"]]
+            entry["queues"].append({"file": f, "key": os.path.basename(f)[:-3], "open": len(open_),
+                                    "done": len(items) - len(open_), "next": next(iter(open_), None), "items": open_})
         if spec.get("github"):
             issue_ids = sorted(i for i in ids if i.startswith("#")) if spec.get("tracker") == "github" else []
             entry.update(github(umbrella, repo, spec, issue_ids, now, warnings))
@@ -1051,7 +1187,7 @@ def board(snap, notes, paint, graphs=None, height=None):
     overrides = notes.get("overrides", {})
     hints = notes.get("workspaces", {})
     titles = notes.get("titles", {})
-    rows, actions, ci, stray, sections, slots = [], [], [], [], [], {}
+    rows, actions, ci, stray, sections, slots, queue_sections = [], [], [], [], [], {}, []
     for repo, entry in snap["repos"].items():
         prs = entry.get("prs", [])
         claimed = set()
@@ -1059,6 +1195,7 @@ def board(snap, notes, paint, graphs=None, height=None):
         key = entry["tracker"] if (entry.get("tracker") or "").startswith("linear:") else repo
         on, hinted = slots.setdefault(key, ({}, {}))
         linear_ws = ((graphs or {}).get(key) or {}).get("linear_workspace")
+        queue_on, queue_hints = [], []
         for name, ws in entry["workspaces"].items():
             pr = next((p for p in prs if p["number"] == ws.get("pr")), None)
             if pr:
@@ -1066,7 +1203,9 @@ def board(snap, notes, paint, graphs=None, height=None):
             # In a Linear repo a #N is a PR or a GitHub issue nobody tracks, never the work item.
             linear = (entry.get("tracker") or "").startswith("linear")
             known = entry.get("issues") or {}
-            ids = [i for i in ws["stack_ids"] + ws["todo_ids"] + ws["prompt_ids"]
+            queued = {q["key"]: q for q in ws.get("queue_items", [])}
+            via = lambda how: [k for k, q in queued.items() if q["via"] == how]
+            ids = [i for i in ws["stack_ids"] + via("stack") + ws["todo_ids"] + ws["prompt_ids"] + via("prompt")
                    if not (linear and i.startswith("#")) and not (known.get(i) or {}).get("pr")]
             issue = overrides.get(name) or next(iter(ids), "")
             if pr and pr["state"] == "OPEN":
@@ -1088,6 +1227,7 @@ def board(snap, notes, paint, graphs=None, height=None):
             extra = [pr_text(pr, paint)] if pr else []
             if state == "free" and hint.get("next"):
                 extra.append("next up: " + hint["next"])
+                queue_hints.append((name, hint["next"]))
                 hinted.setdefault(next(iter(tracker_ids(hint["next"])), ""), name)
             if issue and issue != "?":
                 on[issue] = " · ".join([name] + ([pr_text(pr, paint)] if pr and pr["state"] == "OPEN" else []))
@@ -1095,6 +1235,7 @@ def board(snap, notes, paint, graphs=None, height=None):
                 extra.append(hint["note"])
             # GitHub titles come from gh; Linear ones only the guide can fetch, into notes.json.
             title = ((entry.get("issues") or {}).get(issue) or {}).get("title") or titles.get(issue) \
+                or (queued.get(issue) or {}).get("title") \
                 or (pr and re.sub(r"^\s*(#\d+|[A-Z][A-Z0-9]+-\d+)\s*[/:\-–—]?\s*", "", pr["title"])) or ""
             commits = [c for c in ws["stack"] if not c["empty"]]
             if state == "parked" and not title and commits:
@@ -1104,6 +1245,11 @@ def board(snap, notes, paint, graphs=None, height=None):
                 title = title[:TITLE_WIDTH - 1] + "…"
             rows.append((name, paint.link(issue_url(entry.get("github"), issue, linear_ws), issue), title, state, people,
                          " · ".join(extra)))
+            if issue in queued:
+                queue_on.append((name, queued[issue]))
+        rows_q = queue_rows(entry.get("queues", []), queue_on, queue_hints, height is None)
+        if rows_q:
+            queue_sections.append(("Queues · " + repo, rows_q))
         for p in prs:
             if p["state"] == "OPEN" and p["number"] not in claimed:
                 who = " by " + p["author"] if entry.get("everyone") and p.get("author") else ""
@@ -1160,7 +1306,48 @@ def board(snap, notes, paint, graphs=None, height=None):
                          ("Offers", notes.get("offers", [])), ("Notes", notes.get("notes", []))):
         if items:
             lines += ["", title] + ["  " + i for i in items]
+    for title, items in queue_sections:
+        width = [max(visible(r[i]) for r in items if isinstance(r, list)) for i in range(3)]
+        lines += ["", title] + ["  " + ("  ".join(pad(c, w) for c, w in zip(r, width)) + "  " + r[3]).rstrip()
+                                if isinstance(r, list) else r for r in items]
     return lines + fit_trees(sections, None if height is None else height - len(lines), paint)
+
+
+def queue_rows(queues, on, hints, full):
+    """The Queues lines of one repo: a [file, count, item, where] row per TODO file with open
+    items, naming the items workspaces are on, or else the file's first open box; with full,
+    every open item under its heading, as plain strings."""
+    rows = []
+    for q in queues:
+        if not q["open"]:
+            continue
+        mine = {i["title"]: n for n, i in on if i["file"] == q["file"]}
+
+        def text(item):
+            t = (item["label"] + " " if item["label"] else "") + item["title"]
+            return t if len(t) <= TITLE_WIDTH else t[:TITLE_WIDTH - 1] + "…"
+
+        def where(item):
+            if item["title"] in mine:
+                return mine[item["title"]]
+            words = [item["label"] or q["key"]] + item["ids"]
+            to = next((n for n, h in hints if any(re.search(r"(?<![\w-])%s\b" % re.escape(w), h) for w in words)), None)
+            return "→ " + to if to else ""
+
+        shown = [i for i in q["items"] if i["title"] in mine] or [q["next"]]
+        for k, item in enumerate(shown):
+            tag = "= " + ", ".join(item["ids"]) if item["ids"] else ""
+            rows.append([q["key"] if k == 0 else "", "%d open" % q["open"] if k == 0 else "",
+                         ("●" if item["title"] in mine else "○") + " " + text(item),
+                         " · ".join(x for x in (where(item), tag) if x)])
+        if full:
+            section = None
+            for item in q["items"]:
+                if item["section"] != section:
+                    section = item["section"]
+                    rows.append("    " + section)
+                rows.append("      %s %s" % ("●" if item["title"] in mine else "○", text(item)))
+    return rows
 
 
 def load_notes(umbrella):
@@ -1267,6 +1454,9 @@ def main():
                 entry["prs"] = [p for p in entry.get("prs", []) if p["number"] == ws.get("pr")]
             if not snap["repos"]:
                 sys.exit("no workspace %s in this umbrella" % args.workspace)
+        for entry in snap["repos"].values():
+            for q in entry["queues"]:
+                del q["items"]  # dozens per file; `--board` lists them, and `next` is enough here
         json.dump(snap, sys.stdout, separators=(",", ":"))  # read by a model on every wake
         print()
 

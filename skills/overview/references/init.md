@@ -24,6 +24,12 @@ workflow per repo. Show it beside the proposed lanes, and ask which other workfl
 something or run on a schedule, and whether any match is really CI, such as a release-notes
 drafter: set those to `"ci"`. Leave `workflows` out of the config.
 
+`todos` lists every `*TODO.md` file on each repo's trunk. The board treats them all as work
+queues unless the repo sets `"todos"`: a list of globs (`["docs/*_TODO.md"]`) that keeps only
+the files it matches. Read the repo's `CLAUDE.md` or `AGENTS.md` first. When it calls some of
+the files design notes or anything else that is not scheduled work, propose globs that leave
+them out; otherwise ask only when the list is long. Leave the discovered `todos` list out of the config.
+
 ## 2. Settle each repo's tracker
 
 `tracker` is `"github"` (that repo's issues), `"linear:<TEAM>"` (a Linear team key such as
@@ -47,7 +53,8 @@ watched. Then write `.overview/config.json`:
       "tracker": "github",
       "workspaces": ["opendecks", "opendecks-2", "opendecks-3", "opendecks-4"],
       "watch": true,
-      "lanes": {"Deploy (dev)": "deploy", "Ship": "deploy", "E2E": "nightly", "Release Drafter": "ci"}
+      "lanes": {"Deploy (dev)": "deploy", "Ship": "deploy", "E2E": "nightly", "Release Drafter": "ci"},
+      "todos": ["docs/*_TODO.md"]
     }
   }
 }
