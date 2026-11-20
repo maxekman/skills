@@ -1,7 +1,7 @@
 ---
 name: pr
 argument-hint: "[branch name or title]"
-allowed-tools: Bash(gh *), Bash(jj *), Read, Grep, Glob
+allowed-tools: Bash(gh *), Bash(jj *), Read, Grep, Glob, Skill
 description: Open or update a GitHub pull request from a jj repo - names the bookmark after the tracker issue, pushes it, writes a terse PR body that links the issue (closing it only when the work finishes it), and seeds a PR from a GitHub issue (#N). Use whenever the user wants a PR opened, pushed, updated or sent for review, and when /task implement or /todo implement hands finished work over. Every PR targets the default branch; work built on another open PR waits for it or joins it rather than stacking. Committing is /skills:jj; what happens after the merge is /wrapup.
 ---
 
@@ -11,9 +11,9 @@ Create or update pull requests using jj bookmarks and GitHub CLI. Keep PR descri
 
 ## Context
 
-- `jj status`: !`jj status`
-- Bookmarks: !`jj bookmark list`
-- Recent commits: !`jj log --limit 5`
+- `jj status`: !`jj status 2>/dev/null || echo "not a jj repo"`
+- Bookmarks: !`jj bookmark list 2>/dev/null || echo "none"`
+- Recent commits: !`jj log --limit 5 2>/dev/null || echo "no log"`
 - Repo info: !`gh repo view --json name,owner,defaultBranchRef 2>/dev/null || jj git remote list 2>/dev/null || echo "no remote detected"`
 
 ## Task
@@ -165,7 +165,6 @@ A GitHub issue goes in as `Closes #42` only when this PR finishes it: a `/task i
 - **NEVER** create or move bookmarks named `main`, `master`, `develop`, `staging`, `prod`.
 - **NEVER** commit changes from this skill — commits belong to `/jj`.
 - **NEVER** include secrets in PR descriptions or add AI attribution.
-- Use feature-branch patterns (`feat/`, `fix/`, etc.) for bookmarks.
 - Verify bookmark position before pushing.
 
 ## Errors
