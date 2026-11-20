@@ -3,7 +3,7 @@
 Two phases:
 
 - **Phase 1 — context (steps 1-7).** Read-only. Fetches, reads, greps, presents. Never creates, updates, or comments — safe inside Claude Code plan mode.
-- **Claim (step 8).** On plan approval, assigns you and moves the issue to in progress — the only tracker write before delivery.
+- **Claim (step 8).** As soon as step 7 is settled, before any planning, assigns you and moves the issue to in progress — the only tracker write before delivery. In plan mode it waits for approval.
 - **Phase 2 — delivery (step 9).** Runs after the work is actually done. This is where `/skills:jj` and `/skills:pr` get invoked.
 
 Phase 2 lives in this file rather than in a lazily-read reference on purpose: by the time the implementation is finished, nothing will prompt you to go read another file. It has to already be in context, so keep it here. The one exception is the gate's criteria check, which it shares with `/task verify`. The gate line itself tells you to read `verify.md`, so that read is prompted.
@@ -144,9 +144,11 @@ Getting these answered now is what makes step 9 able to run unattended: an unres
 
 ## Step 8 — Claim the issue
 
-Starting work on an issue means owning it in the tracker: assigned to you and in the team's `started` state, the same as an issue `find-or-create.md` creates. Left alone, it sits unassigned in Todo while its PR is in review, and anyone triaging the backlog reads it as free to pick up.
+Starting work on an issue means owning it in the tracker: assigned to you and in the team's `started` state, the same as an issue `find-or-create.md` creates. Left alone, it sits unassigned in Todo while you plan and while its PR is in review, and another session's `/backlog next` offers it as free to pick up.
 
-This is a write, so it waits for plan approval the way creation does: in plan mode it goes *into* the plan as its first action, and a rejected plan leaves the tracker untouched. Skip the tracker writes for an issue `find-or-create.md` just created — that one is claimed already — but still plant the bookmark below.
+**Claim it as soon as step 7 is settled**, before anything else runs: a `/skills:grill-me`, a drafted plan, the first edit. Running `/task implement` on an issue is the decision to start it, and planning is where the time goes. A grill-me alone can outlast the minutes another session needs to pick the same issue. Don't wait for a plan approval: outside plan mode there is none, so a claim waiting for one never runs. A closed issue waits for the confirmation step 2 asks for.
+
+In plan mode the tracker stays untouched, so the claim goes *into* the plan as its first action and a rejected plan leaves nothing behind. Skip the tracker writes for an issue `find-or-create.md` just created — that one is claimed already — but still plant the bookmark below. If the user drops the work after the claim, offer to hand it back: restore the assignee and status step 2 read.
 
 - **Linear** — under the write contract in `linear.md`:
   1. `get_user` → you. Already the assignee → go to 3.
@@ -171,7 +173,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 
 **Gate — all must hold:**
 
-- The tracker issue exists and is claimed. It normally is, but both happen on plan approval — creation for a description, step 8 for an existing issue — and a skipped approval step surfaces here. `/skills:pr` has nothing to attach a PR to without the issue, so create or claim it now rather than committing first.
+- The tracker issue exists and is claimed. It normally is, by step 8 for an existing issue and on plan approval for a description's new one, so a skipped step surfaces here. `/skills:pr` has nothing to attach a PR to without the issue, so create or claim it now rather than committing first.
 - Every **Done when** line passes the criteria check in `verify.md` (steps 2–3, using this list as the source) — read it now. Partial or unmet fails the gate. A can't-tell line passes only if the tests below settle it; otherwise report it as unverified.
 - The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
 - New behavior has the tests a reviewer would ask for, or the repo demonstrably doesn't test that area.

@@ -164,8 +164,9 @@ section. The pick still comes from the thread.
   in-flight work is usually another session's.
 - **Assigned to you, not started** (Linear only; on GitHub, assigned is in flight) — one line,
   `Assigned to you, not started: ACME-588 / Rotate the billing API keys… (Urgent)`. Visible so nothing
-  urgent hides, never a pick: a session may already be planning it, and `/task implement` claims
-  an issue only once its plan is approved.
+  urgent hides, never a pick: assigning it already scheduled it, and a session may be on it
+  still, because `/task implement` writes the assignee and the state separately and the state
+  write can fail on its own.
 - **Blocked** — thread members that are blocked, plus an Elsewhere issue only if it would
   otherwise have made Elsewhere's top `n`. Name each blocker with its owner and state from the
   read you already have. Don't fetch the blocker's blockers: one hop says what to nudge, and
