@@ -129,11 +129,11 @@ Step 3 above has the full priority order. Quick reference:
 
 Default: `<type>(<scope>): <description>` — match conventions from existing PRs.
 
-**When a tracker ID is in the branch name or args** (`EL-3141`, `DEV-169`, `PROJ-42`), use `<TRACKER-ID> / <description>` instead. The tracker ID *replaces* the conventional prefix — don't combine the two. Convert the slug to a human-readable title in sentence case.
+**When a tracker ID is in the branch name or args** (`ACME-3141`, `DEV-169`, `PROJ-42`), use `<TRACKER-ID> / <description>` instead. The tracker ID *replaces* the conventional prefix — don't combine the two. Convert the slug to a human-readable title in sentence case.
 
 Examples:
 - No tracker ID → `feat(auth): add OAuth2 login support`
-- `/skills:pr max/el-3141-decommission-visma-integration` → `EL-3141 / Decommission visma integration`
+- `/skills:pr max/acme-3141-decommission-legacy-billing` → `ACME-3141 / Decommission legacy billing`
 - `/skills:pr max/dev-169-tenant-configurable-background` → `DEV-169 / Tenant configurable background`
 
 Don't write `feat(branding): tenant-configurable background (DEV-169)` — the tracker ID goes in the prefix slot, not in parens at the end.

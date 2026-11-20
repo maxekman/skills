@@ -27,8 +27,8 @@ parent #13 / Launch the website`.
    or filed. Sessions usually run one theme as a chain under an epic, so the theme is the
    nearest open parent that at least two of them share, or failing that their shared project.
    Issues filed only as side follow-ups don't count toward it. The newest issue is the anchor
-   and the theme is its parent for tier (a): `Anchor: INN-1611 / Gate releases on the fake
-   suite, theme INN-1609 / Make CI block only on systems we control (3 this session)`. No
+   and the theme is its parent for tier (a): `Anchor: ACME-1611 / Gate releases on the fake
+   suite, theme ACME-1609 / Make CI block only on systems we control (3 this session)`. No
    shared parent or project → the newest issue alone, as a single-issue anchor.
 4. **This workspace.** A fresh session has no conversation, but the workspace remembers. Other
    workspaces of the same repo merge into the same trunk under your name, so read only what
@@ -38,7 +38,7 @@ parent #13 / Launch the website`.
    - After `/wrapup`, `@` sits on trunk with no bookmark. Take the newest bookmark this workspace
      pushed, with `<name>` the workspace `jj workspace list` marks `(current)`:
      `jj op log --no-graph -n 500 -T 'if(self.workspace_name() == "<name>@" && description.starts_with("push bookmark"), self.time().end().ago() ++ " " ++ description.first_line() ++ "\n")'`.
-     Resolve it to issues: on Linear the ID is in the name (`max/inn-1611-…`); otherwise
+     Resolve it to issues: on Linear the ID is in the name (`max/acme-1611-…`); otherwise
      `gh pr list --head <bookmark> --state all --json number,title,closingIssuesReferences,body`
      and read it as a PR ref from 1. Older than 3 days → skip to 5, since an idle workspace's
      last push says little about what comes next.
@@ -91,8 +91,8 @@ The reason line names the tie: `sibling of #19 under #13 (7/10 done)`, `unblocke
 `related to ACME-407`, `filed in this session`, `same project as ACME-407`.
 
 **Overflow.** Whatever the thread holds beyond `n` goes on one line under the section, from the
-reads already made and with no relation fetch: `Also in this thread: INN-1190 / Show the journey
-map (sibling) · 6 more open in project "Journey v0"`. GitHub counts the anchor's area label
+reads already made and with no relation fetch: `Also in this thread: ACME-1190 / Show the onboarding
+checklist (sibling) · 6 more open in project "Onboarding v1"`. GitHub counts the anchor's area label
 instead. It shows the topic has more without spending a slot on a looser tie, and `next 6`
 opens it up.
 
@@ -123,14 +123,14 @@ One flat read, ranked on the rank contract, with the thread's members left out:
 
 "The thread" here includes the overflow line. On Linear that is the anchor's whole project, so
 Elsewhere means another topic rather than the project's next few issues. When excluding it
-leaves little, show what remains and say `most open work is in project "Journey v0"`.
+leaves little, show what remains and say `most open work is in project "Onboarding v1"`.
 
 Don't widen it by following the anchor's parent, what the anchor blocks, or what those block.
 Every issue found that way feeds something the thread also feeds, so it outranks the thread by
 construction, and the section becomes a list of blockers arguing against the work you are on.
 
 The outrank line fires only when an Elsewhere issue is strictly higher than every thread pick on
-priority tier, or sits in an earlier milestone: `INN-704 is Urgent, above everything in this
+priority tier, or sits in an earlier milestone: `ACME-704 is Urgent, above everything in this
 thread.` Equal tiers, or no milestones, give no line. It informs and never moves the pick — you
 can overrule a one-line note at a glance, while a pick that hedges between two threads leaves
 you to redo the ranking yourself.
@@ -143,8 +143,8 @@ matters. Inside a session the job is to continue the thread, and this section st
 List up to 3 candidates (unblocked, unassigned) that are overdue or due within 7 days: the
 issue's own `dueDate` (Linear), or its milestone's date — GitHub `dueOn`, Linear only if
 `get_project(includeMilestones: true)` returns a target date. Also list an unblocked, unassigned
-blocker of such an issue, as the move that frees it: `INN-653 / Publish the chat widget… —
-blocks INN-296, due 11-20`. Put the section under the anchor, as `Dated`, with the date on each
+blocker of such an issue, as the move that frees it: `ACME-653 / Publish the chat widget… —
+blocks ACME-296, due 11-20`. Put the section under the anchor, as `Dated`, with the date on each
 line.
 
 Only what can move now. Blocked dated work, counts of blockers, and "nothing overdue" lines are
@@ -156,11 +156,11 @@ section. The pick still comes from the thread.
 - **In flight (yours)** — name the ones in the thread (the anchor's parent or project, or a
   direct relation), with `(in backend-2)` on any a sibling workspace's stack carries. Collapse
   the rest into one line:
-  `+2 more in flight elsewhere (INN-704 / Rotate the API keys, INN-1103 / Drop the v1 export)`.
+  `+2 more in flight elsewhere (ACME-704 / Rotate the API keys, ACME-1103 / Drop the v1 export)`.
   The line shows what the thread waits on. It is never a pick: with parallel sessions, your
   in-flight work is usually another session's.
 - **Assigned to you, not started** (Linear only; on GitHub, assigned is in flight) — one line,
-  `Assigned to you, not started: INN-588 / Rotate ONE API keys… (Urgent)`. Visible so nothing
+  `Assigned to you, not started: ACME-588 / Rotate the billing API keys… (Urgent)`. Visible so nothing
   urgent hides, never a pick: a session may already be planning it, and `/task implement` claims
   an issue only once its plan is approved.
 - **Blocked** — thread members that are blocked, plus an Elsewhere issue only if it would

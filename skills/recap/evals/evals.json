@@ -18,9 +18,9 @@
     {
       "id": 3,
       "prompt": "I'm meeting my cofounder tomorrow, he's not technical. summarize the last two weeks of work on the app so I can walk him through it",
-      "expected_output": "A 14-day recap of the Action Card app, clustered by outcome across ~50 PRs, at most seven Shipped bullets, in-progress and heads-up sections only if warranted, 120-250 words.",
+      "expected_output": "A 14-day recap of the client app, clustered by outcome across ~50 PRs, at most seven Shipped bullets, in-progress and heads-up sections only if warranted, 120-250 words.",
       "files": [],
-      "cwd": "~/Development/work/actioncard/app"
+      "cwd": "~/Development/work/acme/app"
     }
   ]
 }
