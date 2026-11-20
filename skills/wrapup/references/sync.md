@@ -47,8 +47,8 @@ jj log -r '(commit_id(<oid1>) | commit_id(<oid2>)):: & bookmarks() ~ ::@'
 ```
 
 **Unrelated work.** Commits in `trunk()..@-` that belong to no PR. Leave them; the user may be
-mid-thought. Mention that `jj lift` would rebase the whole stack onto the new trunk, but don't
-run it — rebasing someone's in-progress work is their decision.
+mid-thought. Mention that `jj rebase -s 'roots(trunk()..@)' -d 'trunk()'` would rebase the
+whole stack onto the new trunk, but don't run it — rebasing someone's in-progress work is their decision.
 
 **Working-copy changes.** `@` is non-empty. Say so and stop the sync; the rest of the wrap-up
 (live systems, leftovers) still runs, since neither depends on where `@` sits.

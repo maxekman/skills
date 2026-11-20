@@ -8,7 +8,7 @@ Moving commits with `-d` can create branching/parallel history. Use `-B` (before
 jj rebase -r commit-to-move -B parent-commit -A child-commit
 ```
 
-`jj lift` (alias) handles the common case: rebase the entire feature stack onto trunk after `jj git fetch`.
+`jj rebase -s 'roots(trunk()..@)' -d 'trunk()'` handles the common case: rebase the entire feature stack onto trunk after `jj git fetch`.
 
 ## Squash safety: only mutable history
 

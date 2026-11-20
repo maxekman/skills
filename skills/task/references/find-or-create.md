@@ -94,8 +94,7 @@ Then plant the bookmark, so the issue survives outside this session's memory:
 jj bookmark create <gitBranchName> --revision @
 ```
 
-`jj bc` bakes in `-r` and errors if you pass it again, so this needs the full form. Creating it on
-an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays
+Creating it on an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays
 on that change, and the change becomes your first commit once you describe it. The tracker ID then
 lives in the bookmark name, where `/skills:pr` finds it without any help from the transcript. If the work
 is abandoned, `jj bookmark delete <name>` cleans up.

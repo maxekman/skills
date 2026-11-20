@@ -14,11 +14,8 @@ git commit -m "chore: update submodule to <commit-hash>"
 Never move protected bookmarks (`main`, `master`, `develop`, `staging`, `prod`). Create feature bookmarks for PR work:
 
 ```bash
-jj bookmark create feature/my-feature -r @
-# or use the bc alias to target the latest non-empty ancestor:
-jj bc feature/my-feature
-
-jj bookmark list  # check positions
+jj bookmark create feature/my-feature -r @-   # @- is the last commit once @ is empty
+jj bookmark list                              # check positions
 ```
 
 ## Pushing
@@ -41,10 +38,9 @@ Only push feature bookmarks. Never push `main`/`master` unless explicitly asked.
 Before any `jj git push`:
 
 1. Run `jj git push --dry-run` to see exactly what would push.
-2. If the bookmark is protected (`main`, `master`, `develop`, `staging`, `prod`), STOP.
-3. If you used `jj tug`, it may have moved a protected bookmark. Run `jj undo` immediately and verify with `jj bookmark list`.
+2. If the bookmark is protected (`main`, `master`, `develop`, `staging`, `prod`), STOP. If a move put it there, run `jj undo` and verify with `jj bookmark list`.
 
-Safe pattern after committing: `jj bc <feature-name>` → `jj git push --bookmark <feature-name>`. Never combine `jj tug` with push.
+Safe pattern after committing: `jj bookmark create <feature-name> -r @-` → `jj git push --bookmark <feature-name>`. Move an existing bookmark by name (`jj bookmark move <name> --to @-`), never as "the closest bookmark": the one nearest `@-` can be `main`.
 
 ## Merged PR detection
 
@@ -56,7 +52,7 @@ gh pr list --head <bookmark-name> --state merged --json number,url --jq '.[0].nu
 
 If a merged PR exists, **STOP**. The branch is closed; pushing accomplishes nothing. Tell the user and suggest `/skills:pr` for a new PR.
 
-**Strongest signal**: if `closest_bookmark(@-)` resolves to `main`, the parent is already on trunk. Any feature bookmark you're about to reuse almost certainly had its PR merged. Verify before reusing the old name.
+**Strongest signal**: if `jj log -r 'heads(::@- & bookmarks())'` shows `main`, the parent is already on trunk. Any feature bookmark you're about to reuse almost certainly had its PR merged. Verify before reusing the old name.
 
 ## Creating pull requests
 

@@ -78,20 +78,14 @@ Merged → treat as **new PR**, prefer a fresh bookmark name. Reusing a merged b
 3. **Tracker ID in `trunk()..@` commits, no `/task` context.** Scan `jj log -r 'trunk()..@' -T description` for `[A-Z]+-\d+`. Construct `<git-user>/<tracker-id-lowercase>-<kebab-from-commit-title>` to mirror Linear's format. Get `<git-user>` from the local part of `jj config get user.email` (e.g. `max@looplab.se` → `max`). Linear matches on the tracker ID regex, not the exact slug, so close-enough is fine.
 4. **No tracker ID anywhere.** Use `feat/`, `fix/`, `refactor/`, `docs/`, `test/`, `chore/` — match conventions from `gh pr list --limit 10`.
 
-Then create or move:
+Then create or move it, by name both times:
 
 ```bash
-jj bc <branch-name>   # NEW: bookmark on @- (latest non-empty ancestor)
-jj tug                # UPDATE: move closest bookmark to @-
+jj bookmark create <branch-name> -r @-   # NEW
+jj bookmark move <branch-name> --to @-   # UPDATE: the bookmark step 2 matched to the open PR
 ```
 
-Targeting a commit other than `@-` needs the full form — `jj bc` is aliased with `-r` already baked in, so passing `-r` again errors with "cannot be used multiple times":
-
-```bash
-jj bookmark create <branch-name> --revision <change-id>
-```
-
-Before `jj tug`, run `jj log -r 'closest_bookmark(@-)'`. If it resolves to a protected bookmark (`main`, `master`, `develop`, `staging`, `prod`), do NOT tug — create a new feature bookmark with `jj bc <name>` instead.
+Never move "the closest bookmark" instead: the bookmark nearest `@-` can be `main`. To target a commit other than `@-`, pass its change id to `-r`.
 
 ### 4. Push
 
@@ -160,7 +154,7 @@ Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md
 ## Errors
 
 - **Working copy not empty**: not an error — `/skills:jj` commits, then continue at step 2.
-- **Bookmark already exists**: `jj tug` to move it forward.
+- **Bookmark already exists**: `jj bookmark move <branch-name> --to @-`.
 - **Push fails**: check `gh auth status` and remote permissions.
 - **Multiple matching PRs**: use the most recent or ask the user.
 - **Rebase conflicts**: STOP — user resolves manually, then retry.
