@@ -122,9 +122,11 @@ Two rules that keep the tiers meaningful:
   and is the one that resurfaces months later in an arbitrary place. Pick a tier, and say
   which one you picked and why.
 
-## The write contract
+## Write contract
 
-Four rules. All four exist because each one has already failed in practice.
+Four rules, each here because it has already failed in practice. They sit inline, and identical
+in `/task` and `/backlog`, because by the time a status write happens nothing will prompt you to
+go read another file. CI fails a change to one copy that the other doesn't share.
 
 **1. Resolve the state before writing it.** Call `list_issue_statuses` for the team and match
 the requested state against the real list — on `statusType` first, then name. No match means

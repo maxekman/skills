@@ -65,15 +65,39 @@ Deciding *which* project and labels is `placement.md`; this is only what the cal
 
 ## Write contract
 
-Inline rather than in a lazily-read reference, for the same reason `implement.md` keeps its delivery phase inline: by the time a status write happens, nothing will prompt you to go read another file. Each rule is here because it has already failed in practice.
+Four rules, each here because it has already failed in practice. They sit inline, and identical
+in `/task` and `/backlog`, because by the time a status write happens nothing will prompt you to
+go read another file. CI fails a change to one copy that the other doesn't share.
 
-**1. Resolve the state before writing it.** Call `list_issue_statuses` for the team and match the requested state against the real list — on `statusType` first, then name. No match means stop and report the available states; it does not mean send the guess anyway. Guessed state names are the largest single cause of a status change that never happened.
+**1. Resolve the state before writing it.** Call `list_issue_statuses` for the team and match
+the requested state against the real list — on `statusType` first, then name. No match means
+stop and report the available states; it does not mean send the guess anyway. Guessed names
+are the single largest cause of a status change that never happened.
 
-**2. Never bundle `patch` with `state`.** `save_issue` is atomic: a `replace` op whose `old_string` no longer matches returns *"Patch failed, nothing was saved"* and **the state change dies with it**. Send two calls — patch first, state second. A status write should be the smallest call you can make: `id` and `state`, nothing else.
+**2. Never bundle `patch` with `state`.** `save_issue` is atomic: a `replace` op whose
+`old_string` no longer matches returns *"Patch failed, nothing was saved"* and **the state
+change dies with it**. Send them as two calls — patch first, state second — so a stale patch
+can never swallow a status move.
 
-**3. Read the status back.** `save_issue` returns the saved issue with its `status` field, so verification costs no extra call. Matches what you asked → report it. Differs, or no `status` in the response, or the response is an `{"error": …}` object or an `Error:` string → **the write failed**: say so, name the issue, and quote what came back. Never narrate a status change you did not confirm.
+The same applies to any risky field travelling with a status change. A status write should be
+the smallest call you can make: `id` and `state`, nothing else.
 
-**4. Mind the preconditions.** `Duplicate` returns HTTP 400 — *"Issues can only be moved to a duplicate state when a duplicate issue relation exists"* — unless `duplicateOf` was set in an **earlier** call. Set the relation, confirm it, then move the state.
+**3. Read the status back.** `save_issue` returns the saved issue, `status` field included —
+verification costs no extra call. Compare it to what was asked:
+
+- Matches → report the change.
+- Differs, or the response has no `status` → **the write failed.** Say so, name the issue,
+  and show what the response actually said. Never narrate a status change you did not confirm.
+- Response is an `{"error": ...}` object or an `Error:` string → also a failure, however
+  plausible the surrounding text looks.
+
+**4. Mind the preconditions.** Some states reject a bare write:
+
+- `Duplicate` → returns HTTP 400 *"Issues can only be moved to a duplicate state when a
+  duplicate issue relation exists"* unless `duplicateOf` was set in an **earlier** call.
+  Set the relation, confirm it, then move the state.
+- Removing a relation can fail on its own (`Error: Failed to remove 1 relation(s)`) while the
+  rest of the call succeeds — check relations back explicitly when you changed them.
 
 ## Beyond one issue
 
