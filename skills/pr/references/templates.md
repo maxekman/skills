@@ -23,11 +23,3 @@ If found, use it exactly — preserve all formatting and structure. Never add pr
 - [ ] Tests pass
 - [ ] Manual verification
 ```
-
-## Stacked PR notice
-
-When a parent PR exists (see `stacked.md`), prepend before the template content:
-
-```
-> **Stack**: based on #<parent-pr-number> — review/merge that first.
-```

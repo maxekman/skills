@@ -63,7 +63,7 @@ sessions. It monitors, suggests, and acts only on a yes.
 | `/todo` | A local `TODO.md` as working memory for a multi-step change. The counterpart to `/task`: the tracker holds the goal, this holds the steps |
 | `/grill-me` | Stress-testing a plan before executing it — one question at a time, each carrying a recommended answer, exploring the codebase instead of asking whenever the answer is already there |
 | `/jj` | Any commit, describe, rebase, split, absorb, or conflict resolution. Splits a working copy that mixes unrelated changes into separate commits |
-| `/skills:pr` | Opening or updating a GitHub PR. Handles branch naming, push, stacked PRs with auto-detected parent bases, and rebasing after a parent merges |
+| `/skills:pr` | Opening or updating a GitHub PR. Handles branch naming and push. Every PR targets the default branch: work built on an open PR waits for it or joins it, never stacks |
 | `/wrapup` | After the merge: fetch and move onto a fresh change when nothing else is in flight, watch the deploy and smoke runs the merge triggered and probe dev/staging read-only, then list what the PR left behind — unresolved threads, open tracker issues, TODO items — and offer to file or close them |
 | `/recap` | A short plain-language update for non-technical readers — what is live, what is done, what is in progress, what to watch — from merged PRs, commits, changelogs and closed tickets. Last 7 days by default, any window, or a single PR. Read-only; it never posts |
 | `/overview` | A live guide for many parallel sessions, started from the umbrella folder above their jj workspaces. Watches each session's state, stack, PR and issue, pushes a notification when something needs you, suggests the next ranked item for an idle free workspace, and after a merge offers to close an issue that did not auto-close. `init` sets up a folder, `status` prints the board once, and `find` names the live session in a workspace, path or issue, so another session can message it |
@@ -75,7 +75,7 @@ nothing. For several issues at once, or anything epic-shaped, `/backlog` is the 
 
 Where they interlock: `/backlog next` picks the issue and `/task implement` pins a branch name
 from the tracker's own slug, `/skills:pr` reuses that name verbatim so the tracker auto-attaches
-the PR, and `/jj` keeps the commits underneath clean enough to stack.
+the PR, and `/jj` keeps the commits underneath one intent each.
 
 `/backlog` exists because neither tracker exposes an ordering primitive — Linear's MCP has no
 `sortOrder` or `position`, and GitHub has no priority field and no `gh` access to board order.

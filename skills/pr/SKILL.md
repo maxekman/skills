@@ -2,7 +2,7 @@
 name: pr
 argument-hint: "[branch name or title]"
 allowed-tools: Bash(gh *), Bash(jj *), Read, Grep, Glob
-description: GitHub PR creation and updating with jj bookmark integration - handles branch creation, push, PR workflow, updating existing PRs, creating PRs from GitHub issues (#N), and stacked PRs (auto-detects parent bookmarks, sets --base, supports rebase after parent merge)
+description: GitHub PR creation and updating with jj bookmark integration - handles branch creation, push, PR workflow, updating existing PRs, and creating PRs from GitHub issues (#N). Every PR targets the default branch; work built on another open PR waits for it or joins it rather than stacking
 ---
 
 # GitHub PR Creation & Update
@@ -22,7 +22,7 @@ Create or update a PR for current changes: $ARGUMENTS
 
 If no arguments, decide new-vs-update from bookmarks and `gh pr list --author @me`. Then look for a tracker ID — most commits in this user's workflow come from `/task implement <id>` and the issue link must survive into the PR for Linear/GitHub to auto-attach it. See step 3 for how the tracker ID drives the bookmark name.
 
-With arguments, parse for: branch name, title, base override, draft flag, or `rebase` (rebase a stacked PR after its parent merged).
+With arguments, parse for: branch name, title, base override, or draft flag.
 
 ## Handed off from `implement`
 
@@ -69,6 +69,19 @@ gh pr list --head <bookmark-name> --state merged --json number,title,url --jq '.
 
 Merged → treat as **new PR**, prefer a fresh bookmark name. Reusing a merged bookmark silently pushes to a closed PR.
 
+Then check what the work sits on:
+
+```bash
+jj log -r '(trunk()..@-) & bookmarks()' --no-graph -T 'bookmarks ++ "\n"'
+```
+
+A bookmark there that isn't this PR's own, with an open PR behind it, means these commits are
+built on unmerged work. Stop before step 3. PRs never stack: every PR targets the default
+branch, so merging one always lands it on trunk and nobody has to retarget or rebase a child.
+Name that PR and offer the two moves — wait for it to merge and rebase onto trunk
+(`jj rebase -s 'roots(trunk()..@)' -d 'trunk()'`), or add these commits to it by moving its
+bookmark to `@-`.
+
 ### 3. Bookmark
 
 **Pick the name first.** For NEW bookmarks, use the first option that fires — earlier options preserve the canonical Linear slug, which is what the tracker matches against:
@@ -112,7 +125,6 @@ Return the PR URL.
 Don't read these by default — only when the signal in parentheses is present.
 
 - `references/issue-and-pr-refs.md` — args contain `#N` (e.g. `/skills:pr #26`). Disambiguates PR vs issue, seeds a new PR from an issue.
-- `references/stacked.md` — args contain `rebase`, OR `jj log -r '(trunk()..@-) & bookmarks()'` shows a non-empty parent bookmark. Covers `--base` to parent and the rebase-after-parent-merge flow.
 - `references/workspaces.md` — `Repo info` shows `origin <url>` (secondary jj workspace) instead of JSON. Covers slug extraction and `-R owner/repo` for every `gh` call.
 - `references/templates.md` — when writing the PR description body. Covers project template paths and the fallback.
 
@@ -157,5 +169,4 @@ Scan commit messages for tracker IDs (`ABC-123`, `#42`). Also check `**/*TODO.md
 - **Bookmark already exists**: `jj bookmark move <branch-name> --to @-`.
 - **Push fails**: check `gh auth status` and remote permissions.
 - **Multiple matching PRs**: use the most recent or ask the user.
-- **Rebase conflicts**: STOP — user resolves manually, then retry.
 - **Fork detection**: use `--head <username>:<branch>` syntax.

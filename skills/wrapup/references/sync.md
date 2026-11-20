@@ -28,18 +28,20 @@ reversible with `jj undo`, and saying so is part of the report.
 
 Name the blockers by title so the user recognizes them, then work out which case it is.
 
-**A stacked child PR.** The commits above the merged ones carry a bookmark with an open PR:
+**Work built on the merged PR.** The commits above the merged ones carry a bookmark of their own:
 
 ```bash
 jj log -r '(trunk()..@-) & bookmarks()' --no-graph -T 'bookmarks ++ "\n"'
 gh pr list --head <bookmark> --state open --json number,title,baseRefName
 ```
 
-An open PR there means the parent merged and the child now carries stale copies of the parent's
-commits. That is `/skills:pr rebase`'s job — it rebases, moves the bookmark, pushes, and
-retargets the base. Suggest it; don't do that work here.
+They sit on stale copies of the merged commits, so they belong on the new trunk. Suggest
+`jj rebase -s 'roots(trunk()..@)' -d 'trunk()'` and a push of that bookmark; don't run either,
+since the work belongs to whoever is building it. If an open PR's `baseRefName` is the merged
+branch, it was stacked outside `/skills:pr`, which never stacks: also give
+`gh pr edit <n> --base <default branch>` so it stops targeting a branch that is gone.
 
-A child can also sit beside `@` rather than under it. Check descendants of the merged commits
+Such work can also sit beside `@` rather than under it. Check descendants of the merged commits
 that `@` doesn't contain:
 
 ```bash
