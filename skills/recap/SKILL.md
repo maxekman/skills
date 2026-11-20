@@ -18,7 +18,7 @@ Handle: $ARGUMENTS
 - Today: !`date +%F 2>/dev/null || echo "unknown — use the session date"`
 - jj root: !`jj root 2>/dev/null || echo "not a jj repo"`
 - git root: !`git rev-parse --show-toplevel 2>/dev/null || echo "not a git repo"`
-- Repo info: !`gh repo view --json nameWithOwner,description,defaultBranchRef 2>/dev/null || echo "gh unavailable — commits and files only"`
+- Repo info: !`gh repo view --json nameWithOwner,description,defaultBranchRef 2>/dev/null || jj git remote list 2>/dev/null || echo "gh unavailable — commits and files only"`
 
 ## Workflow
 
@@ -39,6 +39,12 @@ Tuesday is not the week the reader assumes.
 
 Run the independent reads in parallel. `START` is the window's first day, `BASE` the default
 branch from `Repo info`.
+
+An `origin <url>` line in `Repo info` instead of JSON means a secondary jj workspace: it has no
+`.git`, so `gh` can't find the repo by itself, though it works fine once told. Take
+`owner/repo` from the URL, pass `-R owner/repo` to every `gh` call, write it into the
+`gh api` paths in place of `{owner}/{repo}`, and read `BASE` from
+`gh repo view owner/repo --json defaultBranchRef`.
 
 ```bash
 gh pr list --state merged --base BASE --search "merged:>=START" --limit 100 \

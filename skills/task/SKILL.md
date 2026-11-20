@@ -11,10 +11,14 @@ Handle issue/tracker management across Linear and GitHub Issues. Pick the backen
 
 If no arguments, show issues assigned to the current user, grouped by status.
 
+## Context
+
+- Repo info: !`gh repo view --json nameWithOwner 2>/dev/null || jj git remote list 2>/dev/null || echo "no remote detected"`
+
 ## Backend Detection
 
 1. **Linear** — when `mcp__*` Linear tools are available in the session. Primary interface for Linear.
-2. **GitHub Issues** — when the project is a GitHub repo (`gh repo view` confirms). Use the `gh` CLI exclusively, never raw API calls.
+2. **GitHub Issues** — when `Repo info` above names a GitHub repo. Use the `gh` CLI exclusively, never raw API calls. An `origin <url>` line instead of JSON means a secondary jj workspace: it has no `.git`, so `gh` can't find the repo by itself. Take `owner/repo` from the URL and pass `-R owner/repo` to every `gh` call.
 
 If both are available, prefer whichever the project actively uses. When uncertain, ask.
 
