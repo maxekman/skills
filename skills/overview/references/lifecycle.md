@@ -44,7 +44,7 @@ When a PR moves to `MERGED`:
    in `issues`? Linear: fetch the issue and check that its `statusType` is `completed`. If it is
    still open, offer to close it with a one-line comment, "Closed by PR #M". GitHub:
    `gh issue close N -R owner/repo --reason completed --comment "…"`. Linear: set its state
-   through `save_issue`, following `/backlog`'s Linear write contract.
+   through `save_issue`, following the *Write contract* in `references/linear.md` of the `backlog` skill beside this one.
 2. **What comes next?** A merge that ticked a queue box moves that file's `next` on; rank it
    with the tracker items as *Suggesting the next item* says. In a Linear repo, start a refresh of the team's graph
    (`references/graph.md`). Say the merge in one chat line that names what it unblocked: the

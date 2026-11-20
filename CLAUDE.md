@@ -230,6 +230,11 @@ verbs is never a one-file edit. Update together:
 - the commit that does it — a rename is a breaking change, so it needs `!` and a
   `BREAKING CHANGE:` footer. See *Releases are automatic*.
 
+One block is copied on purpose: the Linear `## Write contract` lives in both `task`'s and
+`backlog`'s `references/linear.md`, because each skill needs it in context at the moment it
+writes, and a pointer to another skill's file is easy to skip right then. Edit both together;
+`check-manifest.sh` fails CI when the copies differ.
+
 ## Evals (optional)
 
 The repo has none today. For a new skill or a description rewrite — where triggering accuracy is
