@@ -37,12 +37,17 @@ standard library only) so the umbrella's mise pins can't break it:
 Per workspace it reports the `trunk()..@` stack (read with `--ignore-working-copy`, so it never
 snapshots another session's files), bookmarks, `free`, and the tracker IDs found in commits and
 bookmarks (`stack_ids`), `TODO.md` headers (`todo_ids`) and the latest prompt that named one
-(`prompt_ids`). It finds the umbrella by walking up from the cwd, so a drifting shell is fine. For
+(`prompt_ids`), plus the TODO-queue items it is on (`queue_items`, below). It finds the umbrella by walking up from the cwd, so a drifting shell is fine. For
 each live Claude session, taken from Claude Code's session registry (`~/.claude/sessions/`), it
 gives `name` (the `SendMessage` address), `status`, `waiting_long`, `stalled`, `prompt_head` and
 `asked` (idle, and its last message since the user's last prompt ended on a question).
 Per repo it gives PRs by the user (or by anyone, with `"prs": "all"` in the config) that are
-open or closed in the last 12 hours, with checks and review state. It also gives `trunk`: the
+open or closed in the last 12 hours, with checks and review state. It also gives `queues`: each `*TODO.md` file
+on trunk (narrowed by the repo's `"todos"` globs) with its open and done counts and `next`, its
+first open box with that box's `label` (`S22`), `title`, `section` heading and tracker `ids`. A
+workspace's `queue_items` are the open boxes it is on, `via` `stack` when a commit in its stack
+ticks or edits the box, or `prompt` when the latest prompt naming work names the box's label or
+its file. A box that carries a tracker ID is that issue, and goes by its ID. It also gives `trunk`: the
 current result of each CI workflow on the default branch. Deploy and nightly workflows are
 `lanes` instead, one per workflow and ref (a branch, or `tags`), so tag and release runs show
 too. A lane is `pending`, `pass`, `fail`, `behind` (a deploy cancelled with no run after it,
@@ -117,7 +122,7 @@ plus a suffix, and a near-match can be another project entirely.
 
 Run the snapshot once. Match the argument against each workspace's name, each session's `cwd`
 (at or below a given path, `elsewhere` included), and the issue IDs a workspace is on
-(`stack_ids`, `todo_ids`, `prompt_ids`, and `overrides` in the umbrella's
+(`stack_ids`, `todo_ids`, `prompt_ids`, each `queue_items` key, and `overrides` in the umbrella's
 `.overview/notes.json`). Print each matching live session as
 `name · cwd · status · prompt_head`, one per line:
 
@@ -153,6 +158,10 @@ Actions
 Offers
   close #61 / Power the deck? PR #70 / Wire the power rail merged without "Closes"
 
+Queues · opendecks
+  BRINGUP_TODO  4 open  ● B3 Probe the 3V3 rail under load  opendecks-4
+  SAFETY_TODO   2 open  ○ F1 Fuse the barrel jack           = #75
+
 Path to unblock · opendecks
   M1 First deck · 222/263
     #402 Route the mainboard · 3/9
@@ -165,6 +174,10 @@ Path to unblock · opendecks
 
 **Actions** shows a deploy lane while it runs and for 2 hours after it passed, a nightly only
 while it runs or is red, and plain CI only when red, so a quiet, green umbrella shows none.
+
+**Queues** gives one line per TODO file with open boxes: the box a workspace is on (●), or else
+the file's first open box (○), with `→ workspace` when a `next` hint names it and `= ID` when it
+was filed in the tracker. `status` lists every open box under its heading.
 
 **Path to unblock** is the board's guide to what comes next, drawn for each GitHub-tracked
 repo from its open issues, and for each Linear team from the graph the guide keeps in
@@ -199,7 +212,9 @@ The script works out the facts. What only the guide can judge goes into
 - **overrides**: what the user said a workspace is on. It beats every derived source.
 - **workspaces**: per workspace, `next` (shown only while it is free) and a short `note`.
   Put the issue's key first, then its title, then the reason: the board reads the key to tell
-  which issues are already hinted.
+  which issues are already hinted. A queue box goes as file key, then label:
+  `"SECURITY_TODO S9 / Two owners, then dedicated admin identities (P1)"`, or the file key alone
+  for a box with no label.
 - **titles**: the title of each Linear issue on the board. The script gets GitHub titles itself
   but can't reach Linear. Add a title whenever a workspace moves to a new Linear issue, and drop
   titles no row uses.

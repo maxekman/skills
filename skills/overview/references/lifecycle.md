@@ -6,11 +6,14 @@ First that names one:
 
 1. **Override** in `notes.json`. The user said so.
 2. **`stack_ids`**: a tracker ID in a `trunk()..@` commit or a bookmark. `/skills:pr` builds
-   bookmarks like `max/dev-35-…`, and the snapshot already turns those into `DEV-35`.
+   bookmarks like `max/dev-35-…`, and the snapshot already turns those into `DEV-35`. Alongside
+   them, `queue_items` with `via: stack`: a commit in the stack ticks or edits that box.
 3. **`todo_ids`**: a `## ACME-407 — …` header that `/task implement` wrote into `TODO.md`.
 4. **`prompt_ids`**: the IDs in the latest prompt that named any, e.g.
    `/skills:task implement #57`. This is the earliest signal and the weakest: it is a guess until
-   a commit or bookmark confirms it.
+   a commit or bookmark confirms it. `queue_items` with `via: prompt` sit here too, from a prompt
+   such as `/skills:todo @docs/SECURITY_TODO.md S9`. A prompt that names one file and no box
+   counts as that file's first open box, since a queue is worked one box per run.
 
 When several IDs tie at one level, show them all and ask once. A busy workspace that no source
 names is `?` on the board.
@@ -40,7 +43,8 @@ When a PR moves to `MERGED`:
    still open, offer to close it with a one-line comment, "Closed by PR #M". GitHub:
    `gh issue close N -R owner/repo --reason completed --comment "…"`. Linear: set its state
    through `save_issue`, following `/backlog`'s Linear write contract.
-2. **What comes next?** In a Linear repo, start a refresh of the team's graph
+2. **What comes next?** A merge that ticked a queue box moves that file's `next` on; rank it
+   with the tracker items as *Suggesting the next item* says. In a Linear repo, start a refresh of the team's graph
    (`references/graph.md`). Say the merge in one chat line that names what it unblocked: the
    issues it blocked that now have no open blocker left, e.g. "PR #88 / Sync the venue list
    merged · unblocks DEV-44 / Cache the venue list, DEV-45 / Show the venue map". Linear: the
@@ -84,7 +88,16 @@ another workspace. Set it as that workspace's `next` in `notes.json`, with the r
 short clause, after the issue's title:
 `"#63 / Pin out the expansion header (P1, unblocks #64 and #66)"`. The board shows it while the
 workspace is free and hides it once work starts, so a suggestion the user passes over needs no
-cleanup and no comment. Mention a suggestion in chat at most once, when the workspace first goes free. If the user asks to hand it to the session, send `/skills:task implement #63` with
+cleanup and no comment.
+
+TODO queues hold pickable work too, beside the tracker. `/skills:backlog next` ranks only the
+tracker, so put each queue's `next` box in that ranking yourself. Compare the priority its
+`section` states (`P0`, `Now`, `P1`, …) against the tracker pick's: the higher one wins, and
+the tracker wins a tie or a section that states none. A box with tracker `ids` is that issue,
+so rank it once, as the issue. When a file states its own rule for what comes next or when a box
+counts as done, such as "the first unchecked box, top to bottom" or a section that waits on a
+decision, read the file once and follow that rule instead: a `_decide_` box is the user's call,
+not a session's next item. Hand a queue box over as `/skills:todo implement @<file> <label>`. Mention a suggestion in chat at most once, when the workspace first goes free. If the user asks to hand it to the session, send `/skills:task implement #63` with
 `SendMessage` to the session `name` from the snapshot. Never send to a `busy` session, because
 the message would land in the middle of its turn.
 
