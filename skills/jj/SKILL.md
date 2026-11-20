@@ -94,11 +94,11 @@ The user's jj config defines these — prefer them over raw commands:
 
 Commits are signed lazily at push time (`signing.behavior = "drop"` plus `git.sign-on-push`), so a locked screen never blocks local work — commit, split, and squash freely. Two consequences follow:
 
-- **Push is where signing happens**, so `jj git push` is the one command needing 1Password unlocked. If it fails with `Signing error` / `SSH sign failed` / `1Password:`, the user has stepped away from the desk. Nothing was pushed and the repo is fine, so wait rather than ask:
+- **Push is where signing happens**, so `jj git push` is the one command needing 1Password unlocked. If it fails with `Signing error` / `SSH sign failed` / `1Password:`, the user has stepped away from the desk. Nothing was pushed and the repo is fine, so wait rather than ask. The wait runs up to ten minutes, past a foreground call's timeout, and a bare `sleep` is refused there, so run it with `run_in_background`:
   ```bash
-  for i in $(seq 1 10); do timeout 30 jj git push --bookmark <name> && break; sleep 30; done
+  for i in $(seq 1 10); do timeout 30 jj git push --bookmark <name> && echo PUSHED && break; sleep 30; done
   ```
-  If that budget runs out, stop and leave the exact command ready to paste. Never route around the lock — no `--no-gpg-sign`, no editing `signing.*`, no `~/.ssh/config` edits. An unsigned commit outlives the coffee break and has to be rewritten later.
+  The output ends in `PUSHED` when a push landed; the exit status doesn't tell, since the loop's last command is a `sleep`. If that budget runs out, stop and leave the exact command ready to paste. Never route around the lock — no `--no-gpg-sign`, no editing `signing.*`, no `~/.ssh/config` edits. An unsigned commit outlives the coffee break and has to be rewritten later.
 - **Signing rewrites the commits it signs**, so the hash that lands differs from the one `--dry-run` predicted and descendants get rebased. That is expected, not a sign something went wrong. The dry-run safety check reads bookmark *names*, which stay accurate.
 
 ## When to Read References

@@ -44,8 +44,12 @@ Then branch on `state`:
 
 - **MERGED** → continue.
 - **OPEN** with `autoMergeRequest` set, or the user said "once it lands" → the merge is minutes
-  away, so wait rather than send them back later. Poll `state` every 60s for up to 15 minutes;
-  still open after that → report `gh pr checks <N>` and stop.
+  away, so wait rather than send them back later. Run the wait with `run_in_background`: it
+  outlasts a foreground call's timeout, and a bare `sleep` is refused there.
+  ```bash
+  for i in $(seq 15); do s=$(gh pr view <N> --json state --jq .state); [ "$s" != OPEN ] && break; sleep 60; done; echo "$s"
+  ```
+  Its exit notification brings you back. Still `OPEN` → report `gh pr checks <N>` and stop.
 - **OPEN** otherwise, or **CLOSED** unmerged → report state, `reviewDecision`, and checks, then
   stop. Nothing below means anything until it merges.
 

@@ -42,7 +42,9 @@ running. Watch whatever is in progress, then run that query again to pick up wha
 gh run watch <databaseId> --exit-status --interval 30
 ```
 
-Budget about 20 minutes in total. Past that, report the runs still going with their URLs rather
+Run it with `run_in_background`, since a deploy outlasts a foreground call, which times out
+after 2 minutes (10 at most). Collect the leftovers (the skill's step 4) while it runs; the exit
+notification brings you back. Budget about 20 minutes in total. Past that, report the runs still going with their URLs rather
 than blocking the wrap-up on a slow pipeline.
 
 A `cancelled` deploy usually means a later merge cut it off (`concurrency` with
