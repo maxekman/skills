@@ -51,7 +51,7 @@ comment, since a comment is additive and can't fail the way a `patch` can, but d
 unprompted.
 
 If the description plainly covers several distinct deliverables, create the single issue asked for
-and say once that `/backlog place` would split it. Don't block: the verb was chosen deliberately.
+and say once that `/skills:backlog place` would split it. Don't block: the verb was chosen deliberately.
 
 ## Step 3 — Create the issue
 

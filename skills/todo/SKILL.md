@@ -88,7 +88,7 @@ Show what will be removed grouped by category, confirm before editing. Clean up 
 ### `implement [@<file>] <label, text or pattern>`
 A leading TODO file (`@docs/SECURITY_TODO.md`) scopes the search to that file, and a label (`S9`) picks its box; the file alone means its first open box. Arguments that start with a TODO file and name no verb — `/todo @docs/SECURITY_TODO.md S9` — mean `implement`, since that is what someone typing them wants.
 
-Gather context for a local item, then carry the built item to a PR. Gathering is read-only, so it is safe in plan mode. Once the item is built and its gate passes, `/jj` commits it and `/skills:pr` opens the PR — or updates the one an earlier item opened — without asking. Read `references/implement.md` whole: its delivery step has to be in context when the build finishes.
+Gather context for a local item, then carry the built item to a PR. Gathering is read-only, so it is safe in plan mode. Once the item is built and its gate passes, `/skills:jj` commits it and `/skills:pr` opens the PR — or updates the one an earlier item opened — without asking. Read `references/implement.md` whole: its delivery step has to be in context when the build finishes.
 
 ## Safety
 

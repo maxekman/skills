@@ -60,7 +60,7 @@ open to settle without asking.
 `/task implement <id-or-url-or-description>` — carry work from a tracker reference, optionally followed by guidance for this run, or from a plain description of what you want built, to a merged-ready PR. Two phases:
 
 - **Context** — fetch, read, grep, present. Read-only, so it is safe inside plan mode. It also pins the branch name and PR title from the Linear slug, which is what lets `/skills:pr` attach the PR to the issue later.
-- **Delivery** — after you have built the thing, a quality gate runs. If it passes, `/jj` and `/skills:pr` are invoked autonomously; if it fails, the work stops and reports what is unmet.
+- **Delivery** — after you have built the thing, a quality gate runs. If it passes, `/skills:jj` and `/skills:pr` are invoked autonomously; if it fails, the work stops and reports what is unmet.
 
 **Dispatch on the argument.** `ACME-407`, Linear URLs (including the copy-paste `linear.app/<ws>/issue/ACME-407/<slug>` form), `#42`, and GitHub URLs are references — go straight to `references/implement.md`. A leading reference followed by more text is still a reference: the rest is guidance (`#42 only the mobile path`), not a description to search for. Anything else is a description of the work: `references/find-or-create.md` resolves it to an issue first, then rejoins that same flow. Read `implement.md` whole either way, since the delivery contract has to be in context by the time the work finishes.
 

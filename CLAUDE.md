@@ -206,13 +206,14 @@ section that merely lists what each file covers gets read every time, which defe
 **Explain why instead of shouting.** `**NEVER** use -i` is weaker than "`-i` requires a TTY and
 hangs the agent". Where an existing rule already carries its reason, keep it.
 
-**Write `pr` invocations as `/skills:pr`.** Installed as a plugin, every skill here is named
+**Write invocations as `/skills:<name>`.** Installed as a plugin, every skill here is named
 `skills:<name>`, with the short name kept only as an alias — and Claude Code drops that alias
 when it ships a built-in of the same name. It did for `pr` in 2.1.267, so `/pr` now resolves to
 nothing and an agent calling it gets *Unknown skill: pr*. Anywhere the text tells someone or
-something to *run* that skill, write `/skills:pr`; naming it as a concept (the loop diagram, the
-cross-reference web below) stays short. The other seven still answer to their short names — when
-one of them stops autocompleting, this is why, and the fix is the same prefix.
+something to *run* a skill — a hand-off to a sibling, a command printed for the user — write
+`/skills:<name>`. Naming a skill as a concept (the loop diagram, the cross-reference web below, a
+skill listing its own verbs, a description naming its counterpart) stays short. The others
+still answer to their short names today, which is luck rather than a contract.
 
 Also: never duplicate content between a `SKILL.md` and its references — pick one home. No
 `README.md`, `CHANGELOG.md`, or other scaffolding inside a skill directory. Prefer the

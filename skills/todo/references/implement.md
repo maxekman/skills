@@ -9,7 +9,7 @@ When the args lead with a TODO file (`@docs/SECURITY_TODO.md`, or any path endin
 Otherwise match by substring (same as `done`). If multiple match, show them and ask which. Note:
 
 - The `##` section the item lives under.
-- Whether the item carries a tracker ID — trailing `[ABC-123]` (Linear) or `[#42]` (GitHub Issues), or inside its label (`**S22 (DEV-377). …**`). If present, mention it but don't auto-fetch — the user can pull tracker context separately via `/task show <id>` if useful.
+- Whether the item carries a tracker ID — trailing `[ABC-123]` (Linear) or `[#42]` (GitHub Issues), or inside its label (`**S22 (DEV-377). …**`). If present, mention it but don't auto-fetch — the user can pull tracker context separately via `/skills:task show <id>` if useful.
 
 ## Step 2 — Read detail lines
 
@@ -34,7 +34,7 @@ Extract 1-2 core keywords from the item text (main noun/concept, not filler). Se
 **[Section]** — [item text]
 [detail lines, if any]
 [If a tracker ID is present:]
-**Tracker**: [ID] — for full tracker context, run `/task show <id>`.
+**Tracker**: [ID] — for full tracker context, run `/skills:task show <id>`.
 
 ## Documentation
 [For each relevant doc: filename, line range, matching excerpt]
@@ -47,7 +47,7 @@ Keep excerpts focused — show the relevant section between `##` headers, not en
 
 ## Step 6 — Deliver
 
-When the item is built, run the gate. If every condition holds, invoke `/jj` and then `/skills:pr` without asking: starting `/todo implement` was the user's request to commit, push and open the PR, and they review at the PR.
+When the item is built, run the gate. If every condition holds, invoke `/skills:jj` and then `/skills:pr` without asking: starting `/todo implement` was the user's request to commit, push and open the PR, and they review at the PR.
 
 **Gate — all must hold:**
 
@@ -60,5 +60,5 @@ If any condition fails, stop and say which one and what is left.
 
 **On a pass, hand off in order:**
 
-1. `/jj` — commits, checking the item off in the same commit and carrying its tracker tag (`[ACME-407]`) into the message.
+1. `/skills:jj` — commits, checking the item off in the same commit and carrying its tracker tag (`[ACME-407]`) into the message.
 2. `/skills:pr` — its *Handed off from `implement`* section decides whether to push without confirming and sets the report's shape. The first item of a section opens the PR, and later items push to its bookmark, which updates it; the open items left in TODO.md show what is still to come. An item from another `##` section is separate work: say so rather than pushing it onto that PR, since it would land as a stack.

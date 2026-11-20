@@ -103,7 +103,7 @@ up — rejected as the same deliverable says nothing about it being the wrong ho
 
 One survivor → apply it and say so in a line. Two or more, or none → that is the ambiguous case,
 and taking the first is the failure this rule exists to prevent. List the candidates and hand to
-`/backlog place`, which is read-only and answers project, milestone, labels, priority and blockers
+`/skills:backlog place`, which is read-only and answers project, milestone, labels, priority and blockers
 together rather than one at a time.
 
 Otherwise bias toward placing: state what you picked and why in one line, then move on. Stopping to

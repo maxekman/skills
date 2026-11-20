@@ -193,5 +193,5 @@ Elsewhere
 Blocked
   #21 Publish the site on launch day — blocked by app#258, #19
 
-Pick: #20, then /task implement #20
+Pick: #20, then /skills:task implement #20
 ```
