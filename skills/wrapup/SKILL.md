@@ -9,7 +9,8 @@ description: Post-merge wrap-up for a GitHub PR. Fetches and moves onto a fresh 
 
 The step after a PR merges: get the local repo off the dead stack, confirm the change is live
 where it auto-deploys, and surface what the PR left undone. It never opens PRs (`/skills:pr`)
-or picks the next issue (`/backlog`) — it ends by pointing at the latter.
+or picks the next issue (`/backlog`) — it ends by pointing at the next task: the issue's next PR
+when the merged one named it, `/backlog` otherwise.
 
 Handle: $ARGUMENTS
 
@@ -106,8 +107,16 @@ Collect from every source; an empty source is omitted from the report, not liste
     --jq '.data.repository.pullRequest.reviewThreads.nodes[] | select(.isResolved | not)'
   ```
 - **Tracker** — a tracker ID from `headRefName` or the title (`[A-Z]+-\d+`), or
-  `closingIssuesReferences`. Read it with `/skills:task show <id>`: state, and any open
-  sub-issues. An issue still open after its PR merged usually means the auto-close didn't fire.
+  `closingIssuesReferences`. Read it with `/skills:task show <id>`: state, assignee, and any
+  open sub-issues. Then sort it by the PR body:
+  - **Continues** — a `Next PR:` line under `Part of <id>`, or a next PR this session planned.
+    Open by design, so it is no leftover: report `stays open, #N names the next PR`, and it
+    sets the closing line below. Closed anyway, because a merge automation fired on the branch
+    link → offer to move it back to its `started` state.
+  - **Part of, no `Next PR:` line**, as on every PR from before the line existed → it may be
+    done or half done, and only its criteria tell. Offer `/skills:task verify <id>` before any
+    close: met → close it then; unmet → those lines are the next PR's scope.
+  - **Otherwise** still open → the auto-close usually didn't fire.
 - **TODO.md** — open items under a `## <ID> — …` header or tagged `[<ID>]`, in `**/*TODO.md`
   (area queues like `docs/SECURITY_TODO.md` included).
 - **Diff** — `TODO`, `FIXME`, `XXX`, `HACK` used as comment markers (`# TODO:`, `// FIXME`,
@@ -160,26 +169,40 @@ written, since that is what the user can search for; when a lookup fails, leave 
 rather than guess.
 
 Then make **one** batched offer covering whichever apply: close the tracker issue (via
-`/skills:task update <id> status done`), file follow-ups (via `/skills:task create`, one per
-leftover the user picks), prune finished TODO items (`/skills:todo prune done`). Act only on what the
-user approves.
+`/skills:task update <id> status done`; never one that continues, and a `Part of` with no
+`Next PR:` line gets the verify offer instead), file follow-ups (via `/skills:task create`, one
+per leftover the user picks), prune finished TODO items (`/skills:todo prune done`). Act only on
+what the user approves.
 
 When the PR closed a tracker issue or went out in a release — a sign that someone outside the
 team is waiting on it — add one line: `Explain it to stakeholders: /skills:recap #<N>`. Offer
 it; don't run it, since who hears about the change is the user's call.
 
-When sync moved `@` onto a fresh change on trunk, end with one line, even when work remains or
-a run failed. Leftovers are rarely the next task: follow-ups reach the tracker through the
-offer, where `/backlog` ranks them in the same thread, and a wait on billing or a release is no
-task at all. Neither is a rollout still to run against live systems, even with the issue moved
+When sync moved `@` onto a fresh change on trunk, end with one pointer to the next task, even
+when work remains or a run failed. Leftovers are rarely the next task: follow-ups reach the
+tracker through the offer, where `/backlog` ranks them in the same thread, and a wait on billing
+or a release is no task at all. Neither is a rollout still to run against live systems, even with the issue moved
 back to In Progress until it is done: it needs no workspace. When sync left `@` in place, the
-workspace isn't free, so leave the line out.
+workspace isn't free, so leave the pointer out.
 
-The line is `Ready for the next one: /skills:backlog next <ref>`, naming the issue the work
-continues from, so `/backlog` ranks from its thread even after a compaction or in a fresh
-session. On Linear,
-`<ref>` is the tracker ID step 4 found (`ACME-407`), not the PR number, which no Linear issue
-answers to. On GitHub Issues it is `#<N>` when the PR closes or references an issue: `/backlog`
+When the issue **continues**, is assigned to you, and no other workspace's stack carries its ID
+(`jj log -r 'trunk()..working_copies() ~ ::@' --no-graph -T 'bookmarks ++ " " ++
+description.first_line() ++ "\n"'`), its next PR is the next task, and the line is that:
+
+```markdown
+Next PR for [ACME-407](<url>): <the Next PR text>
+/skills:task implement ACME-407
+```
+
+Unlike a leftover, it was planned, scoped and claimed, and this workspace holds its context. The
+command needs no scope: `/task implement` finds the merged PR's `Next PR:` line itself, so it
+also works after a compaction. Print it in place of the `/backlog` line, not beside it: two
+pointers bury the one that matters, and the user can still ask `/backlog` for a ranking.
+
+Otherwise the line is `Ready for the next one: /skills:backlog next <ref>`, naming the issue the
+work continues from, so `/backlog` ranks from its thread even after a compaction or in a fresh
+session. On Linear, `<ref>` is the tracker ID step 4 found (`ACME-407`), not the PR number,
+which no Linear issue answers to. On GitHub Issues it is `#<N>` when the PR closes or references an issue: `/backlog`
 resolves the PR to them, `Part of #M` included. A PR with no issue behind it, such as work picked
 from a TODO.md or a doc's list, gets no ref: a bare PR number anchors on nothing and only leaves
 the user asking what it is, while plain `/skills:backlog next` still anchors on the session.
