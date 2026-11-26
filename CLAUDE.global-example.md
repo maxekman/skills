@@ -33,6 +33,7 @@ Invoke autonomously when the trigger fires — do not improvise the workflows th
 - `/skills:wrapup [#N]` — whenever a PR has merged or landed: sync to trunk, check the dev/staging deploy, and list leftover work from the PR.
 - `/skills:recap [period|#N]` — whenever someone non-technical needs to hear what got done: a weekly or status update, a client summary, or what a merged PR means for them. Plain language, default last 7 days, paste-ready.
 - `/skills:overview [init|status|find]` — a live guide for an umbrella folder of parallel sessions. Start it in its own tab at the umbrella root. It watches every workspace's session, stack, PR and issue, says what needs you, and suggests the next item for an idle free workspace. `status` prints the board once from any session, and `find <workspace | path | issue>` names the live session there, the `SendMessage` address to use instead of guessing from `ListAgents`.
+- `/skills:security-baseline [full|delta]` — when setting up or adopting a repo, and when a change adds or edits a CI workflow, Dockerfile, compose file, IaC or agent settings. Checks the repo against the security baseline and records the gaps in its own register.
 
 ### Build & test
 
