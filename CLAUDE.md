@@ -186,8 +186,8 @@ Handle: $ARGUMENTS
 ## Safety
 ```
 
-Budget: bodies here run 97–207 lines, with `overview` at 263, against a hard ceiling of 500;
-references sit one level deep and run 25–197 lines. `grill-me` is the deliberate outlier — 10
+Budget: bodies here run 97–231 lines, with `overview` at 265, against a hard ceiling of 500;
+references sit one level deep and run 25–221 lines. `grill-me` is the deliberate outlier — 10
 lines, no references, because the whole skill is one instruction. Move detail into
 `references/` when only some runs need it, rather than adding another level of nesting. Text
 every run reads, such as `wrapup`'s report or `overview`'s snapshot fields, stays in the body:
