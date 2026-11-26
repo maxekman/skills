@@ -4,10 +4,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-A Claude Code **plugin marketplace**, not an application. It ships nine skills. Seven chain into a
+A Claude Code **plugin marketplace**, not an application. It ships ten skills. Seven chain into a
 ticket-to-PR loop and back: `/backlog` → `/task` → `/todo` → `/grill-me` → `/jj` → `/pr` →
-`/wrapup`. Two sit beside the loop: `/recap` turns its trail into plain-language updates for
-non-technical readers, and `/overview` watches many runs of it at once from an umbrella folder.
+`/wrapup`. Three sit beside the loop: `/recap` turns its trail into plain-language updates for
+non-technical readers, `/overview` watches many runs of it at once from an umbrella folder, and
+`/security-baseline` checks a repo against a development security baseline.
 
 Everything here is markdown, two JSON manifests and one Python script (`overview`'s
 snapshot). There is no build step — CI only
@@ -73,12 +74,12 @@ CLAUDE.global-example.md   template for the *user's* ~/.claude/CLAUDE.md, not re
 **`plugin.json` enumerates skills explicitly.** A new `skills/<name>/` directory is inert until
 its path is added to that array — the easiest thing in this repo to get wrong, because nothing
 errors, the skill simply never loads. Current order: `jj`, `pr`, `task`, `backlog`, `todo`,
-`grill-me`, `wrapup`, `recap`, `overview`.
+`grill-me`, `wrapup`, `recap`, `overview`, `security-baseline`.
 
 Only `overview` has a `scripts/` directory: a standard-library Python 3.9 snapshot that the skill
 runs with `/usr/bin/python3` via `${CLAUDE_SKILL_DIR}`, so no umbrella's mise pins can break it.
 Check a change to it with `python3 -m py_compile` and a `--discover` run against a scratch jj
-repo with two workspaces. The other eight are prose plus references.
+repo with two workspaces. The other nine are prose plus references.
 
 ## How a change here goes live
 
@@ -163,7 +164,7 @@ Limits: `description` ≤1024 chars with **no angle brackets** under the portabl
 spec. Claude Code accepts angle brackets, but a portable check fails on them, so leave them out.
 
 **`skill-creator/scripts/quick_validate.py` validates against the portable spec**, so it flags
-`argument-hint` as an "unexpected key" on eight of nine skills. That is a false positive here —
+`argument-hint` as an "unexpected key" on nine of ten skills. That is a false positive here —
 never strip `argument-hint` to satisfy it. It also requires PyYAML, which isn't installed.
 
 ## SKILL.md house shape

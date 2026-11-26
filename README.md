@@ -54,6 +54,13 @@ board: which issue each workspace is on, which session is waiting on you, which 
 merged, and which workspace is free for the next item. You start the work in the
 sessions. It monitors, suggests, and acts only on a yes.
 
+`/security-baseline` stands beside the loop too. Run it when a repo is set up or adopted, and
+again when a change adds a CI workflow, a Dockerfile, IaC or agent settings. It checks the repo
+against a baseline of development security hygiene: pinned actions and images, least-privilege
+CI tokens, keyless cloud access, non-root containers, secret and dependency scanning,
+authorization coverage tests, loopback-only dev servers, and agent allowlists. It records the
+gaps in the repo's own security register and fixes nothing unasked.
+
 ## The skills
 
 | Skill | Use it for |
@@ -67,6 +74,7 @@ sessions. It monitors, suggests, and acts only on a yes.
 | `/wrapup` | After the merge: fetch and move onto a fresh change when nothing else is in flight, watch the deploy and smoke runs the merge triggered and probe dev/staging read-only, then list what the PR left behind — unresolved threads, open tracker issues, TODO items — and offer to file or close them |
 | `/recap` | A short plain-language update for non-technical readers — what is live, what is done, what is in progress, what to watch — from merged PRs, commits, changelogs and closed tickets. Last 7 days by default, any window, or a single PR. Read-only; it never posts |
 | `/overview` | A live guide for many parallel sessions, started from the umbrella folder above their jj workspaces. Watches each session's state, stack, PR and issue, pushes a notification when something needs you, suggests the next ranked item for an idle free workspace, and after a merge offers to close an issue that did not auto-close. `init` sets up a folder, `status` prints the board once, and `find` names the live session in a workspace, path or issue, so another session can message it |
+| `/security-baseline` | Check a repo against a development security baseline — CI workflows, pins, containers, scanning, secrets handling, authorization coverage, local dev bindings, agent settings, branch protection — and record the gaps in the repo's own register. `delta` checks only what changed since the last check. In a public repo, findings stay in the conversation. Read-only apart from the register |
 
 Not every change starts from a ticket. `/task implement "fix the flaky retry test"` searches the
 tracker for that work, adopts it if it is already filed, and otherwise opens an issue assigned to
@@ -165,12 +173,13 @@ Two things it is worth keeping whatever else you change:
 `jj` ([Jujutsu](https://jj-vcs.github.io/jj/)) is my version control of choice, and `/jj`,
 `/skills:pr` and `/wrapup` assume it — they speak bookmarks and revsets, not branches. If you
 are on plain git those three will not be much use to you, though `/task`, `/todo`,
-`/grill-me` and `/recap` work either way.
+`/grill-me`, `/recap` and `/security-baseline` work either way.
 
 - `jj` for `/jj`, `/skills:pr` and `/wrapup`; `gh` for `/skills:pr`, `/wrapup` and GitHub-backed `/task` and `/backlog`
 - A Linear MCP server for Linear-backed `/task` and `/backlog` — both fall back to GitHub Issues
 - `jj` or `git` for `/recap`; `gh` makes it far better, since PR descriptions say *why*
 - `/overview` needs `jj` or `git`, `gh`, and `/usr/bin/python3` (macOS ships 3.9); it reads Claude Code's local session registry, so it only sees sessions on the same machine
+- `/security-baseline` needs `jj` or `git`, and `gh` for the repo settings; `gitleaks` makes its history check possible
 - `/todo` needs `/jj` and `/skills:pr` only for `implement`'s delivery; `/grill-me` has no dependencies
 
 ## Credits
