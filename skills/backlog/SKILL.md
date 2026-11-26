@@ -68,7 +68,8 @@ Candidates are open, unassigned leaf issues. A parent with open sub-issues is tr
 through its children, so rank the children — a child with no milestone takes its parent's.
 Anything assigned is excluded, in flight (Linear `started`, GitHub assigned) or not yet started:
 list your own above the ranking, and leave out everyone else's without comment. Your own are
-never a pick either — with parallel sessions, another one usually holds them.
+never a pick either — with parallel sessions, another one usually holds them. The one exception
+is an anchor whose next PR is pending in this workspace, which `next` puts first.
 
 To express "A should come before B":
 
@@ -119,7 +120,8 @@ of #19 under #13`). Exclude anything blocked, and list blocked-but-otherwise-top
 separately with the blocker named — one hop, never the blocker's own blockers. A free-text
 scope ("the software side") maps onto labels, milestones or projects that exist: alone it is the
 anchor, beside a ref it narrows both sections — state the mapping you used. Close with one pick:
-the thread's top, or Elsewhere's only when the thread is stalled, and any alternative you offer
+the anchor's pending next PR when there is one, then the thread's top, or Elsewhere's only when
+the thread is stalled, and any alternative you offer
 is a candidate too. Hand it to `/skills:task implement <id>`.
 
 Every issue and PR the output names carries its title once: on its own ranked line, or at its

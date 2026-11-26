@@ -17,7 +17,8 @@ parent #13 / Launch the website`.
    `gh pr view <n> --json closingIssuesReferences,body,headRefName`. `closingIssuesReferences`
    holds only the closing keywords (`Closes`, `Fixes`), so also scan the body for `Part of #N`
    and `Refs #N` — the issue a PR only advances is usually the one the thread continues. On
-   Linear, the ID sits in the PR title (`ACME-407 / Title`) or the branch name. A topic beside
+   Linear, the ID sits in the PR title (`ACME-407 / Title`) or the branch name. A `Next PR:`
+   line in the body means the issue continues: see *A pending next PR* below. A topic beside
    the ref narrows that thread rather than replacing it. A ref naming another repo
    (`owner/repo#29`) also sets the repo for the run, as `SKILL.md` says: `-R owner/repo` on
    every `gh` call.
@@ -59,6 +60,28 @@ A closed anchor is normal — the merge just closed it. Its relations still defi
 the open-issue read doesn't return it, so fetch it once: GitHub
 `gh issue view <n> --json parent,blocking,blockedBy,milestone,labels`, Linear
 `get_issue(id, includeRelations: true)`.
+
+## A pending next PR
+
+A split issue ships as several PRs, and the one that merged names the next in its body:
+`Part of ACME-407`, then `Next PR: <what it ships>`. When the anchor is that issue, its next PR
+comes before any ranking, because it was planned, scoped and claimed, and only waits for someone
+to start it. The rank contract's "your own are never a pick" exists because another session
+usually holds your in-flight work, so check that none does:
+
+1. The anchor is open. Its newest merged PR has the line: the PR from the args, or for an issue
+   ref, `gh pr list --state merged --search "<id>" --json number,title,body,headRefName,mergedAt`,
+   keeping only bodies that link it as `Part of <id>`.
+2. No workspace's stack carries its ID: the source 5 command, plus this workspace's own stack.
+3. The PR came from here: this session wrapped it up or shipped it, or its `headRefName` is a
+   bookmark source 4's op-log read shows this workspace pushed.
+
+All three hold → print `Finish first: ACME-407's next PR, <the Next PR text>` under the anchor
+line, and make it the pick: `Pick: ACME-407's next PR, then /skills:task implement ACME-407`. The
+sections still follow as usual, so the ranking you asked for stays in view, but they no longer
+decide the pick. Fail only 3 → it belongs to the workspace that shipped PR 1: name it on the
+in-flight line, `ACME-407 — next PR pending (from app-3)`, and rank as usual. Fail 1 or 2 → there
+is nothing pending here.
 
 ## Who is in the thread
 
@@ -106,7 +129,7 @@ blocker that holds up the most members, then the move that frees it:
 
 | Blocker | Move |
 |---|---|
-| Yours, in flight | Say the thread waits on it, and where (`in backend-2`) — never "finish it", since another session most likely holds it |
+| Yours, in flight | Say the thread waits on it, and where (`in backend-2`) — never "finish it", since another session most likely holds it. The exception is a pending next PR that passes the checks above: there the move is that next PR |
 | Someone else's | Name the owner; the move is a nudge, not a pick |
 | In another repo | `Continue there: /skills:backlog next owner/repo#N`, run from that repo |
 
