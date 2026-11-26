@@ -41,11 +41,17 @@ A workspace with no live session is still on the board: its stack tells what was
 When a PR moves to `MERGED`:
 
 1. **Did the issue close?** GitHub: is `#N` in the PR's `closes`, and is its state `CLOSED`
-   in `issues`? Linear: fetch the issue and check that its `statusType` is `completed`. If it is
-   still open, offer to close it with a one-line comment, "Closed by PR #M". GitHub:
+   in `issues`? Linear: fetch the issue and check that its `statusType` is `completed`. Still
+   open → read the body once, `gh pr view M -R owner/repo --json body`, since the snapshot
+   carries none. A `Next PR:` line means the issue continues in a planned next PR: skip the close
+   offer, and step 2's suggestion for that workspace is the next PR. Otherwise offer to close it
+   with a one-line comment, "Closed by PR #M". GitHub:
    `gh issue close N -R owner/repo --reason completed --comment "…"`. Linear: set its state
    through `save_issue`, following the *Write contract* in `references/linear.md` of the `backlog` skill beside this one.
-2. **What comes next?** A merge that ticked a queue box moves that file's `next` on; rank it
+2. **What comes next?** A merge that names a next PR sets its workspace's `next` in
+   `notes.json` to that, `"ACME-407 / Add rate limiting (next PR: <its text>)"`, and that
+   workspace takes no ranked item below: it holds the issue's context, and the next PR waits only
+   for it. A merge that ticked a queue box moves that file's `next` on; rank it
    with the tracker items as *Suggesting the next item* says. In a Linear repo, start a refresh of the team's graph
    (`references/graph.md`). Say the merge in one chat line that names what it unblocked: the
    issues it blocked that now have no open blocker left, e.g. "PR #88 / Sync the report list
