@@ -60,6 +60,8 @@ Then dispatch:
 3. No slug in the URL and no `gitBranchName` → kebab-case the issue title yourself.
 4. **GitHub** → `<git-user>/<number>-<slug>` (`max/42-fix-the-footer-links`), with `<slug>` the issue title in kebab case, cut at a word boundary near 50 characters. GitHub URLs carry no slug. The number leads so `/skills:pr` and `/overview` can read the issue back off the bookmark.
 
+**Then check for earlier PRs on that name.** An issue split across PRs ships them as `<name>`, `<name>-2`, `<name>-3`…, so walk the names in order with `gh pr list --head <candidate> --state all --json number,state,body`: `MERGED` → try the next one; `OPEN` → this is resumed work on that PR, so keep the name; nothing → this is the free name. Pin the name the walk stops on. When the newest merged PR's body carries a `Next PR:` line, this run is that PR: the line joins the guidance, and its items, the next PR and any `; then` after it, become the Delivery plan's **PRs** list rather than a fresh split.
+
 If the issue is already closed, flag it prominently — the user may want context, not new work, and should confirm before planning.
 
 **Stop on an open blocker.** A blocker is open when its `statusType` is not `completed` or `canceled` (GitHub: its `state` is `OPEN`). Work planned on top of one either waits on it anyway or quietly builds the blocker's part as well, and both surface only at review. So before step 3, name each open blocker (ID, title, status) and ask with `AskUserQuestion`: proceed anyway, implement the blocker instead (`/skills:task implement <blocker-id>`), or stop. Skip the question when the user already said to go — in the guidance (`ACME-407 go despite the blocker`) or earlier in the session. Since this runs before step 8, a blocked issue is never claimed without that go-ahead.
@@ -114,8 +116,9 @@ Extract 1-2 core keywords from the issue title (the main noun/concept, not fille
 **Deliverable**: [shape(s) from step 3]
 **Branch**: [pinned in step 2]
 **PR title**: [ID] / [issue title, sentence case] — Linear; GitHub: a conventional `type(scope): …`
+[If the work is split: **PRs**: 1. [what this PR ships] 2. [what the next one ships] …]
 **Done when**:
-- [acceptance criterion]
+- [acceptance criterion — with a PRs list, prefixed (1), (2)… for the PR that meets it]
 - [acceptance criterion]
 
 ## Open Questions
@@ -124,7 +127,7 @@ Extract 1-2 core keywords from the issue title (the main noun/concept, not fille
 
 Keep excerpts focused — enough context to plan, not a wall of text.
 
-Build the PR title from the **issue title**, not the slug — the slug has lost its capitalization, so `spike-verify-sso-sandbox-reservation-creation` round-trips as "Spike verify sso sandbox…" and mangles acronyms like SSO. Drop the branch and PR title lines when the deliverable is findings or follow-up issues only; add them back if code or docs end up changing after all.
+Build the PR title from the **issue title**, not the slug — the slug has lost its capitalization, so `spike-verify-sso-sandbox-reservation-creation` round-trips as "Spike verify sso sandbox…" and mangles acronyms like SSO. With a **PRs** list, the title names this PR's item instead (`ACME-407 / Count requests per tenant` for an issue titled *Add rate limiting*), since the issue title promises more than one PR ships. Drop the branch and PR title lines when the deliverable is findings or follow-up issues only; add them back if code or docs end up changing after all.
 
 Derive **Done when** from the issue's own acceptance criteria where it states them. Where it doesn't, write what you believe done means and mark the lines as your inference — that is exactly the kind of gap step 7 exists to catch.
 
@@ -137,6 +140,7 @@ Scan for genuine gaps:
 - Multiple plausible technical approaches the issue doesn't pick between.
 - Conflicting guidance across comments — a later one contradicts the description.
 - The user's guidance from step 1 contradicts the issue — narrows it below an acceptance criterion, or picks an approach a comment ruled out.
+- The work is too big for one reviewable PR. Propose the split as a **PRs** list and ask: the split decides what each PR's gate checks, and a split the user never agreed to surfaces only when PR 1 arrives half done. One that turns up mid-build is asked the same way before the list changes.
 
 Resolve them with `AskUserQuestion` — multiple choice where possible, with an escape hatch. Don't ask about things the issue already answers. If nothing is ambiguous, say so explicitly so the user knows the check ran.
 
@@ -163,7 +167,7 @@ In plan mode the tracker stays untouched, so the claim goes *into* the plan as i
 jj bookmark create <pinned branch> -r @
 ```
 
-The issue ID then lives in the workspace from the start, where `/skills:pr`, `/overview` and `/backlog next` read it back after a compaction or a restart, not only once a PR exists. Creating it on an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays on that change, which becomes the first commit once it is described. It stays local until `/skills:pr` pushes it. If the name already exists, check `gh pr list --head <name> --state merged`: merged → plant `<name>-2` instead and say so; otherwise it is this issue's resumed work, so keep it. If the work is abandoned, `jj bookmark delete <name>` cleans up.
+The issue ID then lives in the workspace from the start, where `/skills:pr`, `/overview` and `/backlog next` read it back after a compaction or a restart, not only once a PR exists. Creating it on an empty working copy warns *"Target revision is empty"* and is still correct: the bookmark stays on that change, which becomes the first commit once it is described. It stays local until `/skills:pr` pushes it. Plant the name step 2's walk stopped on; when that is `<name>-2` or later, say so. A local bookmark already on that name is this issue's resumed work, so keep it. If the work is abandoned, `jj bookmark delete <name>` cleans up.
 
 ## Step 9 — Deliver
 
@@ -174,7 +178,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **Gate — all must hold:**
 
 - The tracker issue exists and is claimed. It normally is, by step 8 for an existing issue and on plan approval for a description's new one, so a skipped step surfaces here. `/skills:pr` has nothing to attach a PR to without the issue, so create or claim it now rather than committing first.
-- Every **Done when** line passes the criteria check in `verify.md` (steps 2–3, using this list as the source) — read it now. Partial or unmet fails the gate. A can't-tell line passes only if the tests below settle it; otherwise report it as unverified.
+- Every **Done when** line passes the criteria check in `verify.md` (steps 2–3, using this list as the source) — read it now. With a **PRs** list, that is every line tagged with this PR or an earlier one; later PRs' lines are not this gate's. Partial or unmet fails the gate. A can't-tell line passes only if the tests below settle it; otherwise report it as unverified.
 - The project's formatter, linter, and fast tests pass. Find the targets in `Makefile`, `package.json`, `mix.exs`, or `.mise.toml`. If you cannot run them at all, that is a gate failure — say so rather than reporting green.
 - New behavior has the tests a reviewer would ask for, or the repo demonstrably doesn't test that area.
 - The diff stays inside the issue's scope. Unrelated drive-by edits mean stop and ask, not a bigger PR.
@@ -189,7 +193,7 @@ When the implementation is complete, run the gate. If every condition holds, inv
 **On a pass, hand off in order:**
 
 1. `/skills:jj` — it reads the diff, splits mixed changes, and writes the message. Don't pre-compose the commit yourself. If a `TODO.md` tracks this work, `/jj` checks the items off and carries the tracker tag (`[ACME-407]`-style) into the message.
-2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the PR title and attaches the tracker link. Say the issue is complete unless a sub-issue is still open: the gate just passed, and that is what lets a GitHub issue go in as `Closes` rather than `Part of`. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
+2. `/skills:pr` — pass the pinned branch name so the Linear slug survives verbatim: `/skills:pr <branch-name>`. It builds the PR title and attaches the tracker link. Say the issue is complete unless a sub-issue is still open or the **PRs** list has a later item: the gate just passed, and that is what lets a GitHub issue go in as `Closes` rather than `Part of`. With a later item, say so and pass the later items as the next PR, which `/skills:pr` writes into the body for `/wrapup`, `/backlog` and `/overview` to read after the merge. The prefix is load-bearing: Claude Code ships a built-in skill called `pr`, so a bare `/pr` does not reach this one. Its *Handed off from `implement`* section stops before the push only when merging would be hard to undo, and sets the report's shape.
 3. Report in that shape, adding anything you consciously left out of scope.
 
 A document-shaped deliverable goes through the same gate — an ADR lands as a docs PR. Skip only the "tests for new behavior" condition, which has nothing to bite on.
