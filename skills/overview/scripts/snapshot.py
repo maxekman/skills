@@ -888,8 +888,8 @@ class Paint:
         return self("2", t)
 
     def link(self, url, t):
-        # OSC 8: the terminal shows t and opens url on Cmd-click, so the board looks the same.
-        return "\033]8;;%s\033\\%s\033]8;;\033\\" % (url, t) if self.on and url and t else t
+        # OSC 8 opens url on Cmd-click. Blue ends with 39, not 0, so a dimmed row stays dim after it.
+        return "\033]8;;%s\033\\\033[34m%s\033[39m\033]8;;\033\\" % (url, t) if self.on and url and t else t
 
 
 def visible(text):
@@ -1394,7 +1394,7 @@ def board_watch(umbrella, config):
             except Exception as e:  # keep the pane alive; the next tick may succeed
                 lines = ["board error: %s" % e]
             # Overwrite in place rather than clear first, which flashed a blank frame every tick.
-            sys.stdout.write("\033[H" + "".join(clip(l, size.columns) + "\033[K\n" for l in lines) + "\033[J")
+            sys.stdout.write("\033[H" + "".join("  " + clip(l, size.columns - 2) + "\033[K\n" for l in lines) + "\033[J")
             sys.stdout.flush()
             time.sleep(LOCAL_INTERVAL)
     except KeyboardInterrupt:
